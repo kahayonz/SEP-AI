@@ -216,3 +216,31 @@ body.dark .file-input {
 .nav-menu-btn {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
 }
+
+/* Additional styles for student portal */
+#results {
+  transition: all 0.3s ease;
+}
+
+.hidden {
+  display: none;
+}
+
+#recommendations > div {
+  transition: all 0.3s ease;
+}
+
+#recommendations > div:hover {
+  transform: translateX(10px);
+}
+
+/* File upload zone hover effect */
+[for="fileUpload"]:hover {
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+/* Score animation */
+#score {
+  transition: all 0.5s ease;
+}
