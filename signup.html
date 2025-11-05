@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEP-AI - Sign Up</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script>
+    // Same dark mode toggle function as other pages
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
+  <!-- Same navbar as other pages -->
+
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-[#232326] p-8 rounded-xl shadow-lg border border-gray-200 dark:border-[#27272a]">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Create your account</h2>
+      </div>
+      <form class="mt-8 space-y-6" action="#" method="POST">
+        <div class="rounded-md shadow-sm space-y-4">
+          <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
+            <input type="text" id="firstName" name="firstName" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+          
+          <div>
+            <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
+            <input type="text" id="lastName" name="lastName" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">I am a:</label>
+            <div class="mt-2 flex space-x-4">
+              <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Student
+              </button>
+              <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Professor
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <input type="email" id="email" name="email" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+            <input type="password" id="password" name="password" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label for="verifyPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Verify Password</label>
+            <input type="password" id="verifyPassword" name="verifyPassword" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label for="university" class="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+            <input type="text" id="university" name="university" required
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+
+          <div class="flex justify-center">
+            <div class="g-recaptcha" data-sitekey="your-site-key"></div>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Sign up
+          </button>
+        </div>
+      </form>
+      
+      <div class="text-center">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Already have an account?
+          <a href="login.html" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            Sign in
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
