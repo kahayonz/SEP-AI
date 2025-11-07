@@ -22,7 +22,7 @@ security = HTTPBearer()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000", "http://localhost:3000", "http://127.0.0.1:3000"],  # Add your frontend URLs
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +40,27 @@ class LoginIn(BaseModel):
     email: str
     password: str
 
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials  # Extract the actual JWT token
+
+    try:
+        user_response = supabase.auth.get_user(token)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+    if not user_response.user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    return user_response.user
+
+@app.post("/logout")
+async def logout(current_user=Depends(get_current_user)):
+    try:
+        response = supabase.auth.sign_out()
+        return {"message": "Successfully logged out"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.post("/signup")
 async def signup(payload: SignupIn):
     try:
@@ -52,11 +73,10 @@ async def signup(payload: SignupIn):
 
     user = auth_response.user
     if not user:
-        raise HTTPException(status_code=400, detail="Signup failed or confirmation required.")
+        raise HTTPException(status_code=400, detail="Signup failed.")
 
     auth_id = user.id
 
-    #use service role client to bypass RLS
     try:
         insert_response = admin_client.table("users").insert({
             "auth_id": auth_id,
@@ -69,7 +89,14 @@ async def signup(payload: SignupIn):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return {"message": "User created successfully", "user": {"id": user.id, "email": user.email}}
+    return {
+        "message": "Please check your email to confirm your account",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "role": payload.role
+        }
+    }
 
 @app.post("/login")
 async def login(payload: LoginIn):
@@ -84,25 +111,22 @@ async def login(payload: LoginIn):
     session = auth_response.session
     user = auth_response.user
 
+    # Get user role from users table
+    try:
+        user_data = admin_client.table("users").select("role").eq("auth_id", user.id).execute()
+        if user_data.data and len(user_data.data) > 0:
+            role = user_data.data[0]["role"]
+        else:
+            raise HTTPException(status_code=400, detail="User role not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     return {
         "message": "Login successful",
         "access_token": session.access_token,
         "refresh_token": session.refresh_token,
-        "user": {"id": user.id, "email": user.email}
+        "user": {"id": user.id, "email": user.email, "role": role}
     }
-
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials  # Extract the actual JWT token
-
-    try:
-        user_response = supabase.auth.get_user(token)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-    if not user_response.user:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    return user_response.user
 
 @app.get("/me")
 async def me(current_user=Depends(get_current_user)):
