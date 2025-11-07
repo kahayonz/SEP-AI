@@ -40,8 +40,12 @@
           localStorage.setItem('access_token', data.access_token);
           localStorage.setItem('refresh_token', data.refresh_token);
           
-          // Redirect based on user role (you'll need to implement role check)
-          window.location.href = 'student.html';
+          // Redirect based on user role
+          if (data.user.role === 'professor') {
+            window.location.href = 'professor.html';
+          } else {
+            window.location.href = 'student.html';
+          }
         } else {
           alert(data.detail || 'Login failed');
         }

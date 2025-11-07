@@ -18,7 +18,7 @@
         password: document.getElementById('password').value,
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
-        role: document.querySelector('button.selected').dataset.role || 'student', // Add data-role attributes to role buttons
+        role: document.querySelector('button.selected').dataset.role,
         university: document.getElementById('university').value
       };
       
@@ -34,8 +34,8 @@
         const data = await response.json();
         
         if (response.ok) {
-          alert('Signup successful! Please login.');
-          window.location.href = 'login.html';
+          localStorage.setItem('pending_role', formData.role);
+          window.location.href = 'confirmation.html';
         } else {
           alert(data.detail || 'Signup failed');
         }
