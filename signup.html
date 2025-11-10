@@ -8,7 +8,54 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script>
-    // Same dark mode toggle function as other pages
+    // Dark mode toggle function (same as other pages)
+    
+    async function handleSignup(event) {
+      event.preventDefault();
+      
+      const formData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        role: document.querySelector('button.selected').dataset.role,
+        university: document.getElementById('university').value
+      };
+      
+      try {
+        const response = await fetch('http://localhost:8000/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          localStorage.setItem('pending_role', formData.role);
+          window.location.href = 'confirmation.html';
+        } else {
+          alert(data.detail || 'Signup failed');
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        alert('Signup failed. Please try again.');
+      }
+    }
+
+    function selectRole(button) {
+      // Remove selection from other buttons
+      document.querySelectorAll('.role-btn').forEach(btn => {
+        btn.classList.remove('selected', 'bg-blue-600', 'text-white');
+        btn.classList.add('bg-white', 'dark:bg-gray-700');
+      });
+      
+      // Add selection to clicked button
+      button.classList.remove('bg-white', 'dark:bg-gray-700');
+      button.classList.add('selected', 'bg-blue-600', 'text-white');
+    }
   </script>
 </head>
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
@@ -19,7 +66,7 @@
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Create your account</h2>
       </div>
-      <form class="mt-8 space-y-6" action="#" method="POST">
+      <form class="mt-8 space-y-6" onSubmit="handleSignup(event)">
         <div class="rounded-md shadow-sm space-y-4">
           <div>
             <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
@@ -36,10 +83,14 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">I am a:</label>
             <div class="mt-2 flex space-x-4">
-              <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button type="button" data-role="student" 
+                      class="role-btn px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onclick="selectRole(this)">
                 Student
               </button>
-              <button type="button" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button type="button" data-role="professor"
+                      class="role-btn px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onclick="selectRole(this)">
                 Professor
               </button>
             </div>
