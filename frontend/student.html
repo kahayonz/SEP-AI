@@ -65,15 +65,38 @@
         <h3 class="text-2xl font-bold mb-6">Project Submission</h3>
         
         <!-- Dropbox -->
-        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8">
-          <input type="file" id="fileUpload" class="hidden" multiple>
-          <label for="fileUpload" class="cursor-pointer">
-            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <p class="mt-1">Drag and drop your project files here, or click to browse</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Maximum file size: 50MB</p>
-          </label>
+        <div id="dropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+          <input type="file" id="fileUpload" class="hidden" accept=".zip">
+
+          <!-- Upload State -->
+          <div id="uploadPrompt" class="cursor-pointer">
+            <label for="fileUpload">
+              <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+            </label>
+          </div>
+
+          <!-- File Selected State -->
+          <div id="fileSelected" class="hidden">
+            <div class="flex items-center justify-center space-x-4">
+              <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div class="text-left">
+                <p class="font-medium text-gray-900 dark:text-white" id="selectedFileName"></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400" id="selectedFileSize"></p>
+              </div>
+              <button id="removeFile" class="text-red-500 hover:text-red-700 p-1">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+          </div>
         </div>
 
         <!-- Guidelines -->
@@ -87,7 +110,7 @@
           </ul>
         </div>
 
-        <button onclick="simulateSubmission()" class="primary-btn w-full">Submit Project</button>
+        <button onclick="handleProjectSubmission()" class="primary-btn w-full">Submit Project</button>
       </div>
 
       <!-- Results Section (hidden by default) -->
@@ -149,33 +172,84 @@
   </div>
 
   <script>
-    function simulateSubmission() {
-      // Show results section
-      document.getElementById('results').classList.remove('hidden');
-      
-      // Generate random score
-      const score = Math.floor(Math.random() * 101);
-      document.getElementById('score').textContent = score;
-      
-      // Generate recommendations based on score
-      const recommendations = document.getElementById('recommendations');
-      recommendations.innerHTML = ''; // Clear previous recommendations
-      
-      const possibleRecommendations = [
-        { threshold: 60, text: "Improve code documentation and comments" },
-        { threshold: 70, text: "Consider implementing more unit tests" },
-        { threshold: 80, text: "Optimize database queries for better performance" },
-        { threshold: 90, text: "Refactor code to follow DRY principles" }
-      ];
+    async function handleProjectSubmission() {
+      const fileInput = document.getElementById('fileUpload');
+      if (!fileInput.files.length) {
+        alert("Please select a ZIP file.");
+        return;
+      }
 
-      possibleRecommendations.forEach(rec => {
-        if (score < rec.threshold) {
-          const div = document.createElement('div');
-          div.className = 'p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg';
-          div.textContent = rec.text;
-          recommendations.appendChild(div);
+      const file = fileInput.files[0];
+      if (!file.name.toLowerCase().endsWith('.zip')) {
+        alert("Please select a valid ZIP file.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("You must be logged in to submit projects.");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Show loading state
+      const submitButton = document.querySelector('button[onclick="handleProjectSubmission()"]');
+      const originalText = submitButton.textContent;
+      submitButton.textContent = "Evaluating...";
+      submitButton.disabled = true;
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/ai_evaluate", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const { feedback, score } = data.results;
+
+          // Show results section
+          document.getElementById('results').classList.remove('hidden');
+
+          // Update score
+          document.getElementById('score').textContent = score;
+
+          // Update recommendations (feedback)
+          const recommendations = document.getElementById('recommendations');
+          recommendations.innerHTML = '';
+
+          // Split feedback into lines and display as recommendations
+          const feedbackLines = feedback.split('\n').filter(line => line.trim());
+          feedbackLines.forEach(line => {
+            if (line.trim()) {
+              const div = document.createElement('div');
+              div.className = 'p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg';
+              div.textContent = line.trim();
+              recommendations.appendChild(div);
+            }
+          });
+
+          // Scroll to results
+          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+        } else {
+          alert(`Evaluation failed: ${data.detail || "Unknown error"}`);
         }
-      });
+      } catch (error) {
+        console.error('Evaluation error:', error);
+        alert("Network error. Please check your connection and try again.");
+      } finally {
+        // Reset button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+      }
     }
 
     async function handleLogout() {
@@ -215,52 +289,63 @@
       });
     });
 
-    // Show AI Evaluation section by default
-    document.getElementById('ai-evaluation').classList.remove('hidden');
-  </script>
-  <div id="ai-eval-tab" class="p-6">
-    <h2 class="text-xl font-bold mb-4">AI Self Evaluation</h2>
-    <input type="file" id="projectZip" accept=".zip" class="mb-4">
-    <button id="evaluateBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Upload & Evaluate</button>
-
-    <div id="aiResults" class="mt-4 text-gray-700"></div>
-  </div>
-
-  <script>
-  document.getElementById("evaluateBtn").addEventListener("click", async () => {
-    const fileInput = document.getElementById("projectZip");
-    if (!fileInput.files.length) {
-      alert("Please select a zip file.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    const token = localStorage.getItem("access_token"); // from login
-
-    document.getElementById("aiResults").innerHTML = "⏳ Evaluating... please wait.";
-
-    const res = await fetch("http://127.0.0.1:8000/api/ai_evaluate", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
+    // File upload dropbox functionality
+    document.getElementById('fileUpload').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        updateDropboxWithFile(file);
+      } else {
+        resetDropbox();
+      }
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      const { feedback, score } = data.results;
-      document.getElementById("aiResults").innerHTML = `
-        <h3 class="font-semibold">AI Feedback:</h3>
-        <pre class="bg-gray-100 p-4 rounded mt-2">${feedback}</pre>
-        <p class="mt-2 font-bold text-blue-600">Tentative Score: ${score}</p>
-      `;
-    } else {
-      document.getElementById("aiResults").innerHTML = `<p class="text-red-600">${data.detail || "Error during evaluation"}</p>`;
+    // Remove file functionality
+    document.getElementById('removeFile').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      resetDropbox();
+      document.getElementById('fileUpload').value = '';
+    });
+
+    // Make file selected area clickable to change file
+    document.getElementById('fileSelected').addEventListener('click', function() {
+      document.getElementById('fileUpload').click();
+    });
+
+    function updateDropboxWithFile(file) {
+      const fileName = file.name;
+      const fileSize = formatFileSize(file.size);
+
+      document.getElementById('selectedFileName').textContent = fileName;
+      document.getElementById('selectedFileSize').textContent = fileSize;
+
+      document.getElementById('uploadPrompt').classList.add('hidden');
+      document.getElementById('fileSelected').classList.remove('hidden');
+
+      // Update dropbox styling to indicate file is selected
+      document.getElementById('dropbox').classList.remove('border-gray-300', 'dark:border-gray-600');
+      document.getElementById('dropbox').classList.add('border-green-300', 'dark:border-green-600');
     }
-  });
+
+    function resetDropbox() {
+      document.getElementById('uploadPrompt').classList.remove('hidden');
+      document.getElementById('fileSelected').classList.add('hidden');
+
+      // Reset dropbox styling
+      document.getElementById('dropbox').classList.remove('border-green-300', 'dark:border-green-600');
+      document.getElementById('dropbox').classList.add('border-gray-300', 'dark:border-gray-600');
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Show AI Evaluation section by default
+    document.getElementById('ai-evaluation').classList.remove('hidden');
   </script>
 </body>
 </html>
