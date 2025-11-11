@@ -36,9 +36,12 @@
         const data = await response.json();
         
         if (response.ok) {
+          // Supabase returns session tokens nested under `data.session`
+          const access_token = data.session?.access_token || data.access_token;
+          const refresh_token = data.session?.refresh_token || data.refresh_token;
           // Store tokens
-          localStorage.setItem('access_token', data.access_token);
-          localStorage.setItem('refresh_token', data.refresh_token);
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('refresh_token', refresh_token);
           
           // Redirect based on user role
           if (data.user.role === 'professor') {

@@ -149,19 +149,6 @@
   </div>
 
   <script>
-    function toggleDropdown() {
-      var menu = document.getElementById('dropdownMenu');
-      menu.classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', function(event) {
-      var menu = document.getElementById('dropdownMenu');
-      var button = document.getElementById('menuButton');
-      if (!menu.contains(event.target) && !button.contains(event.target)) {
-        menu.classList.add('hidden');
-      }
-    });
-
     function simulateSubmission() {
       // Show results section
       document.getElementById('results').classList.remove('hidden');
@@ -230,6 +217,50 @@
 
     // Show AI Evaluation section by default
     document.getElementById('ai-evaluation').classList.remove('hidden');
+  </script>
+  <div id="ai-eval-tab" class="p-6">
+    <h2 class="text-xl font-bold mb-4">AI Self Evaluation</h2>
+    <input type="file" id="projectZip" accept=".zip" class="mb-4">
+    <button id="evaluateBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Upload & Evaluate</button>
+
+    <div id="aiResults" class="mt-4 text-gray-700"></div>
+  </div>
+
+  <script>
+  document.getElementById("evaluateBtn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("projectZip");
+    if (!fileInput.files.length) {
+      alert("Please select a zip file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    const token = localStorage.getItem("access_token"); // from login
+
+    document.getElementById("aiResults").innerHTML = "⏳ Evaluating... please wait.";
+
+    const res = await fetch("http://127.0.0.1:8000/api/ai_evaluate", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      const { feedback, score } = data.results;
+      document.getElementById("aiResults").innerHTML = `
+        <h3 class="font-semibold">AI Feedback:</h3>
+        <pre class="bg-gray-100 p-4 rounded mt-2">${feedback}</pre>
+        <p class="mt-2 font-bold text-blue-600">Tentative Score: ${score}</p>
+      `;
+    } else {
+      document.getElementById("aiResults").innerHTML = `<p class="text-red-600">${data.detail || "Error during evaluation"}</p>`;
+    }
+  });
   </script>
 </body>
 </html>

@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from supabase import create_client, Client
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from app.auth import get_current_user
+from app.routes_ai import router as ai_router
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -18,6 +20,7 @@ admin_client: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 app = FastAPI()
 security = HTTPBearer()
+app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
 
 # Add CORS middleware
 app.add_middleware(
@@ -40,26 +43,11 @@ class LoginIn(BaseModel):
     email: str
     password: str
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials  # Extract the actual JWT token
-
-    try:
-        user_response = supabase.auth.get_user(token)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-    if not user_response.user:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    return user_response.user
-
 @app.post("/logout")
 async def logout(current_user=Depends(get_current_user)):
-    try:
-        response = supabase.auth.sign_out()
-        return {"message": "Successfully logged out"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    # JWT tokens are stateless - actual logout happens client-side
+    # This endpoint just validates the token is still valid
+    return {"message": "Successfully logged out"}
 
 @app.post("/signup")
 async def signup(payload: SignupIn):
