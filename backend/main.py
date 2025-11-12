@@ -3,24 +3,18 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
-from supabase import create_client, Client
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from app.auth import get_current_user
 from app.routes_ai import router as ai_router
-
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-admin_client: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+from app.routes import router as main_router
+from app.database import supabase, admin_client
 
 
 app = FastAPI()
 security = HTTPBearer()
 app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
+app.include_router(main_router, prefix="/api", tags=["Main"])
 
 # Add CORS middleware
 app.add_middleware(

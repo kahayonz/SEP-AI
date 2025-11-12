@@ -210,7 +210,7 @@
     </section>
 
     <!-- Classes Section -->
-    <section id="classes" class="mx-auto max-w-4xl p-6 mt-8 hidden">
+    <section id="classes" class="mx-auto max-w-6xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Manage Classes</h3>
 
@@ -220,14 +220,27 @@
           <form id="createClassForm" class="space-y-4">
             <div>
               <label class="block mb-2">Class Name</label>
-              <input type="text" id="className" class="w-full p-2 border rounded" required>
+              <input type="text" id="className" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
             </div>
             <div>
               <label class="block mb-2">Description</label>
-              <textarea id="classDescription" class="w-full p-2 border rounded" rows="3"></textarea>
+              <textarea id="classDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3"></textarea>
             </div>
             <button type="submit" class="primary-btn">Create Class</button>
           </form>
+        </div>
+
+        <!-- Student Search -->
+        <div class="mb-8">
+          <h4 class="text-xl font-bold mb-4">Search Students</h4>
+          <div class="flex gap-4 mb-4">
+            <input type="text" id="studentSearch" placeholder="Search by first name..." class="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <button onclick="searchStudents()" class="primary-btn">Search</button>
+            <button onclick="loadAllStudents()" class="primary-btn">View All Students</button>
+          </div>
+          <div id="studentSearchResults" class="space-y-2 max-h-60 overflow-y-auto">
+            <!-- Search results will be displayed here -->
+          </div>
         </div>
 
         <!-- Existing Classes -->
@@ -241,7 +254,7 @@
     </section>
 
     <!-- Assessments Section -->
-    <section id="assessments" class="mx-auto max-w-4xl p-6 mt-8 hidden">
+    <section id="assessments" class="mx-auto max-w-6xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Manage Assessments</h3>
 
@@ -251,22 +264,22 @@
           <form id="createAssessmentForm" class="space-y-4">
             <div>
               <label class="block mb-2">Assessment Title</label>
-              <input type="text" id="assessmentTitle" class="w-full p-2 border rounded" required>
+              <input type="text" id="assessmentTitle" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
             </div>
             <div>
-              <label class="block mb-2">Description</label>
-              <textarea id="assessmentDescription" class="w-full p-2 border rounded" rows="3"></textarea>
+              <label class="block mb-2">Instructions</label>
+              <textarea id="assessmentDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3" required></textarea>
             </div>
             <div>
               <label class="block mb-2">Assign to Class</label>
-              <select id="assessmentClass" class="w-full p-2 border rounded" required>
+              <select id="assessmentClass" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                 <option value="">Select a class</option>
                 <!-- Classes will be loaded here -->
               </select>
             </div>
             <div>
               <label class="block mb-2">Due Date</label>
-              <input type="date" id="assessmentDueDate" class="w-full p-2 border rounded" required>
+              <input type="datetime-local" id="assessmentDueDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
             </div>
             <button type="submit" class="primary-btn">Create Assessment</button>
           </form>
@@ -281,6 +294,69 @@
         </div>
       </div>
     </section>
+
+    <!-- Submissions Review Modal -->
+    <div id="submissionsModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-[#232326] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold">Assessment Submissions</h3>
+              <button onclick="closeSubmissionsModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="mb-4 flex gap-4">
+              <button onclick="releaseScores()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Release Scores</button>
+            </div>
+
+            <div id="submissionsList" class="space-y-4">
+              <!-- Submissions will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Submission Modal -->
+    <div id="reviewSubmissionModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-[#232326] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold">Review Submission</h3>
+              <button onclick="closeReviewSubmissionModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div id="submissionDetails" class="space-y-4">
+              <!-- Submission details will be loaded here -->
+            </div>
+
+            <form id="reviewForm" class="mt-6 space-y-4">
+              <div>
+                <label class="block mb-2">Your Feedback</label>
+                <textarea id="professorFeedback" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="4" required></textarea>
+              </div>
+              <div>
+                <label class="block mb-2">Final Score (0-100)</label>
+                <input type="number" id="finalScore" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" min="0" max="100" required>
+              </div>
+              <div class="flex gap-4">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Review</button>
+                <button type="button" onclick="downloadStudentProject()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download Project</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- AI Self-Evaluation Section -->
     <section id="ai-evaluation" class="mx-auto max-w-4xl p-6 mt-8 hidden">
@@ -634,6 +710,564 @@
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
+
+    // Load data on page load
+    window.addEventListener('load', function() {
+      loadClasses();
+      loadAssessments();
+    });
+
+    // Classes functionality
+    async function createClass(event) {
+      event.preventDefault();
+
+      const className = document.getElementById('className').value;
+      const classDescription = document.getElementById('classDescription').value;
+
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        alert('You must be logged in');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/api/classes', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: className,
+            description: classDescription
+          })
+        });
+
+        if (response.ok) {
+          alert('Class created successfully!');
+          document.getElementById('createClassForm').reset();
+          loadClasses();
+          loadAssessments(); // Refresh assessments to update class dropdown
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error creating class:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function loadClasses() {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+
+      try {
+        const response = await fetch('http://localhost:8000/api/classes', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const classes = await response.json();
+          displayClasses(classes);
+          updateAssessmentClassDropdown(classes);
+        }
+      } catch (error) {
+        console.error('Error loading classes:', error);
+      }
+    }
+
+    function displayClasses(classes) {
+      const classesList = document.getElementById('classesList');
+      classesList.innerHTML = '';
+
+      if (classes.length === 0) {
+        classesList.innerHTML = '<p class="text-gray-500">No classes created yet.</p>';
+        return;
+      }
+
+      classes.forEach(cls => {
+        const classDiv = document.createElement('div');
+        classDiv.className = 'bg-gray-50 dark:bg-gray-700 p-4 rounded-lg';
+        classDiv.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h4 class="font-bold text-lg">${cls.name}</h4>
+              <p class="text-gray-600 dark:text-gray-300">${cls.description || 'No description'}</p>
+            </div>
+            <button onclick="loadClassStudents('${cls.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Students
+            </button>
+          </div>
+          <div id="students-${cls.id}" class="hidden">
+            <div class="flex gap-2 mb-2">
+              <input type="text" id="search-${cls.id}" placeholder="Search students..." class="flex-1 p-2 border rounded text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+              <button onclick="searchStudentsForClass('${cls.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Add Student</button>
+            </div>
+            <div id="class-students-${cls.id}" class="space-y-1 max-h-40 overflow-y-auto">
+              <!-- Students will be loaded here -->
+            </div>
+          </div>
+        `;
+        classesList.appendChild(classDiv);
+      });
+    }
+
+    async function loadClassStudents(classId) {
+      const studentsDiv = document.getElementById(`students-${classId}`);
+      const isHidden = studentsDiv.classList.contains('hidden');
+
+      if (isHidden) {
+        const token = localStorage.getItem('access_token');
+        try {
+          const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const students = await response.json();
+            displayClassStudents(classId, students);
+          }
+        } catch (error) {
+          console.error('Error loading class students:', error);
+        }
+      }
+
+      studentsDiv.classList.toggle('hidden');
+    }
+
+    function displayClassStudents(classId, students) {
+      const studentsDiv = document.getElementById(`class-students-${classId}`);
+      studentsDiv.innerHTML = '';
+
+      if (students.length === 0) {
+        studentsDiv.innerHTML = '<p class="text-gray-500 text-sm">No students enrolled.</p>';
+        return;
+      }
+
+      students.forEach(student => {
+        const studentDiv = document.createElement('div');
+        studentDiv.className = 'flex justify-between items-center bg-white dark:bg-gray-600 p-2 rounded';
+        studentDiv.innerHTML = `
+          <span class="text-sm">${student.first_name} ${student.last_name} (${student.email})</span>
+          <button onclick="removeStudentFromClass('${classId}', '${student.id}')" class="text-red-600 hover:text-red-800 text-sm">
+            Remove
+          </button>
+        `;
+        studentsDiv.appendChild(studentDiv);
+      });
+    }
+
+    async function searchStudents() {
+      const query = document.getElementById('studentSearch').value.trim();
+      if (!query) return;
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const students = await response.json();
+          displayStudentSearchResults(students);
+        }
+      } catch (error) {
+        console.error('Error searching students:', error);
+      }
+    }
+
+    async function loadAllStudents() {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch('http://localhost:8000/api/students', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const students = await response.json();
+          displayStudentSearchResults(students);
+        }
+      } catch (error) {
+        console.error('Error loading students:', error);
+      }
+    }
+
+    function displayStudentSearchResults(students) {
+      const resultsDiv = document.getElementById('studentSearchResults');
+      resultsDiv.innerHTML = '';
+
+      if (students.length === 0) {
+        resultsDiv.innerHTML = '<p class="text-gray-500">No students found.</p>';
+        return;
+      }
+
+      students.forEach(student => {
+        const studentDiv = document.createElement('div');
+        studentDiv.className = 'flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-3 rounded';
+        studentDiv.innerHTML = `
+          <div>
+            <span class="font-medium">${student.first_name} ${student.last_name}</span>
+            <span class="text-gray-600 dark:text-gray-300 text-sm ml-2">(${student.email})</span>
+          </div>
+          <span class="text-sm text-gray-500">Click class to add</span>
+        `;
+        resultsDiv.appendChild(studentDiv);
+      });
+    }
+
+    async function searchStudentsForClass(classId) {
+      const query = document.getElementById(`search-${classId}`).value.trim();
+      if (!query) return;
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const students = await response.json();
+          showAddStudentModal(classId, students);
+        }
+      } catch (error) {
+        console.error('Error searching students for class:', error);
+      }
+    }
+
+    function showAddStudentModal(classId, students) {
+      // Simple implementation - show students in an alert for now
+      if (students.length === 0) {
+        alert('No students found with that name.');
+        return;
+      }
+
+      const student = students[0]; // Take first result
+      if (confirm(`Add ${student.first_name} ${student.last_name} to this class?`)) {
+        addStudentToClass(classId, student.id);
+      }
+    }
+
+    async function addStudentToClass(classId, studentId) {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ student_id: studentId })
+        });
+
+        if (response.ok) {
+          alert('Student added to class successfully!');
+          loadClassStudents(classId);
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error adding student to class:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function removeStudentFromClass(classId, studentId) {
+      if (!confirm('Are you sure you want to remove this student from the class?')) return;
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/classes/${classId}/students/${studentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          loadClassStudents(classId);
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error removing student from class:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    // Assessments functionality
+    async function createAssessment(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('assessmentTitle').value;
+      const instructions = document.getElementById('assessmentDescription').value;
+      const classId = document.getElementById('assessmentClass').value;
+      const dueDate = document.getElementById('assessmentDueDate').value;
+
+      if (!classId) {
+        alert('Please select a class');
+        return;
+      }
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch('http://localhost:8000/api/assessments', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            class_id: classId,
+            title: title,
+            instructions: instructions,
+            deadline: dueDate
+          })
+        });
+
+        if (response.ok) {
+          alert('Assessment created successfully!');
+          document.getElementById('createAssessmentForm').reset();
+          loadAssessments();
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error creating assessment:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function loadAssessments() {
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch('http://localhost:8000/api/assessments', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const assessments = await response.json();
+          displayAssessments(assessments);
+        }
+      } catch (error) {
+        console.error('Error loading assessments:', error);
+      }
+    }
+
+    function displayAssessments(assessments) {
+      const assessmentsList = document.getElementById('assessmentsList');
+      assessmentsList.innerHTML = '';
+
+      if (assessments.length === 0) {
+        assessmentsList.innerHTML = '<p class="text-gray-500">No assessments created yet.</p>';
+        return;
+      }
+
+      assessments.forEach(assessment => {
+        const assessmentDiv = document.createElement('div');
+        assessmentDiv.className = 'bg-gray-50 dark:bg-gray-700 p-4 rounded-lg';
+        assessmentDiv.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-lg">${assessment.title}</h4>
+              <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
+            </div>
+            <button onclick="viewSubmissions('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Submissions
+            </button>
+          </div>
+          <p class="text-gray-700 dark:text-gray-200">${assessment.instructions}</p>
+        `;
+        assessmentsList.appendChild(assessmentDiv);
+      });
+    }
+
+    function updateAssessmentClassDropdown(classes) {
+      const select = document.getElementById('assessmentClass');
+      select.innerHTML = '<option value="">Select a class</option>';
+
+      classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls.id;
+        option.textContent = cls.name;
+        select.appendChild(option);
+      });
+    }
+
+    // Submissions functionality
+    let currentAssessmentId = null;
+
+    async function viewSubmissions(assessmentId) {
+      currentAssessmentId = assessmentId;
+      const token = localStorage.getItem('access_token');
+
+      try {
+        const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}/submissions`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const submissions = await response.json();
+          displaySubmissions(submissions);
+          document.getElementById('submissionsModal').classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+      }
+    }
+
+    function displaySubmissions(submissions) {
+      const submissionsList = document.getElementById('submissionsList');
+      submissionsList.innerHTML = '';
+
+      if (submissions.length === 0) {
+        submissionsList.innerHTML = '<p class="text-gray-500">No submissions yet.</p>';
+        return;
+      }
+
+      submissions.forEach(submission => {
+        const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800' :
+                           submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800' :
+                           'bg-yellow-100 text-yellow-800';
+
+        const submissionDiv = document.createElement('div');
+        submissionDiv.className = 'bg-white dark:bg-gray-600 p-4 rounded-lg';
+        submissionDiv.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h5 class="font-bold">${submission.student_name}</h5>
+              <p class="text-gray-600 dark:text-gray-300 text-sm">${submission.student_email}</p>
+              <p class="text-gray-500 text-sm">Submitted: ${new Date(submission.created_at).toLocaleString()}</p>
+            </div>
+            <div class="text-right">
+              <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${submission.status}</span>
+              <div class="mt-1">
+                <span class="text-sm text-gray-600 dark:text-gray-300">AI Score: ${submission.ai_score || 'N/A'}</span>
+              </div>
+              ${submission.final_score ? `<div class="text-sm text-gray-600 dark:text-gray-300">Final Score: ${submission.final_score}</div>` : ''}
+            </div>
+          </div>
+          ${submission.professor_feedback ? `<p class="text-gray-700 dark:text-gray-200 mt-2"><strong>Feedback:</strong> ${submission.professor_feedback}</p>` : ''}
+          <div class="mt-3 flex gap-2">
+            <button onclick="reviewSubmission('${submission.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              ${submission.professor_feedback ? 'Edit Review' : 'Review'}
+            </button>
+            <button onclick="downloadStudentProject('${submission.zip_path}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+              Download
+            </button>
+          </div>
+        `;
+        submissionsList.appendChild(submissionDiv);
+      });
+    }
+
+    function closeSubmissionsModal() {
+      document.getElementById('submissionsModal').classList.add('hidden');
+    }
+
+    let currentSubmissionId = null;
+
+    function reviewSubmission(submissionId) {
+      currentSubmissionId = submissionId;
+      // Find the submission data
+      const submissions = document.querySelectorAll('#submissionsList > div');
+      // This is a simplified approach - in a real app, you'd store the submission data
+      document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+    }
+
+    function closeReviewSubmissionModal() {
+      document.getElementById('reviewSubmissionModal').classList.add('hidden');
+      document.getElementById('reviewForm').reset();
+    }
+
+    async function submitReview(event) {
+      event.preventDefault();
+
+      const feedback = document.getElementById('professorFeedback').value;
+      const score = parseFloat(document.getElementById('finalScore').value);
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/submissions/${currentSubmissionId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            professor_feedback: feedback,
+            final_score: score
+          })
+        });
+
+        if (response.ok) {
+          alert('Review submitted successfully!');
+          closeReviewSubmissionModal();
+          if (currentAssessmentId) {
+            viewSubmissions(currentAssessmentId);
+          }
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    async function releaseScores() {
+      if (!confirm('Are you sure you want to release all reviewed scores for this assessment?')) return;
+
+      const token = localStorage.getItem('access_token');
+      try {
+        const response = await fetch(`http://localhost:8000/api/assessments/${currentAssessmentId}/release-scores`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          alert(`Scores released successfully! ${result.message}`);
+          viewSubmissions(currentAssessmentId);
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error releasing scores:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function downloadStudentProject(zipPath) {
+      // In a real implementation, this would download the file from the server
+      alert(`Downloading project from: ${zipPath}`);
+    }
+
+    // Form event listeners
+    document.getElementById('createClassForm').addEventListener('submit', createClass);
+    document.getElementById('createAssessmentForm').addEventListener('submit', createAssessment);
+    document.getElementById('reviewForm').addEventListener('submit', submitReview);
   </script>
 </body>
 </html>
