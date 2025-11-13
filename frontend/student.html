@@ -136,21 +136,86 @@
     </section>
 
     <!-- Classes Section -->
-    <section id="classes" class="mx-auto max-w-4xl p-6 mt-8 hidden">
+    <section id="classes" class="mx-auto max-w-6xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Your Classes</h3>
-        <div class="space-y-6">
-          <div class="p-4 border rounded-lg">
-            <h4 class="font-bold">Web Development</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">2 assignments due this week</p>
-          </div>
-          <div class="p-4 border rounded-lg">
-            <h4 class="font-bold">Data Structures</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">1 assignment due next week</p>
-          </div>
+        <div id="classesContainer" class="space-y-6">
+          <!-- Classes will be loaded here -->
         </div>
       </div>
     </section>
+
+    <!-- Assessment Detail Modal -->
+    <div id="assessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-[#232326] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold" id="assessmentTitle">Assessment Details</h3>
+              <button onclick="closeAssessmentModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div id="assessmentContent">
+              <!-- Assessment content will be loaded here -->
+            </div>
+
+            <!-- Submission Section -->
+            <div id="submissionSection" class="mt-8 hidden">
+              <h4 class="text-lg font-bold mb-4">Submit Your Assessment</h4>
+
+              <!-- Dropbox -->
+              <div id="assessmentDropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+                <input type="file" id="assessmentFileUpload" class="hidden" accept=".zip">
+
+                <!-- Upload State -->
+                <div id="assessmentUploadPrompt" class="cursor-pointer">
+                  <label for="assessmentFileUpload">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+                  </label>
+                </div>
+
+                <!-- File Selected State -->
+                <div id="assessmentFileSelected" class="hidden">
+                  <div class="flex items-center justify-center space-x-4">
+                    <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-left">
+                      <p class="font-medium text-gray-900 dark:text-white" id="assessmentSelectedFileName"></p>
+                      <p class="text-sm text-gray-500 dark:text-gray-400" id="assessmentSelectedFileSize"></p>
+                    </div>
+                    <button id="assessmentRemoveFile" class="text-red-500 hover:text-red-700 p-1">
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+                </div>
+              </div>
+
+              <button onclick="submitAssessment()" class="primary-btn w-full" id="submitAssessmentBtn">Submit Assessment</button>
+            </div>
+
+            <!-- Already Submitted Section -->
+            <div id="submittedSection" class="mt-8 hidden">
+              <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-green-800 dark:text-green-200 mb-2">Assessment Submitted</h4>
+                <p class="text-green-700 dark:text-green-300">Your assessment has been submitted successfully. You will receive feedback from your professor soon.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Account Section -->
     <section id="account" class="mx-auto max-w-4xl p-6 mt-8 hidden">
@@ -346,6 +411,279 @@
 
     // Show AI Evaluation section by default
     document.getElementById('ai-evaluation').classList.remove('hidden');
+
+    // Classes functionality
+    let currentAssessmentId = null;
+
+    // Load classes when Classes tab is opened
+    document.querySelector('a[href="#classes"]').addEventListener('click', function() {
+      loadStudentClasses();
+    });
+
+    async function loadStudentClasses() {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        alert('You must be logged in');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/api/student/classes', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const classes = await response.json();
+          displayStudentClasses(classes);
+        } else {
+          console.error('Failed to load classes');
+        }
+      } catch (error) {
+        console.error('Error loading classes:', error);
+      }
+    }
+
+    function displayStudentClasses(classes) {
+      const container = document.getElementById('classesContainer');
+      container.innerHTML = '';
+
+      if (classes.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">You are not enrolled in any classes yet.</p>';
+        return;
+      }
+
+      classes.forEach(cls => {
+        const classDiv = document.createElement('div');
+        classDiv.className = 'bg-gray-50 dark:bg-gray-700 p-6 rounded-lg';
+
+        let assessmentsHtml = '';
+        if (cls.assessments && cls.assessments.length > 0) {
+          assessmentsHtml = '<h5 class="font-semibold mb-3">Assessments:</h5><div class="space-y-2">';
+          cls.assessments.forEach(assessment => {
+            const deadline = new Date(assessment.deadline);
+            const isOverdue = deadline < new Date();
+            const deadlineClass = isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
+
+            assessmentsHtml += `
+              <div class="bg-white dark:bg-gray-600 p-3 rounded border-l-4 border-blue-500">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <h6 class="font-medium">${assessment.title}</h6>
+                    <p class="text-sm ${deadlineClass}">Due: ${deadline.toLocaleString()}</p>
+                  </div>
+                  <button onclick="viewAssessment('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+          assessmentsHtml += '</div>';
+        } else {
+          assessmentsHtml = '<p class="text-gray-500 text-sm">No assessments available yet.</p>';
+        }
+
+        classDiv.innerHTML = `
+          <h4 class="font-bold text-xl mb-2">${cls.name}</h4>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">${cls.description || 'No description available'}</p>
+          ${assessmentsHtml}
+        `;
+
+        container.appendChild(classDiv);
+      });
+    }
+
+    async function viewAssessment(assessmentId) {
+      currentAssessmentId = assessmentId;
+      const token = localStorage.getItem('access_token');
+
+      try {
+        const response = await fetch(`http://localhost:8000/api/student/assessments/${assessmentId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          displayAssessmentDetails(data);
+          document.getElementById('assessmentModal').classList.remove('hidden');
+        } else {
+          alert('Failed to load assessment details');
+        }
+      } catch (error) {
+        console.error('Error loading assessment:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function displayAssessmentDetails(data) {
+      const assessment = data.assessment;
+      const submission = data.submission;
+
+      document.getElementById('assessmentTitle').textContent = assessment.title;
+
+      const deadline = new Date(assessment.deadline);
+      const content = document.getElementById('assessmentContent');
+
+      content.innerHTML = `
+        <div class="mb-6">
+          <h4 class="text-lg font-semibold mb-2">Instructions</h4>
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded">
+            <p class="whitespace-pre-wrap">${assessment.instructions}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <h5 class="font-medium mb-1">Deadline</h5>
+            <p class="text-gray-600 dark:text-gray-300">${deadline.toLocaleString()}</p>
+          </div>
+          <div>
+            <h5 class="font-medium mb-1">Status</h5>
+            <p class="text-gray-600 dark:text-gray-300">${submission ? 'Submitted' : 'Not Submitted'}</p>
+          </div>
+        </div>
+      `;
+
+      // Hide all sections first
+      document.getElementById('submissionSection').classList.add('hidden');
+      document.getElementById('submittedSection').classList.add('hidden');
+
+      if (submission) {
+        // Already submitted
+        document.getElementById('submittedSection').classList.remove('hidden');
+
+        // Show submission status
+        let statusHtml = '<div class="mt-4"><h5 class="font-medium mb-2">Submission Status</h5>';
+        statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">Status: ${submission.status}</p>`;
+
+        if (submission.ai_score) {
+          statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">AI Score: ${submission.ai_score}</p>`;
+        }
+
+        if (submission.final_score) {
+          statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">Final Score: ${submission.final_score}</p>`;
+        }
+
+        if (submission.professor_feedback) {
+          statusHtml += `<div class="mt-2"><h6 class="font-medium">Professor Feedback:</h6><p class="text-sm text-gray-700 dark:text-gray-200 mt-1">${submission.professor_feedback}</p></div>`;
+        }
+
+        statusHtml += '</div>';
+        content.innerHTML += statusHtml;
+      } else {
+        // Not submitted yet - show submission form
+        document.getElementById('submissionSection').classList.remove('hidden');
+        resetAssessmentDropbox();
+      }
+    }
+
+    function closeAssessmentModal() {
+      document.getElementById('assessmentModal').classList.add('hidden');
+      currentAssessmentId = null;
+    }
+
+    // Assessment submission functionality
+    document.getElementById('assessmentFileUpload').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        updateAssessmentDropboxWithFile(file);
+      } else {
+        resetAssessmentDropbox();
+      }
+    });
+
+    document.getElementById('assessmentRemoveFile').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      resetAssessmentDropbox();
+      document.getElementById('assessmentFileUpload').value = '';
+    });
+
+    document.getElementById('assessmentFileSelected').addEventListener('click', function() {
+      document.getElementById('assessmentFileUpload').click();
+    });
+
+    function updateAssessmentDropboxWithFile(file) {
+      const fileName = file.name;
+      const fileSize = formatFileSize(file.size);
+
+      document.getElementById('assessmentSelectedFileName').textContent = fileName;
+      document.getElementById('assessmentSelectedFileSize').textContent = fileSize;
+
+      document.getElementById('assessmentUploadPrompt').classList.add('hidden');
+      document.getElementById('assessmentFileSelected').classList.remove('hidden');
+
+      document.getElementById('assessmentDropbox').classList.remove('border-gray-300', 'dark:border-gray-600');
+      document.getElementById('assessmentDropbox').classList.add('border-green-300', 'dark:border-green-600');
+    }
+
+    function resetAssessmentDropbox() {
+      document.getElementById('assessmentUploadPrompt').classList.remove('hidden');
+      document.getElementById('assessmentFileSelected').classList.add('hidden');
+
+      document.getElementById('assessmentDropbox').classList.remove('border-green-300', 'dark:border-green-600');
+      document.getElementById('assessmentDropbox').classList.add('border-gray-300', 'dark:border-gray-600');
+    }
+
+    async function submitAssessment() {
+      if (!currentAssessmentId) return;
+
+      const fileInput = document.getElementById('assessmentFileUpload');
+      if (!fileInput.files.length) {
+        alert("Please select a ZIP file.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (!file.name.toLowerCase().endsWith('.zip')) {
+        alert("Please select a valid ZIP file.");
+        return;
+      }
+
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        alert("You must be logged in to submit.");
+        return;
+      }
+
+      // Show loading state
+      const submitButton = document.getElementById('submitAssessmentBtn');
+      const originalText = submitButton.textContent;
+      submitButton.textContent = "Submitting...";
+      submitButton.disabled = true;
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`http://localhost:8000/api/student/assessments/${currentAssessmentId}/submit`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          alert('Assessment submitted successfully!');
+          closeAssessmentModal();
+          loadStudentClasses(); // Refresh to show updated status
+        } else {
+          const error = await response.json();
+          alert(`Submission failed: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error submitting assessment:', error);
+        alert('Network error. Please try again.');
+      } finally {
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+      }
+    }
   </script>
 </body>
 </html>

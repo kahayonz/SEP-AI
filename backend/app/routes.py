@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File
 from pydantic import BaseModel
 from typing import List, Optional
 from .auth import get_current_user
-from .database import admin_client
+from .database import admin_client, supabase
+from .ai_evaluator import evaluate_project
 import uuid
 from datetime import datetime
+import os
+import zipfile
+import shutil
+import atexit
 
 router = APIRouter()
 
@@ -306,3 +311,166 @@ async def release_assessment_scores(assessment_id: str, current_user=Depends(get
         return {"message": f"Released scores for {len(response.data)} submissions"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Student routes
+@router.get("/student/classes")
+async def get_student_classes(current_user=Depends(get_current_user)):
+    try:
+        # Get classes where student is enrolled
+        response = admin_client.table("class_students").select(
+            "classes(*, assessments(*))"
+        ).eq("student_id", current_user.id).execute()
+
+        classes = []
+        for item in response.data:
+            cls = item["classes"]
+            classes.append({
+                "id": cls["id"],
+                "name": cls["name"],
+                "description": cls["description"],
+                "assessments": cls["assessments"]
+            })
+
+        return classes
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/student/assessments/{assessment_id}")
+async def get_assessment_details(assessment_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Verify student is enrolled in the class that has this assessment
+        assessment_check = admin_client.table("assessments").select(
+            "*, classes!inner(class_students!inner(student_id))"
+        ).eq("id", assessment_id).eq("classes.class_students.student_id", current_user.id).execute()
+
+        if not assessment_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to view this assessment")
+
+        assessment = assessment_check.data[0]
+
+        # Check if student already submitted
+        submission_check = admin_client.table("submissions").select("*").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
+
+        submission = None
+        if submission_check.data:
+            submission = submission_check.data[0]
+
+        return {
+            "assessment": assessment,
+            "submission": submission
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/student/assessments/{assessment_id}/submit")
+async def submit_assessment(assessment_id: str, file: bytes = File(...), current_user=Depends(get_current_user)):
+    temp_dirs = []  # Track directories for cleanup
+
+    try:
+        # Verify student is enrolled in the class that has this assessment
+        assessment_check = admin_client.table("assessments").select(
+            "*, classes!inner(class_students!inner(student_id))"
+        ).eq("id", assessment_id).eq("classes.class_students.student_id", current_user.id).execute()
+
+        if not assessment_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to submit to this assessment")
+
+        assessment_data = assessment_check.data[0]
+        class_id = assessment_data["classes"]["id"]
+
+        # Check if student already submitted
+        existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
+
+        if existing_submission.data:
+            raise HTTPException(status_code=400, detail="You have already submitted to this assessment")
+
+        # Step 1: Create organized directory structure
+        base_upload_dir = "backend/uploads"
+        class_dir = os.path.join(base_upload_dir, f"class_{class_id}")
+        assessment_dir = os.path.join(class_dir, f"assessment_{assessment_id}")
+        extracted_dir = os.path.join(assessment_dir, "extracted")
+
+        # Create directories
+        os.makedirs(extracted_dir, exist_ok=True)
+        temp_dirs.extend([extracted_dir, assessment_dir, class_dir])
+
+        # Step 2: Save ZIP file temporarily
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_filename = f"student_{current_user.id}_project.zip"
+        zip_path = os.path.join(assessment_dir, zip_filename)
+
+        with open(zip_path, "wb") as f:
+            f.write(file)
+
+        # Step 3: Extract ZIP file
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extracted_dir)
+        except zipfile.BadZipFile:
+            raise HTTPException(status_code=400, detail="Invalid ZIP file")
+
+        # Step 4: Run AI evaluation on extracted files
+        ai_result = evaluate_project(extracted_dir)
+
+        # Step 5: Upload ZIP to Supabase storage
+        supabase_storage_path = f"submissions/student_{current_user.id}/{assessment_id}_{timestamp}.zip"
+
+        # Read the ZIP file for upload
+        with open(zip_path, "rb") as f:
+            file_data = f.read()
+
+        # Upload to Supabase storage
+        try:
+            storage_response = supabase.storage.from_("submissions").upload(
+                path=supabase_storage_path,
+                file=file_data,
+                file_options={"content-type": "application/zip"}
+            )
+            print(f"Storage response: {storage_response}")
+            print(f"Storage response status: {storage_response.status_code}")
+            print(f"Storage response json: {storage_response.json() if hasattr(storage_response, 'json') else 'No json method'}")
+        except Exception as storage_error:
+            print(f"Supabase storage upload error: {storage_error}")
+            raise HTTPException(status_code=500, detail=f"Failed to upload file to storage: {str(storage_error)}")
+
+        if storage_response.status_code not in [200, 201]:
+            print(f"Supabase storage upload failed with status {storage_response.status_code}: {storage_response}")
+            raise HTTPException(status_code=500, detail="Failed to upload file to storage")
+
+        # Get public URL
+        supabase_url = supabase.storage.from_("submissions").get_public_url(supabase_storage_path)
+
+        # Step 6: Create submission record in database
+        submission_id = str(uuid.uuid4())
+        response = admin_client.table("submissions").insert({
+            "id": submission_id,
+            "assessment_id": assessment_id,
+            "student_id": current_user.id,
+            "ai_feedback": ai_result["feedback"],
+            "ai_score": ai_result["score"],
+            "professor_feedback": "",
+            "final_score": None,
+            "zip_path": supabase_url,  # Store Supabase URL instead of local path
+            "status": "pending"
+        }).execute()
+
+        # Step 7: Cleanup - Delete local files immediately after successful upload
+        try:
+            shutil.rmtree(class_dir)  # Remove entire class directory
+        except Exception as e:
+            print(f"Warning: Failed to cleanup local files: {e}")
+
+        return {"message": "Assessment submitted successfully", "submission_id": submission_id}
+
+    except Exception as e:
+        # Cleanup any created directories on error
+        for temp_dir in temp_dirs:
+            try:
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+            except Exception as cleanup_error:
+                print(f"Warning: Failed to cleanup {temp_dir}: {cleanup_error}")
+
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Submission failed: {str(e)}")

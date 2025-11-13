@@ -60,3 +60,6 @@ junit.xml
 *.bak
 *.swp
 Thumbs.db
+
+# --- Uploaded Files ---
+uploads/
