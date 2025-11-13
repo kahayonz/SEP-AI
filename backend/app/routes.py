@@ -338,15 +338,18 @@ async def get_student_classes(current_user=Depends(get_current_user)):
 @router.get("/student/assessments/{assessment_id}")
 async def get_assessment_details(assessment_id: str, current_user=Depends(get_current_user)):
     try:
-        # Verify student is enrolled in the class that has this assessment
-        assessment_check = admin_client.table("assessments").select(
-            "*, classes!inner(class_students!inner(student_id))"
-        ).eq("id", assessment_id).eq("classes.class_students.student_id", current_user.id).execute()
+        # Get assessment details
+        assessment_response = admin_client.table("assessments").select("*").eq("id", assessment_id).execute()
+        if not assessment_response.data:
+            raise HTTPException(status_code=404, detail="Assessment not found")
 
-        if not assessment_check.data:
-            raise HTTPException(status_code=403, detail="Not authorized to view this assessment")
+        assessment = assessment_response.data[0]
+        class_id = assessment["class_id"]
 
-        assessment = assessment_check.data[0]
+        # Verify student is enrolled in this class
+        enrollment_check = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", current_user.id).execute()
+        if not enrollment_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to view this assessment - not enrolled in class")
 
         # Check if student already submitted
         submission_check = admin_client.table("submissions").select("*").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
@@ -367,16 +370,23 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
     temp_dirs = []  # Track directories for cleanup
 
     try:
-        # Verify student is enrolled in the class that has this assessment
-        assessment_check = admin_client.table("assessments").select(
-            "*, classes!inner(class_students!inner(student_id))"
-        ).eq("id", assessment_id).eq("classes.class_students.student_id", current_user.id).execute()
+        print(f"Starting submission for assessment {assessment_id} by user {current_user.id}")
 
-        if not assessment_check.data:
-            raise HTTPException(status_code=403, detail="Not authorized to submit to this assessment")
+        # Step 1: Get assessment details
+        assessment_response = admin_client.table("assessments").select("*").eq("id", assessment_id).execute()
+        if not assessment_response.data:
+            raise HTTPException(status_code=404, detail="Assessment not found")
 
-        assessment_data = assessment_check.data[0]
-        class_id = assessment_data["classes"]["id"]
+        assessment_data = assessment_response.data[0]
+        class_id = assessment_data["class_id"]
+        print(f"Assessment data: {assessment_data}, Class ID: {class_id}")
+
+        # Step 2: Verify student is enrolled in this class
+        enrollment_check = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", current_user.id).execute()
+        if not enrollment_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to submit to this assessment - not enrolled in class")
+
+        print(f"Student is enrolled in class {class_id}")
 
         # Check if student already submitted
         existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
@@ -412,37 +422,22 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         # Step 4: Run AI evaluation on extracted files
         ai_result = evaluate_project(extracted_dir)
 
-        # Step 5: Upload ZIP to Supabase storage
-        supabase_storage_path = f"submissions/student_{current_user.id}/{assessment_id}_{timestamp}.zip"
-
-        # Read the ZIP file for upload
-        with open(zip_path, "rb") as f:
-            file_data = f.read()
-
-        # Upload to Supabase storage
-        try:
-            storage_response = supabase.storage.from_("submissions").upload(
-                path=supabase_storage_path,
-                file=file_data,
-                file_options={"content-type": "application/zip"}
-            )
-            print(f"Storage response: {storage_response}")
-            print(f"Storage response status: {storage_response.status_code}")
-            print(f"Storage response json: {storage_response.json() if hasattr(storage_response, 'json') else 'No json method'}")
-        except Exception as storage_error:
-            print(f"Supabase storage upload error: {storage_error}")
-            raise HTTPException(status_code=500, detail=f"Failed to upload file to storage: {str(storage_error)}")
-
-        if storage_response.status_code not in [200, 201]:
-            print(f"Supabase storage upload failed with status {storage_response.status_code}: {storage_response}")
-            raise HTTPException(status_code=500, detail="Failed to upload file to storage")
-
-        # Get public URL
-        supabase_url = supabase.storage.from_("submissions").get_public_url(supabase_storage_path)
+        # Step 5: Upload ZIP to Supabase storage (temporarily disabled for testing)
+        print("Skipping Supabase storage upload for testing")
+        supabase_url = f"local_file_path: {zip_path}"  # Temporary placeholder
 
         # Step 6: Create submission record in database
-        submission_id = str(uuid.uuid4())
-        response = admin_client.table("submissions").insert({
+        # Note: The submissions table uses bigint for id instead of uuid
+        # Generate a random integer ID for compatibility
+        import random
+        submission_id = random.randint(1000000000, 9999999999)  # 10-digit random number
+
+        print(f"Inserting submission with:")
+        print(f"  id: {submission_id} (type: {type(submission_id)})")
+        print(f"  assessment_id: {assessment_id} (type: {type(assessment_id)})")
+        print(f"  student_id: {current_user.id} (type: {type(current_user.id)})")
+
+        submission_data = {
             "id": submission_id,
             "assessment_id": assessment_id,
             "student_id": current_user.id,
@@ -452,7 +447,10 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
             "final_score": None,
             "zip_path": supabase_url,  # Store Supabase URL instead of local path
             "status": "pending"
-        }).execute()
+        }
+        print(f"Full submission data: {submission_data}")
+
+        response = admin_client.table("submissions").insert(submission_data).execute()
 
         # Step 7: Cleanup - Delete local files immediately after successful upload
         try:
