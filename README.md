@@ -21,7 +21,7 @@ All backend code (FastAPI, requirements, .env, etc.)
 
 - Start backend:  
   ```
-  cd sepai-backend
+  cd backend
   uvicorn main:app --reload
   ```
 - Open `frontend/index.html` in your browser (or serve via a static server).
