@@ -2,6 +2,7 @@
 
 let currentAssessmentId = null;
 let currentSubmissionId = null;
+let modalSelectedStudents = [];
 
 class ProfessorPortal {
   static async init() {
@@ -167,8 +168,18 @@ class ProfessorPortal {
       });
 
       if (response.ok) {
+        const classData = await response.json();
         UIUtils.showSuccess('Class created successfully!');
+
+        // Add selected students to the new class
+        if (modalSelectedStudents.length > 0) {
+          for (const student of modalSelectedStudents) {
+            await this.addStudentToClass(classData.id, student.id);
+          }
+        }
+
         document.getElementById('createClassForm').reset();
+        this.closeCreateClassModal();
         this.loadClasses();
         this.loadAssessments();
       } else {
@@ -220,14 +231,22 @@ class ProfessorPortal {
             <h4 class="font-bold text-lg">${cls.name}</h4>
             <p class="text-gray-600 dark:text-gray-300">${cls.description || 'No description'}</p>
           </div>
-          <button onclick="ProfessorPortal.loadClassStudents('${cls.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-            View Students
-          </button>
+          <div class="flex gap-2">
+            <button onclick="ProfessorPortal.loadClassStudents('${cls.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Students
+            </button>
+            <button onclick="ProfessorPortal.deleteClass('${cls.id}', '${cls.name}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+              Delete Class
+            </button>
+          </div>
         </div>
         <div id="students-${cls.id}" class="hidden">
-          <div class="flex gap-2 mb-2">
-            <input type="text" id="search-${cls.id}" placeholder="Search students..." class="flex-1 p-2 border rounded text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white">
-            <button onclick="ProfessorPortal.searchStudentsForClass('${cls.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Add Student</button>
+          <div class="mb-4 relative">
+            <label class="block text-sm font-medium mb-1">Add Students:</label>
+            <div class="relative">
+              <input type="text" id="search-${cls.id}" placeholder="Search and add students..." class="w-full p-2 border rounded text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+              <div id="autocomplete-${cls.id}" class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b max-h-40 overflow-y-auto hidden"></div>
+            </div>
           </div>
           <div id="class-students-${cls.id}" class="space-y-1 max-h-40 overflow-y-auto">
             <!-- Students will be loaded here -->
@@ -252,6 +271,7 @@ class ProfessorPortal {
         if (response.ok) {
           const students = await response.json();
           this.displayClassStudents(classId, students);
+          this.setupAutocomplete(classId);
         }
       } catch (error) {
         console.error('Error loading class students:', error);
@@ -359,6 +379,247 @@ class ProfessorPortal {
       }
     } catch (error) {
       console.error('Error removing student from class:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
+  }
+
+  static setupAutocomplete(classId) {
+    const input = document.getElementById(`search-${classId}`);
+    const autocompleteDiv = document.getElementById(`autocomplete-${classId}`);
+
+    let debounceTimer;
+
+    input.addEventListener('input', async (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (query.length < 1) {
+        autocompleteDiv.classList.add('hidden');
+        return;
+      }
+
+      debounceTimer = setTimeout(async () => {
+        this.updateAutocomplete(classId, query);
+      }, 300);
+    });
+
+    input.addEventListener('focus', () => {
+      if (autocompleteDiv.innerHTML) {
+        autocompleteDiv.classList.remove('hidden');
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => autocompleteDiv.classList.add('hidden'), 200);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstItem = autocompleteDiv.querySelector('[data-student-id]');
+        if (firstItem) {
+          const studentId = firstItem.getAttribute('data-student-id');
+          const studentName = firstItem.textContent;
+          this.selectStudent(classId, studentId, studentName);
+        }
+      }
+    });
+  }
+
+  static async updateAutocomplete(classId, query) {
+    const autocompleteDiv = document.getElementById(`autocomplete-${classId}`);
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const students = await response.json();
+        autocompleteDiv.innerHTML = '';
+
+        students.slice(0, 5).forEach(student => {
+          const div = document.createElement('div');
+          div.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm';
+          div.textContent = `${student.first_name} ${student.last_name} (${student.email})`;
+          div.setAttribute('data-student-id', student.id);
+          div.onclick = () => this.selectStudent(classId, student.id, `${student.first_name} ${student.last_name} (${student.email})`);
+          autocompleteDiv.appendChild(div);
+        });
+
+        autocompleteDiv.classList.toggle('hidden', students.length === 0);
+      }
+    } catch (error) {
+      console.error('Error fetching autocomplete results:', error);
+    }
+  }
+
+  static async selectStudent(classId, studentId, studentName) {
+    // Hide autocomplete
+    const autocompleteDiv = document.getElementById(`autocomplete-${classId}`);
+    autocompleteDiv.classList.add('hidden');
+
+    // Clear input
+    const input = document.getElementById(`search-${classId}`);
+    input.value = '';
+
+    // Add student to class
+    await this.addStudentToClass(classId, studentId);
+  }
+
+  static openCreateClassModal() {
+    modalSelectedStudents = [];
+    document.getElementById('createClassModal').classList.remove('hidden');
+    this.setupModalAutocomplete();
+    this.updateModalSelectedStudents();
+  }
+
+  static setupModalAutocomplete() {
+    const input = document.getElementById('modal-search');
+    const autocompleteDiv = document.getElementById('modal-autocomplete');
+
+    let debounceTimer;
+
+    input.addEventListener('input', async (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (query.length < 1) {
+        autocompleteDiv.classList.add('hidden');
+        return;
+      }
+
+      debounceTimer = setTimeout(async () => {
+        this.updateModalAutocomplete(query);
+      }, 300);
+    });
+
+    input.addEventListener('focus', () => {
+      if (autocompleteDiv.innerHTML) {
+        autocompleteDiv.classList.remove('hidden');
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => autocompleteDiv.classList.add('hidden'), 200);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstItem = autocompleteDiv.querySelector('[data-student-id]');
+        if (firstItem) {
+          const studentId = firstItem.getAttribute('data-student-id');
+          const studentName = firstItem.textContent;
+          this.selectModalStudent(studentId, studentName);
+        }
+      }
+    });
+  }
+
+  static async updateModalAutocomplete(query) {
+    const autocompleteDiv = document.getElementById('modal-autocomplete');
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const students = await response.json();
+        autocompleteDiv.innerHTML = '';
+
+        students.slice(0, 5).forEach(student => {
+          const div = document.createElement('div');
+          div.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm';
+          div.textContent = `${student.first_name} ${student.last_name} (${student.email})`;
+          div.setAttribute('data-student-id', student.id);
+          div.onclick = () => this.selectModalStudent(student.id, `${student.first_name} ${student.last_name} (${student.email})`);
+          autocompleteDiv.appendChild(div);
+        });
+
+        autocompleteDiv.classList.toggle('hidden', students.length === 0);
+      }
+    } catch (error) {
+      console.error('Error fetching autocomplete results for modal:', error);
+    }
+  }
+
+  static selectModalStudent(studentId, studentName) {
+    // Hide autocomplete
+    const autocompleteDiv = document.getElementById('modal-autocomplete');
+    autocompleteDiv.classList.add('hidden');
+
+    // Clear input
+    const input = document.getElementById('modal-search');
+    input.value = '';
+
+    // Check if student is already selected
+    if (modalSelectedStudents.some(s => s.id === studentId)) {
+      UIUtils.showError('Student already added to class');
+      return;
+    }
+
+    // Add to selected list
+    modalSelectedStudents.push({ id: studentId, name: studentName });
+    this.updateModalSelectedStudents();
+  }
+
+  static updateModalSelectedStudents() {
+    const container = document.getElementById('modal-selected-students');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (modalSelectedStudents.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400 italic">No students selected</p>';
+      return;
+    }
+
+    modalSelectedStudents.forEach(student => {
+      const div = document.createElement('div');
+      div.className = 'flex justify-between items-center bg-blue-50 dark:bg-blue-900/20 p-1 rounded text-xs';
+      div.innerHTML = `
+        <span>${student.name}</span>
+        <button onclick="ProfessorPortal.removeModalStudent('${student.id}')" class="text-red-600 hover:text-red-800 text-xs">&times;</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  static removeModalStudent(studentId) {
+    modalSelectedStudents = modalSelectedStudents.filter(s => s.id !== studentId);
+    this.updateModalSelectedStudents();
+  }
+
+  static closeCreateClassModal() {
+    document.getElementById('createClassModal').classList.add('hidden');
+    document.getElementById('createClassForm').reset();
+    modalSelectedStudents = [];
+  }
+
+  static async deleteClass(classId, className) {
+    if (!confirm(`Are you sure you want to delete the class "${className}"? All enrolled students will be removed from this class.`)) return;
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/classes/${classId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        UIUtils.showSuccess('Class deleted successfully!');
+        this.loadClasses();
+        this.loadAssessments(); // to update dropdown
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error deleting class:', error);
       UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
     }
   }

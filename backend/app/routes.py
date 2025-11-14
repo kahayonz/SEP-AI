@@ -87,6 +87,24 @@ async def get_professor_classes(current_user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.delete("/classes/{class_id}")
+async def delete_class(class_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns this class
+        class_check = admin_client.table("classes").select("id").eq("id", class_id).eq("professor_id", current_user.id).execute()
+        if not class_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this class")
+
+        # Delete class_students first
+        admin_client.table("class_students").delete().eq("class_id", class_id).execute()
+
+        # Delete the class
+        admin_client.table("classes").delete().eq("id", class_id).execute()
+
+        return {"message": "Class deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/classes/{class_id}/students", response_model=List[StudentResponse])
 async def get_class_students(class_id: str, current_user=Depends(get_current_user)):
     try:
