@@ -97,14 +97,15 @@ async def get_class_students(class_id: str, current_user=Depends(get_current_use
 
         # Get students in the class
         response = admin_client.table("class_students").select(
-            "users!inner(id, first_name, last_name, email)"
+            "users!inner(auth_id, first_name, last_name, email)"
         ).eq("class_id", class_id).execute()
+
 
         students = []
         for item in response.data:
             user = item["users"]
             students.append(StudentResponse(
-                id=user["id"],
+                id=user["auth_id"],
                 first_name=user["first_name"],
                 last_name=user["last_name"],
                 email=user["email"]
@@ -150,9 +151,21 @@ async def remove_student_from_class(class_id: str, student_id: str, current_user
         class_check = admin_client.table("classes").select("id").eq("id", class_id).eq("professor_id", current_user.id).execute()
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to modify this class")
+        # Debug logging before delete
+        existing_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
+        print(f"DEBUG: Found {len(existing_records.data)} records to delete for class {class_id} and student {student_id}")
+        if existing_records.data:
+            print(f"DEBUG: Record data: {existing_records.data[0]}")
 
         # Remove student from class
         response = admin_client.table("class_students").delete().eq("class_id", class_id).eq("student_id", student_id).execute()
+        
+        print(f"DEBUG: Delete response data: {response.data}")
+        print(f"DEBUG: Delete response status: {response.status_code if hasattr(response, 'status_code') else 'N/A'}")
+
+        # Check if still exists after delete
+        remaining_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
+        print(f"DEBUG: After delete, found {len(remaining_records.data)} records remaining")
 
         return {"message": "Student removed from class successfully"}
     except Exception as e:
