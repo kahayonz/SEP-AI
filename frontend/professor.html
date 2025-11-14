@@ -1169,7 +1169,7 @@
             <button onclick="reviewSubmission('${submission.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
               ${submission.professor_feedback ? 'Edit Review' : 'Review'}
             </button>
-            <button onclick="downloadStudentProject('${submission.zip_path}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+            <button onclick="downloadStudentProject('${submission.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
               Download
             </button>
           </div>
@@ -1259,9 +1259,33 @@
       }
     }
 
-    function downloadStudentProject(zipPath) {
-      // In a real implementation, this would download the file from the server
-      alert(`Downloading project from: ${zipPath}`);
+    async function downloadStudentProject(submissionId) {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        alert('You must be logged in');
+        return;
+      }
+
+      try {
+        // Get submission details to access the Supabase URL
+        const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const submission = await response.json();
+          // Open the Supabase URL directly for download
+          window.open(submission.zip_path, '_blank');
+        } else {
+          const error = await response.json();
+          alert(`Download failed: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error downloading file:', error);
+        alert('Network error. Please try again.');
+      }
     }
 
     // Form event listeners

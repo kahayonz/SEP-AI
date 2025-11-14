@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 from .auth import get_current_user
@@ -270,6 +271,33 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/submissions/{submission_id}")
+async def get_submission(submission_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns the submission's assessment's class
+        submission_check = admin_client.table("submissions").select(
+            "*, assessments(classes(professor_id))"
+        ).eq("id", submission_id).execute()
+
+        if not submission_check.data or submission_check.data[0]["assessments"]["classes"]["professor_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this submission")
+
+        submission = submission_check.data[0]
+        return {
+            "id": submission["id"],
+            "assessment_id": submission["assessment_id"],
+            "student_id": submission["student_id"],
+            "ai_feedback": submission["ai_feedback"],
+            "ai_score": submission["ai_score"],
+            "professor_feedback": submission["professor_feedback"],
+            "final_score": submission["final_score"],
+            "zip_path": submission["zip_path"],
+            "status": submission["status"],
+            "created_at": submission["created_at"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.put("/submissions/{submission_id}")
 async def update_submission(submission_id: str, update_data: SubmissionUpdate, current_user=Depends(get_current_user)):
     try:
@@ -311,6 +339,8 @@ async def release_assessment_scores(assessment_id: str, current_user=Depends(get
         return {"message": f"Released scores for {len(response.data)} submissions"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
 
 # Student routes
 @router.get("/student/classes")
@@ -422,9 +452,19 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         # Step 4: Run AI evaluation on extracted files
         ai_result = evaluate_project(extracted_dir)
 
-        # Step 5: Upload ZIP to Supabase storage (temporarily disabled for testing)
-        print("Skipping Supabase storage upload for testing")
-        supabase_url = f"local_file_path: {zip_path}"  # Temporary placeholder
+        # Step 5: Upload ZIP to Supabase storage
+        supabase_storage_path = f"submissions/student_{current_user.id}/{assessment_id}_{timestamp}.zip"
+
+        # Upload file to Supabase storage
+        with open(zip_path, 'rb') as f:
+            supabase.storage.from_("submissions").upload(
+                path=supabase_storage_path,
+                file=f,
+                file_options={"content-type": "application/zip"}
+            )
+
+        # Get public URL for the uploaded file
+        supabase_url = supabase.storage.from_("submissions").get_public_url(supabase_storage_path)
 
         # Step 6: Create submission record in database
         # Note: The submissions table uses bigint for id instead of uuid
@@ -445,7 +485,7 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
             "ai_score": ai_result["score"],
             "professor_feedback": "",
             "final_score": None,
-            "zip_path": supabase_url,  # Store Supabase URL instead of local path
+            "zip_path": supabase_url,  # Store Supabase URL for persistent file access
             "status": "pending"
         }
         print(f"Full submission data: {submission_data}")
