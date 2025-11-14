@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Detect which portal to initialize based on page title
     const pageTitle = document.title;
 
-    if (pageTitle.includes('Professor Portal') && typeof ProfessorPortal !== 'undefined') {
+    if (pageTitle.includes('Assessment Details') && typeof AssessmentDetails !== 'undefined') {
+      console.log('Initializing Assessment Details...');
+      await AssessmentDetails.init();
+      console.log('SEP-AI Assessment Details initialized successfully!');
+    } else if (pageTitle.includes('Professor Portal') && typeof ProfessorPortal !== 'undefined') {
       console.log('Initializing Professor Portal...');
       await ProfessorPortal.init();
       console.log('SEP-AI Professor Portal initialized successfully!');

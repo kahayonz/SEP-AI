@@ -233,31 +233,9 @@
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Manage Assessments</h3>
 
-        <!-- Create Assessment Form -->
+        <!-- Create Assessment Button -->
         <div class="mb-8">
-          <h4 class="text-xl font-bold mb-4">Create New Assessment</h4>
-          <form id="createAssessmentForm" class="space-y-4">
-            <div>
-              <label class="block mb-2">Assessment Title</label>
-              <input type="text" id="assessmentTitle" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-            </div>
-            <div>
-              <label class="block mb-2">Instructions</label>
-              <textarea id="assessmentDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3" required></textarea>
-            </div>
-            <div>
-              <label class="block mb-2">Assign to Class</label>
-              <select id="assessmentClass" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-                <option value="">Select a class</option>
-                <!-- Classes will be loaded here -->
-              </select>
-            </div>
-            <div>
-              <label class="block mb-2">Due Date</label>
-              <input type="datetime-local" id="assessmentDueDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-            </div>
-            <button type="submit" class="primary-btn">Create Assessment</button>
-          </form>
+          <button onclick="ProfessorPortal.openCreateAssessmentModal()" class="primary-btn">Create New Assessment</button>
         </div>
 
         <!-- Assessments List -->
@@ -449,12 +427,60 @@
                   <input type="text" id="modal-search" placeholder="Search for students..." class="w-full p-2 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <div id="modal-autocomplete" class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b max-h-40 overflow-y-auto hidden"></div>
                 </div>
-                <div id="modal-selected-students" class="mt-2 space-y-1"></div>
-              </div>
-              <div class="flex gap-4">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Class</button>
-                <button type="button" onclick="ProfessorPortal.closeCreateClassModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
-              </div>
+        <div id="modal-selected-students" class="mt-2 space-y-1"></div>
+      </div>
+      <div class="flex gap-4">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Class</button>
+        <button type="button" onclick="ProfessorPortal.closeCreateClassModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<!-- Create Assessment Modal -->
+<div id="createAssessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white dark:bg-[#232326] rounded-lg max-w-md w-full">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold">Create New Assessment</h3>
+          <button onclick="ProfessorPortal.closeCreateAssessmentModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="createAssessmentForm" class="space-y-4">
+          <div>
+            <label class="block mb-2">Assessment Title</label>
+            <input type="text" id="assessmentTitle" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block mb-2">Instructions</label>
+            <textarea id="assessmentDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3" required></textarea>
+          </div>
+          <div>
+            <label class="block mb-2">Assign to Class</label>
+            <select id="assessmentClass" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+              <option value="">Select a class</option>
+              <!-- Classes will be loaded here -->
+            </select>
+          </div>
+          <div>
+            <label class="block mb-2">Due Date</label>
+            <input type="datetime-local" id="assessmentDueDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+          </div>
+          <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Assessment</button>
+            <button type="button" onclick="ProfessorPortal.closeCreateAssessmentModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
             </form>
           </div>
         </div>

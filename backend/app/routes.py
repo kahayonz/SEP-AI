@@ -264,6 +264,31 @@ async def get_professor_assessments(current_user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/assessments/{assessment_id}")
+async def get_assessment_details(assessment_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Get assessment with class info to verify ownership
+        assessment_response = admin_client.table("assessments").select(
+            "*, classes!inner(name, professor_id)"
+        ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
+
+        if not assessment_response.data:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+
+        assessment = assessment_response.data[0]
+
+        return {
+            "id": assessment["id"],
+            "class_id": assessment["class_id"],
+            "class_name": assessment["classes"]["name"],
+            "title": assessment["title"],
+            "instructions": assessment["instructions"],
+            "deadline": assessment["deadline"],
+            "created_at": assessment["created_at"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/assessments/{assessment_id}/submissions")
 async def get_assessment_submissions(assessment_id: str, current_user=Depends(get_current_user)):
     try:

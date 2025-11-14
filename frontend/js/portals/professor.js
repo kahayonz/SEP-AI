@@ -594,6 +594,19 @@ class ProfessorPortal {
     this.updateModalSelectedStudents();
   }
 
+  static viewAssessmentDetails(assessmentId) {
+    window.location.href = `assessment-details.html?id=${assessmentId}`;
+  }
+
+  static openCreateAssessmentModal() {
+    document.getElementById('createAssessmentModal').classList.remove('hidden');
+  }
+
+  static closeCreateAssessmentModal() {
+    document.getElementById('createAssessmentModal').classList.add('hidden');
+    document.getElementById('createAssessmentForm').reset();
+  }
+
   static closeCreateClassModal() {
     document.getElementById('createClassModal').classList.add('hidden');
     document.getElementById('createClassForm').reset();
@@ -657,6 +670,7 @@ class ProfessorPortal {
       if (response.ok) {
         UIUtils.showSuccess('Assessment created successfully!');
         document.getElementById('createAssessmentForm').reset();
+        this.closeCreateAssessmentModal();
         this.loadAssessments();
       } else {
         const error = await response.json();
@@ -703,8 +717,9 @@ class ProfessorPortal {
           <div>
             <h4 class="font-bold text-lg">${assessment.title}</h4>
             <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || 'Unknown'}</p>
           </div>
-          <button onclick="ProfessorPortal.viewSubmissions('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+          <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
             View Submissions
           </button>
         </div>
