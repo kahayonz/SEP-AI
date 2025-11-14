@@ -130,3 +130,35 @@ async def me(current_user=Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="User data not found")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+class UpdateUserIn(BaseModel):
+    first_name: str
+    last_name: str
+    university: str
+
+@app.put("/me")
+async def update_me(update_data: UpdateUserIn, current_user=Depends(get_current_user)):
+    try:
+        # Update user data in users table
+        update_response = admin_client.table("users").update({
+            "first_name": update_data.first_name,
+            "last_name": update_data.last_name,
+            "university": update_data.university
+        }).eq("auth_id", current_user.id).execute()
+
+        if update_response.data:
+            updated_user = update_response.data[0]
+            return {
+                "user": {
+                    "id": updated_user["auth_id"],
+                    "email": updated_user["email"],
+                    "first_name": updated_user["first_name"],
+                    "last_name": updated_user["last_name"],
+                    "role": updated_user["role"],
+                    "university": updated_user["university"]
+                }
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -6,18 +6,44 @@
   <title>SEP-AI - Professor Portal</title>
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+    <script>
     // Dark mode toggle
     function toggleDarkMode() {
       document.body.classList.toggle('dark');
       localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
+    async function loadUserInfo() {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const user = data.user;
+          const fullName = `${user.first_name} ${user.last_name}`;
+          document.querySelector('.hero-title').textContent = `Welcome, ${fullName}!`;
+        }
+      } catch (error) {
+        console.error('Failed to load user info:', error);
+      }
+    }
+
     window.onload = function() {
       if(localStorage.getItem('sepai-theme') === 'dark') {
         document.body.classList.add('dark');
       }
+      loadUserInfo();
     }
-  </script>
+    </script>
 </head>
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
 
@@ -438,21 +464,9 @@
     <section id="account" class="mx-auto max-w-4xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Account Settings</h3>
-        <form id="accountForm" class="space-y-4">
-          <div>
-            <label class="block mb-2">Name</label>
-            <input type="text" id="professorName" value="Ms. Kamantigue" class="w-full p-2 border rounded">
-          </div>
-          <div>
-            <label class="block mb-2">Email</label>
-            <input type="email" id="professorEmail" value="kamantigue@university.edu" class="w-full p-2 border rounded">
-          </div>
-          <div>
-            <label class="block mb-2">Department</label>
-            <input type="text" id="professorDepartment" value="Computer Science" class="w-full p-2 border rounded">
-          </div>
-          <button type="submit" class="primary-btn">Save Changes</button>
-        </form>
+        <div id="accountContainer" class="space-y-4">
+          <!-- Account info will be loaded here -->
+        </div>
       </div>
     </section>
 
@@ -1286,6 +1300,198 @@
         console.error('Error downloading file:', error);
         alert('Network error. Please try again.');
       }
+    }
+
+    // Account functionality
+    // Load account information when Account tab is opened
+    document.querySelector('a[href="#account"]').addEventListener('click', function() {
+      loadAccountInformation();
+    });
+
+    async function loadAccountInformation() {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        alert('You must be logged in');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const user = data.user;
+          displayAccountInformation(user);
+        } else {
+          alert('Failed to load account information');
+        }
+      } catch (error) {
+        console.error('Error loading account information:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function displayAccountInformation(user) {
+      const container = document.getElementById('accountContainer');
+      container.innerHTML = '';
+
+      const fields = [
+        { label: 'Email', value: user.email, editable: false, key: 'email' },
+        { label: 'First Name', value: user.first_name, editable: true, key: 'first_name' },
+        { label: 'Last Name', value: user.last_name, editable: true, key: 'last_name' },
+        { label: 'Role', value: capitalizeFirst(user.role), editable: false, key: 'role' },
+        { label: 'University', value: user.university, editable: true, key: 'university' }
+      ];
+
+      fields.forEach(field => {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+
+        const leftDiv = document.createElement('div');
+        const labelEl = document.createElement('label');
+        labelEl.className = 'block text-sm font-medium mb-1';
+        labelEl.textContent = field.label;
+
+        const valueEl = document.createElement('div');
+        valueEl.className = 'text-gray-900 dark:text-white';
+        valueEl.textContent = field.value;
+        valueEl.dataset.field = field.key;
+        valueEl.dataset.originalValue = field.value;
+
+        leftDiv.appendChild(labelEl);
+        leftDiv.appendChild(valueEl);
+
+        const rightDiv = document.createElement('div');
+        if (field.editable) {
+          const editBtn = document.createElement('button');
+          editBtn.className = 'text-blue-600 hover:text-blue-800 flex items-center space-x-1';
+          editBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            <span>Edit</span>
+          `;
+          editBtn.onclick = () => startEditing(valueEl);
+          rightDiv.appendChild(editBtn);
+        }
+
+        fieldDiv.appendChild(leftDiv);
+        fieldDiv.appendChild(rightDiv);
+        container.appendChild(fieldDiv);
+      });
+    }
+
+    function startEditing(valueElement) {
+      const field = valueElement.dataset.field;
+      const originalValue = valueElement.dataset.originalValue;
+
+      // Replace text with input
+      const input = document.createElement('input');
+      input.type = field === 'email' ? 'email' : 'text';
+      input.className = 'w-full p-2 border rounded';
+      input.value = originalValue;
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'bg-green-600 text-white px-3 py-1 rounded ml-2';
+      saveBtn.textContent = 'Save';
+      saveBtn.onclick = () => saveChanges(valueElement, input.value);
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'bg-gray-600 text-white px-3 py-1 rounded ml-2';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => cancelEditing(valueElement);
+
+      // Add input and buttons to parent
+      const parent = valueElement.parentNode;
+      parent.appendChild(input);
+      parent.appendChild(saveBtn);
+      parent.appendChild(cancelBtn);
+
+      // Hide original text
+      valueElement.style.display = 'none';
+    }
+
+    async function saveChanges(valueElement, newValue) {
+      // Extract user data
+      const container = document.getElementById('accountContainer');
+      const fieldElements = container.querySelectorAll('[data-field]');
+      const userData = {};
+
+      fieldElements.forEach(el => {
+        userData[el.dataset.field] = el.dataset.originalValue;
+      });
+
+      // Update the changed field
+      userData[valueElement.dataset.field] = newValue;
+
+      // Only send editable fields
+      const updateData = {
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        university: userData.university
+      };
+
+      const token = localStorage.getItem('access_token');
+
+      try {
+        const response = await fetch('http://localhost:8000/me', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const updatedUser = data.user;
+
+          // Update the display and global data
+          valueElement.textContent = newValue;
+          valueElement.dataset.originalValue = newValue;
+
+          // Update welcome message if name changed
+          if (valueElement.dataset.field === 'first_name' || valueElement.dataset.field === 'last_name') {
+            const fullName = `${updatedUser.first_name} ${updatedUser.last_name}`;
+            document.querySelector('.hero-title').textContent = `Welcome, ${fullName}!`;
+          }
+
+          // Reset UI
+          cancelEditing(valueElement);
+          loadAccountInformation(); // Reload to update display
+          alert('Account information updated successfully!');
+        } else {
+          const error = await response.json();
+          alert(`Update failed: ${error.detail || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Error updating account:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    function cancelEditing(valueElement) {
+      // Remove input and buttons, show original text
+      const parent = valueElement.parentNode;
+
+      const input = parent.querySelector('input');
+      if (input) input.remove();
+
+      const buttons = parent.querySelectorAll('button');
+      buttons.forEach(btn => {
+        if (btn.textContent === 'Save' || btn.textContent === 'Cancel') btn.remove();
+      });
+
+      valueElement.style.display = '';
+    }
+
+    function capitalizeFirst(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     // Form event listeners
