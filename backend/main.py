@@ -112,4 +112,21 @@ async def login(payload: LoginIn):
 
 @app.get("/me")
 async def me(current_user=Depends(get_current_user)):
-    return {"user": current_user}
+    try:
+        user_data = admin_client.table("users").select("*").eq("auth_id", current_user.id).execute()
+        if user_data.data and len(user_data.data) > 0:
+            user = user_data.data[0]
+            return {
+                "user": {
+                    "id": user["auth_id"],
+                    "email": user["email"],
+                    "first_name": user["first_name"],
+                    "last_name": user["last_name"],
+                    "role": user["role"],
+                    "university": user["university"]
+                }
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User data not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
