@@ -292,36 +292,67 @@ async def get_assessment_details(assessment_id: str, current_user=Depends(get_cu
 @router.get("/assessments/{assessment_id}/submissions")
 async def get_assessment_submissions(assessment_id: str, current_user=Depends(get_current_user)):
     try:
-        # Verify the professor owns the assessment's class
+        # Verify the professor owns the assessment's class and get class_id
         assessment_check = admin_client.table("assessments").select(
-            "classes!inner(professor_id)"
+            "class_id, classes!inner(professor_id)"
         ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
 
         if not assessment_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to view this assessment")
 
-        # Get submissions
-        response = admin_client.table("submissions").select(
+        class_id = assessment_check.data[0]["class_id"]
+
+        # Get all students in the class
+        students_response = admin_client.table("class_students").select(
+            "users!inner(auth_id, first_name, last_name, email)"
+        ).eq("class_id", class_id).execute()
+
+        # Get all submissions for this assessment
+        submissions_response = admin_client.table("submissions").select(
             "*, users!inner(first_name, last_name, email)"
         ).eq("assessment_id", assessment_id).execute()
 
+        # Create a map of submissions by student_id
+        submission_map = {sub["student_id"]: sub for sub in submissions_response.data}
+
         submissions = []
-        for submission in response.data:
-            user = submission["users"]
-            submissions.append({
-                "id": submission["id"],
-                "assessment_id": submission["assessment_id"],
-                "student_id": submission["student_id"],
-                "student_name": f"{user['first_name']} {user['last_name']}",
-                "student_email": user["email"],
-                "ai_feedback": submission["ai_feedback"],
-                "ai_score": submission["ai_score"],
-                "professor_feedback": submission["professor_feedback"],
-                "final_score": submission["final_score"],
-                "zip_path": submission["zip_path"],
-                "status": submission["status"],
-                "created_at": submission["created_at"]
-            })
+        for item in students_response.data:
+            user = item["users"]
+            student_id = user["auth_id"]
+
+            if student_id in submission_map:
+                # Student submitted
+                submission = submission_map[student_id]
+                submissions.append({
+                    "id": submission["id"],
+                    "assessment_id": submission["assessment_id"],
+                    "student_id": submission["student_id"],
+                    "student_name": f"{user['first_name']} {user['last_name']}",
+                    "student_email": user["email"],
+                    "ai_feedback": submission["ai_feedback"],
+                    "ai_score": submission["ai_score"],
+                    "professor_feedback": submission["professor_feedback"],
+                    "final_score": submission["final_score"],
+                    "zip_path": submission["zip_path"],
+                    "status": submission["status"],
+                    "created_at": submission["created_at"]
+                })
+            else:
+                # Student did not submit - create placeholder
+                submissions.append({
+                    "id": None,
+                    "assessment_id": assessment_id,
+                    "student_id": student_id,
+                    "student_name": f"{user['first_name']} {user['last_name']}",
+                    "student_email": user["email"],
+                    "ai_feedback": None,
+                    "ai_score": None,
+                    "professor_feedback": None,
+                    "final_score": None,
+                    "zip_path": None,
+                    "status": "no submission",
+                    "created_at": None
+                })
 
         return submissions
     except Exception as e:
@@ -381,18 +412,57 @@ async def release_assessment_scores(assessment_id: str, current_user=Depends(get
     try:
         # Verify the professor owns the assessment's class
         assessment_check = admin_client.table("assessments").select(
-            "classes!inner(professor_id)"
+            "class_id, classes!inner(professor_id)"
         ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
 
         if not assessment_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to release scores for this assessment")
 
-        # Update all submissions for this assessment to 'released' status
+        class_id = assessment_check.data[0]["class_id"]
+
+        import random
+
+        # Get all students in the class to check for missing submissions
+        students_response = admin_client.table("class_students").select(
+            "users!inner(auth_id, first_name, last_name, email)"
+        ).eq("class_id", class_id).execute()
+
+        # Get existing submissions
+        submissions_response = admin_client.table("submissions").select(
+            "student_id"
+        ).eq("assessment_id", assessment_id).execute()
+
+        existing_student_ids = {sub["student_id"] for sub in submissions_response.data}
+
+        # Create submissions for students who haven't submitted
+        for item in students_response.data:
+            student_id = item["users"]["auth_id"]
+            if student_id not in existing_student_ids:
+                # Create a "no submission" record
+                submission_id = random.randint(1000000000, 9999999999)
+                admin_client.table("submissions").insert({
+                    "id": submission_id,
+                    "assessment_id": assessment_id,
+                    "student_id": student_id,
+                    "ai_feedback": "No submission.",
+                    "ai_score": 0.0,
+                    "professor_feedback": "No submission.",
+                    "final_score": 0.0,
+                    "zip_path": None,
+                    "status": "released"
+                }).execute()
+
+        # Update all submissions for this assessment to 'released' status (this will also update the ones we just created)
         response = admin_client.table("submissions").update({
             "status": "released"
         }).eq("assessment_id", assessment_id).eq("status", "reviewed").execute()
 
-        return {"message": f"Released scores for {len(response.data)} submissions"}
+        # Count total released submissions
+        total_released = admin_client.table("submissions").select(
+            "id"
+        ).eq("assessment_id", assessment_id).eq("status", "released").execute()
+
+        return {"message": f"Released scores for {len(total_released.data)} submissions"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

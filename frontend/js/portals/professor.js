@@ -770,14 +770,15 @@ class ProfessorPortal {
     submissionsList.innerHTML = '';
 
     if (submissions.length === 0) {
-      submissionsList.innerHTML = '<p class="text-gray-500">No submissions yet.</p>';
+      submissionsList.innerHTML = '<p class="text-gray-500">No students in this class.</p>';
       return;
     }
 
     submissions.forEach(submission => {
-      const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800' :
-                         submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800' :
-                         'bg-yellow-100 text-yellow-800';
+      const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                         submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                         submission.status === 'no submission' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
 
       const submissionDiv = document.createElement('div');
       submissionDiv.className = 'bg-white dark:bg-gray-600 p-4 rounded-lg';
@@ -786,24 +787,28 @@ class ProfessorPortal {
           <div>
             <h5 class="font-bold">${submission.student_name}</h5>
             <p class="text-gray-600 dark:text-gray-300 text-sm">${submission.student_email}</p>
-            <p class="text-gray-500 text-sm">Submitted: ${new Date(submission.created_at).toLocaleString()}</p>
+            ${submission.created_at ? `<p class="text-gray-500 text-sm">Submitted: ${new Date(submission.created_at).toLocaleString()}</p>` : '<p class="text-gray-500 text-sm">Not submitted</p>'}
           </div>
           <div class="text-right">
             <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${submission.status}</span>
             <div class="mt-1">
-              <span class="text-sm text-gray-600 dark:text-gray-300">AI Score: ${submission.ai_score || 'N/A'}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-300">AI Score: ${submission.ai_score !== null ? submission.ai_score : 'N/A'}</span>
             </div>
-            ${submission.final_score ? `<div class="text-sm text-gray-600 dark:text-gray-300">Final Score: ${submission.final_score}</div>` : ''}
+            ${submission.final_score !== null ? `<div class="text-sm text-gray-600 dark:text-gray-300">Final Score: ${submission.final_score}</div>` : ''}
           </div>
         </div>
         ${submission.professor_feedback ? `<p class="text-gray-700 dark:text-gray-200 mt-2"><strong>Feedback:</strong> ${submission.professor_feedback}</p>` : ''}
         <div class="mt-3 flex gap-2">
-          <button onclick="ProfessorPortal.reviewSubmission('${submission.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-            ${submission.professor_feedback ? 'Edit Review' : 'Review'}
-          </button>
-          <button onclick="ProfessorPortal.downloadStudentProject('${submission.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
-            Download
-          </button>
+          ${submission.id ? `
+            <button onclick="ProfessorPortal.reviewSubmission('${submission.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              ${submission.professor_feedback ? 'Edit Review' : 'Review'}
+            </button>
+            <button onclick="ProfessorPortal.downloadStudentProject('${submission.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+              Download
+            </button>
+          ` : `
+            <span class="text-gray-500 text-sm italic">Review unavailable - no submission</span>
+          `}
         </div>
       `;
       submissionsList.appendChild(submissionDiv);
