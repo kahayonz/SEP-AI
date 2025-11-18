@@ -1,0 +1,65 @@
+# --- Python Virtual Environments ---
+.venv/
+venv/
+ENV/
+
+# --- Python Cache & Bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Environment & Secrets ---
+.env
+.env.*
+*.key
+*.pem
+
+# --- Database & Local Data ---
+*.db
+*.sqlite3
+instance/
+uploads/
+media/
+
+# --- Logs & Reports ---
+*.log
+logs/
+coverage/
+htmlcov/
+
+# --- Build / Packaging Artifacts ---
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# --- Frontend Artifacts ---
+node_modules/
+dist/
+build/
+*.lock
+*.cache/
+*.tmp
+
+# --- Editor / IDE Files ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- Tests ---
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+.cache/
+junit.xml
+
+# --- Misc ---
+*.bak
+*.swp
+Thumbs.db
+
+# --- Uploaded Files ---
+uploads/

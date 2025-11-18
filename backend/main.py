@@ -3,21 +3,18 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
-from supabase import create_client, Client
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-admin_client: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+from app.auth import get_current_user
+from app.routes_ai import router as ai_router
+from app.routes import router as main_router
+from app.database import supabase, admin_client
 
 
 app = FastAPI()
 security = HTTPBearer()
+app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
+app.include_router(main_router, prefix="/api", tags=["Main"])
 
 # Add CORS middleware
 app.add_middleware(
@@ -40,26 +37,11 @@ class LoginIn(BaseModel):
     email: str
     password: str
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials  # Extract the actual JWT token
-
-    try:
-        user_response = supabase.auth.get_user(token)
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-    if not user_response.user:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    return user_response.user
-
 @app.post("/logout")
 async def logout(current_user=Depends(get_current_user)):
-    try:
-        response = supabase.auth.sign_out()
-        return {"message": "Successfully logged out"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    # JWT tokens are stateless - actual logout happens client-side
+    # This endpoint just validates the token is still valid
+    return {"message": "Successfully logged out"}
 
 @app.post("/signup")
 async def signup(payload: SignupIn):
@@ -130,4 +112,53 @@ async def login(payload: LoginIn):
 
 @app.get("/me")
 async def me(current_user=Depends(get_current_user)):
-    return {"user": current_user}
+    try:
+        user_data = admin_client.table("users").select("*").eq("auth_id", current_user.id).execute()
+        if user_data.data and len(user_data.data) > 0:
+            user = user_data.data[0]
+            return {
+                "user": {
+                    "id": user["auth_id"],
+                    "email": user["email"],
+                    "first_name": user["first_name"],
+                    "last_name": user["last_name"],
+                    "role": user["role"],
+                    "university": user["university"]
+                }
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User data not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class UpdateUserIn(BaseModel):
+    first_name: str
+    last_name: str
+    university: str
+
+@app.put("/me")
+async def update_me(update_data: UpdateUserIn, current_user=Depends(get_current_user)):
+    try:
+        # Update user data in users table
+        update_response = admin_client.table("users").update({
+            "first_name": update_data.first_name,
+            "last_name": update_data.last_name,
+            "university": update_data.university
+        }).eq("auth_id", current_user.id).execute()
+
+        if update_response.data:
+            updated_user = update_response.data[0]
+            return {
+                "user": {
+                    "id": updated_user["auth_id"],
+                    "email": updated_user["email"],
+                    "first_name": updated_user["first_name"],
+                    "last_name": updated_user["last_name"],
+                    "role": updated_user["role"],
+                    "university": updated_user["university"]
+                }
+            }
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -6,18 +6,15 @@
   <title>SEP-AI - Student Portal</title>
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // Dark mode toggle
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    }
-    window.onload = function() {
-      if(localStorage.getItem('sepai-theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
-    }
-  </script>
+
+  <!-- Load modular JavaScript -->
+  <script src="config/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="components/AccountManager.js"></script>
+  <script src="components/FileUploader.js"></script>
+  <script src="js/portals/student.js"></script>
+  <script src="js/main.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
 
@@ -44,7 +41,7 @@
         <a href="#account" class="sidebar-link block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
           Account
         </a>
-        <button onclick="handleLogout()" class="w-full text-left p-3 text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
+        <button onclick="StudentPortal.handleLogout()" class="w-full text-left p-3 text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
           Logout
         </button>
       </nav>
@@ -55,7 +52,7 @@
   <div class="pl-20">
     <!-- Welcome Section -->
     <header class="hero">
-      <h2 class="hero-title">Welcome, John Doe!</h2>
+      <h2 class="hero-title">Welcome, </h2>
       <p class="hero-desc">Access your coursework and get AI-powered feedback on your projects</p>
     </header>
 
@@ -63,17 +60,40 @@
     <section id="ai-evaluation" class="mx-auto max-w-4xl p-6 mt-8">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Project Submission</h3>
-        
+
         <!-- Dropbox -->
-        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8">
-          <input type="file" id="fileUpload" class="hidden" multiple>
-          <label for="fileUpload" class="cursor-pointer">
-            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <p class="mt-1">Drag and drop your project files here, or click to browse</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Maximum file size: 50MB</p>
-          </label>
+        <div id="dropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+          <input type="file" id="fileUpload" class="hidden" accept=".zip">
+
+          <!-- Upload State -->
+          <div id="uploadPrompt" class="cursor-pointer">
+            <label for="fileUpload">
+              <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+            </label>
+          </div>
+
+          <!-- File Selected State -->
+          <div id="fileSelected" class="hidden">
+            <div class="flex items-center justify-center space-x-4">
+              <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div class="text-left">
+                <p class="font-medium text-gray-900 dark:text-white" id="selectedFileName"></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400" id="selectedFileSize"></p>
+              </div>
+              <button id="removeFile" class="text-red-500 hover:text-red-700 p-1">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+          </div>
         </div>
 
         <!-- Guidelines -->
@@ -87,14 +107,14 @@
           </ul>
         </div>
 
-        <button onclick="simulateSubmission()" class="primary-btn w-full">Submit Project</button>
+        <button onclick="StudentPortal.handleProjectSubmission()" class="primary-btn w-full">Submit Project</button>
       </div>
 
       <!-- Results Section (hidden by default) -->
       <div id="results" class="mt-8 hidden">
         <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
           <h3 class="text-2xl font-bold mb-6">Assessment Results</h3>
-          
+
           <!-- Score Display -->
           <div class="text-center mb-8">
             <div class="text-6xl font-bold text-blue-600 dark:text-blue-400" id="score">0</div>
@@ -113,123 +133,97 @@
     </section>
 
     <!-- Classes Section -->
-    <section id="classes" class="mx-auto max-w-4xl p-6 mt-8 hidden">
+    <section id="classes" class="mx-auto max-w-6xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Your Classes</h3>
-        <div class="space-y-6">
-          <div class="p-4 border rounded-lg">
-            <h4 class="font-bold">Web Development</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">2 assignments due this week</p>
-          </div>
-          <div class="p-4 border rounded-lg">
-            <h4 class="font-bold">Data Structures</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">1 assignment due next week</p>
-          </div>
+        <div id="classesContainer" class="space-y-6">
+          <!-- Classes will be loaded here -->
         </div>
       </div>
     </section>
+
+    <!-- Assessment Detail Modal -->
+    <div id="assessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-[#232326] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold" id="assessmentTitle">Assessment Details</h3>
+              <button onclick="StudentPortal.closeAssessmentModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div id="assessmentContent">
+              <!-- Assessment content will be loaded here -->
+            </div>
+
+            <!-- Submission Section -->
+            <div id="submissionSection" class="mt-8 hidden">
+              <h4 class="text-lg font-bold mb-4">Submit Your Assessment</h4>
+
+              <!-- Dropbox -->
+              <div id="assessmentDropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+                <input type="file" id="assessmentFileUpload" class="hidden" accept=".zip">
+
+                <!-- Upload State -->
+                <div id="assessmentUploadPrompt" class="cursor-pointer">
+                  <label for="assessmentFileUpload">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+                  </label>
+                </div>
+
+                <!-- File Selected State -->
+                <div id="assessmentFileSelected" class="hidden">
+                  <div class="flex items-center justify-center space-x-4">
+                    <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-left">
+                      <p class="font-medium text-gray-900 dark:text-white" id="assessmentSelectedFileName"></p>
+                      <p class="text-sm text-gray-500 dark:text-gray-400" id="assessmentSelectedFileSize"></p>
+                    </div>
+                    <button id="assessmentRemoveFile" class="text-red-500 hover:text-red-700 p-1">
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+                </div>
+              </div>
+
+              <button onclick="StudentPortal.submitAssessment()" class="primary-btn w-full" id="submitAssessmentBtn">Submit Assessment</button>
+            </div>
+
+            <!-- Already Submitted Section -->
+            <div id="submittedSection" class="mt-8 hidden">
+              <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-green-800 dark:text-green-200 mb-2">Assessment Submitted</h4>
+                <p class="text-green-700 dark:text-green-300">Your assessment has been submitted successfully. You will receive feedback from your professor soon.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Account Section -->
     <section id="account" class="mx-auto max-w-4xl p-6 mt-8 hidden">
       <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
         <h3 class="text-2xl font-bold mb-6">Account Settings</h3>
-        <form class="space-y-4">
-          <div>
-            <label class="block mb-2">Name</label>
-            <input type="text" value="John Doe" class="w-full p-2 border rounded">
-          </div>
-          <div>
-            <label class="block mb-2">Email</label>
-            <input type="email" value="john@example.com" class="w-full p-2 border rounded">
-          </div>
-          <button type="submit" class="primary-btn">Save Changes</button>
-        </form>
+        <div id="accountContainer" class="space-y-4">
+          <!-- Account info will be loaded here -->
+        </div>
       </div>
     </section>
   </div>
 
-  <script>
-    function toggleDropdown() {
-      var menu = document.getElementById('dropdownMenu');
-      menu.classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', function(event) {
-      var menu = document.getElementById('dropdownMenu');
-      var button = document.getElementById('menuButton');
-      if (!menu.contains(event.target) && !button.contains(event.target)) {
-        menu.classList.add('hidden');
-      }
-    });
-
-    function simulateSubmission() {
-      // Show results section
-      document.getElementById('results').classList.remove('hidden');
-      
-      // Generate random score
-      const score = Math.floor(Math.random() * 101);
-      document.getElementById('score').textContent = score;
-      
-      // Generate recommendations based on score
-      const recommendations = document.getElementById('recommendations');
-      recommendations.innerHTML = ''; // Clear previous recommendations
-      
-      const possibleRecommendations = [
-        { threshold: 60, text: "Improve code documentation and comments" },
-        { threshold: 70, text: "Consider implementing more unit tests" },
-        { threshold: 80, text: "Optimize database queries for better performance" },
-        { threshold: 90, text: "Refactor code to follow DRY principles" }
-      ];
-
-      possibleRecommendations.forEach(rec => {
-        if (score < rec.threshold) {
-          const div = document.createElement('div');
-          div.className = 'p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg';
-          div.textContent = rec.text;
-          recommendations.appendChild(div);
-        }
-      });
-    }
-
-    async function handleLogout() {
-      try {
-        const token = localStorage.getItem('access_token');
-        const response = await fetch('http://localhost:8000/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (response.ok) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = 'index.html';
-        }
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
-    }
-
-    // Add sidebar toggle functionality
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('-translate-x-full');
-    });
-
-    // Add sidebar navigation
-    document.querySelectorAll('.sidebar-link').forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        document.querySelectorAll('section').forEach(section => {
-          section.classList.add('hidden');
-        });
-        document.getElementById(targetId).classList.remove('hidden');
-      });
-    });
-
-    // Show AI Evaluation section by default
-    document.getElementById('ai-evaluation').classList.remove('hidden');
-  </script>
-</body>
-</html>
+  <!-- All script functionality moved to modular files -->
+  <!-- No inline scripts remain - everything is now modularized -->
