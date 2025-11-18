@@ -39,8 +39,9 @@ class ProfessorPortal {
       document.body.classList.add('dark');
     }
 
-    // Show Dashboard section by default
+    // Show Dashboard and Classes sections by default
     document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('classes').classList.remove('hidden');
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();
@@ -49,6 +50,8 @@ class ProfessorPortal {
     // Load initial data
     this.loadClasses();
     this.loadAssessments();
+    this.loadDashboardStats();
+    this.loadRecentSubmissions();
   }
 
   static setupEventListeners() {
@@ -740,6 +743,105 @@ class ProfessorPortal {
       option.value = cls.id;
       option.textContent = cls.name;
       select.appendChild(option);
+    });
+  }
+
+  static async loadDashboardStats() {
+    const token = UIUtils.getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/api/professor/dashboard-stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        this.displayDashboardStats(stats);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    }
+  }
+
+  static displayDashboardStats(stats) {
+    // Update total submissions
+    const totalSubmissionsEl = document.querySelector('[data-stat="total-submissions"]');
+    if (totalSubmissionsEl) {
+      totalSubmissionsEl.querySelector('.text-2xl').textContent = stats.total_submissions;
+    }
+
+    // Update graded submissions
+    const gradedEl = document.querySelector('[data-stat="graded"]');
+    if (gradedEl) {
+      gradedEl.querySelector('.text-2xl').textContent = stats.graded_submissions;
+    }
+
+    // Update pending submissions
+    const pendingEl = document.querySelector('[data-stat="pending"]');
+    if (pendingEl) {
+      pendingEl.querySelector('.text-2xl').textContent = stats.pending_submissions;
+    }
+
+    // Update average score
+    const averageEl = document.querySelector('[data-stat="average"]');
+    if (averageEl) {
+      averageEl.querySelector('.text-2xl').textContent = stats.average_score;
+    }
+  }
+
+  static async loadRecentSubmissions() {
+    const token = UIUtils.getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/api/professor/recent-submissions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const submissions = await response.json();
+        this.displayRecentSubmissions(submissions);
+      }
+    } catch (error) {
+      console.error('Error loading recent submissions:', error);
+    }
+  }
+
+  static displayRecentSubmissions(submissions) {
+    const tableBody = document.getElementById('recentSubmissionsTable');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    if (submissions.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No submissions yet</td></tr>';
+      return;
+    }
+
+    submissions.forEach(submission => {
+      const statusColor = submission.status === 'released' || submission.status === 'reviewed' 
+        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      
+      const statusText = submission.status === 'released' ? 'Graded' : 'Pending';
+      const submissionDate = new Date(submission.submission_date).toLocaleString();
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${submission.student_name}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.assessment_title}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submissionDate}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusText}</span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">-</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.score}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button onclick="ProfessorPortal.openReviewModal('${submission.student_name}', '${submission.score}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Review</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
     });
   }
 

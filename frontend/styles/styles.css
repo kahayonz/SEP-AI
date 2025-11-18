@@ -3,13 +3,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Doto:wght@400;700&display=swap');
 
 :root {
-  --primary: #222; /* Changed from blue to dark gray for better dark mode harmony */
-  --secondary: #f3f4f6;
+  --primary: #f0f0f0; /* Light grey for navbar */
+  --secondary: #e0e0e0;
   --success: #22c55e;
   --text: #222;
-  --bg: #fff;
-  --card-bg: #f9fafb;
-  --border: #e5e7eb;
+  --bg: #f5f5f5;
+  --card-bg: #ebebeb;
+  --border: #d9d9d9;
 }
 body {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
@@ -33,14 +33,21 @@ body.dark {
   justify-content: space-between;
   align-items: center;
   background: var(--primary);
-  color: #fff;
+  color: var(--text);
   padding: 1rem 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+body.dark .navbar {
+  color: var(--text);
 }
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
   letter-spacing: 0.05em;
+  color: var(--text);
+}
+body.dark .logo {
+  color: var(--text);
 }
 .nav-links {
   display: flex;
@@ -48,10 +55,13 @@ body.dark {
   list-style: none;
 }
 .nav-links a {
-  color: #fff;
+  color: var(--text);
   text-decoration: none;
   font-weight: 500;
   transition: opacity 0.2s;
+}
+body.dark .nav-links a {
+  color: #fff;
 }
 .nav-links a:hover {
   opacity: 0.7;
@@ -61,9 +71,13 @@ body.dark {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #fff;
+  color: var(--text);
   margin-left: 1rem;
   transition: color 0.2s;
+}
+body.dark .theme-toggle {
+  color: #fff;
+}
 }
 .theme-toggle:hover {
   color: var(--secondary);
@@ -71,8 +85,8 @@ body.dark {
 .hero {
   text-align: center;
   padding: 5rem 2rem 3rem 2rem;
-  background: linear-gradient(90deg, var(--primary) 0%, #444 100%);
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
 }
 .hero-title {
   font-size: 2.5rem;
@@ -100,6 +114,9 @@ body.dark {
 }
 .primary-btn {
   background: var(--primary);
+  color: var(--text);
+}
+body.dark .primary-btn {
   color: #fff;
 }
 .primary-btn:hover {
@@ -132,13 +149,14 @@ body.dark {
 .features-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1rem;
   max-width: 900px;
   margin: 0 auto;
 }
 @media (min-width: 768px) {
   .features-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
   }
 }
 .feature-card {
@@ -146,12 +164,33 @@ body.dark {
   border-radius: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 2rem;
-  transition: box-shadow 0.2s, background 0.2s;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
   border: 1px solid var(--border);
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .feature-card:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   background: var(--secondary);
+}
+.feature-card h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.feature-description {
+  margin: 0;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+}
+.feature-card:hover .feature-description {
+  opacity: 1;
+  max-height: 200px;
+  margin-top: 1rem;
 }
 .students-section, .professors-section, .about-section {
   background: var(--bg);
@@ -177,7 +216,7 @@ body.dark {
   color: var(--text);
 }
 .footer {
-  background: var(--primary);
+  background: #1a1a1a;
   color: #fff;
   text-align: center;
   padding: 2rem 0 1rem 0;
@@ -210,6 +249,15 @@ body.dark .file-input {
 .dropdown-menu, .dropdown-menu a, .dropdown-menu button {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
 }
+/* Dropdown menu styling */
+.dropdown-menu {
+  background-color: #fff !important;
+  color: #222 !important;
+}
+body.dark .dropdown-menu {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
 .about-section, .about-section p {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
 }
@@ -238,6 +286,28 @@ body.dark .file-input {
 [for="fileUpload"]:hover {
   opacity: 0.8;
   transition: opacity 0.3s ease;
+}
+
+/* More Features section styling */
+.bg-gray-50 {
+  background-color: var(--bg) !important;
+}
+
+body.dark .bg-gray-50 {
+  background-color: #1c1c1f !important;
+}
+
+/* Dark mode text colors */
+body.dark .text-gray-800 {
+  color: #fff !important;
+}
+
+body.dark .text-gray-600 {
+  color: #d4d4d4 !important;
+}
+
+body.dark .text-gray-900 {
+  color: #fff !important;
 }
 
 /* Score animation */

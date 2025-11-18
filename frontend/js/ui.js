@@ -49,6 +49,14 @@ class UIUtils {
     if (target) {
       target.classList.remove('hidden');
 
+      // If navigating to dashboard, also show classes section
+      if (targetId === 'dashboard') {
+        const classesSection = document.getElementById('classes');
+        if (classesSection) {
+          classesSection.classList.remove('hidden');
+        }
+      }
+
       // Scroll to section
       target.scrollIntoView({ behavior: 'smooth' });
     }

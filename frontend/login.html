@@ -7,14 +7,17 @@
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Dark mode toggle function (same as other pages)
+    // Dark mode toggle function
     function toggleDarkMode() {
       document.body.classList.toggle('dark');
       localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
     window.onload = function() {
-      if(localStorage.getItem('sepai-theme') === 'dark') {
+      const theme = localStorage.getItem('sepai-theme') || 'dark';
+      if(theme === 'dark') {
         document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
       }
     }
 

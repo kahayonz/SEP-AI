@@ -87,6 +87,101 @@ async def get_professor_classes(current_user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/professor/dashboard-stats")
+async def get_professor_dashboard_stats(current_user=Depends(get_current_user)):
+    try:
+        # Get all classes for the professor
+        classes_response = admin_client.table("classes").select("id").eq("professor_id", current_user.id).execute()
+        class_ids = [cls["id"] for cls in classes_response.data]
+        
+        if not class_ids:
+            return {
+                "total_submissions": 0,
+                "graded_submissions": 0,
+                "pending_submissions": 0,
+                "average_score": 0.0
+            }
+        
+        # Get all assessments for these classes
+        assessments_response = admin_client.table("assessments").select("id").in_("class_id", class_ids).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+        
+        if not assessment_ids:
+            return {
+                "total_submissions": 0,
+                "graded_submissions": 0,
+                "pending_submissions": 0,
+                "average_score": 0.0
+            }
+        
+        # Get all submissions for these assessments
+        submissions_response = admin_client.table("submissions").select("*").in_("assessment_id", assessment_ids).execute()
+        submissions = submissions_response.data
+        
+        total_submissions = len(submissions)
+        # A submission is graded if it has been reviewed (status = 'reviewed' or 'released')
+        graded_submissions = len([s for s in submissions if s.get("status") in ["reviewed", "released"]])
+        pending_submissions = len([s for s in submissions if s.get("status") not in ["reviewed", "released"]])
+        
+        # Calculate average score from graded submissions
+        graded_list = [s for s in submissions if s.get("status") in ["reviewed", "released"]]
+        scores = [s.get("final_score") for s in graded_list if s.get("final_score") is not None]
+        average_score = sum(scores) / len(scores) if scores else 0.0
+        
+        return {
+            "total_submissions": total_submissions,
+            "graded_submissions": graded_submissions,
+            "pending_submissions": pending_submissions,
+            "average_score": round(average_score, 1)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/professor/recent-submissions")
+async def get_recent_submissions(current_user=Depends(get_current_user)):
+    try:
+        # Get all classes for the professor
+        classes_response = admin_client.table("classes").select("id").eq("professor_id", current_user.id).execute()
+        class_ids = [cls["id"] for cls in classes_response.data]
+        
+        if not class_ids:
+            return []
+        
+        # Get all assessments for these classes
+        assessments_response = admin_client.table("assessments").select("id, title, classes(name)").in_("class_id", class_ids).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+        assessment_map = {a["id"]: a for a in assessments_response.data}
+        
+        if not assessment_ids:
+            return []
+        
+        # Get all submissions for these assessments, ordered by created_at, limit to 5
+        submissions_response = admin_client.table("submissions").select(
+            "id, student_id, assessment_id, status, final_score, created_at, users!inner(first_name, last_name)"
+        ).in_("assessment_id", assessment_ids).order("created_at", desc=True).limit(5).execute()
+        
+        submissions = submissions_response.data
+        result = []
+        
+        for submission in submissions:
+            assessment = assessment_map.get(submission["assessment_id"], {})
+            student_name = f"{submission['users']['first_name']} {submission['users']['last_name']}"
+            
+            result.append({
+                "id": submission["id"],
+                "student_name": student_name,
+                "project": submission.get("project_name", "Project"),
+                "assessment_title": assessment.get("title", "Unknown Assessment"),
+                "class_name": assessment.get("classes", {}).get("name", "Unknown Class"),
+                "submission_date": submission.get("created_at", ""),
+                "status": submission.get("status", "pending"),
+                "score": submission.get("final_score", "-")
+            })
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.delete("/classes/{class_id}")
 async def delete_class(class_id: str, current_user=Depends(get_current_user)):
     try:

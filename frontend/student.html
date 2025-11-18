@@ -15,8 +15,24 @@
   <script src="components/FileUploader.js"></script>
   <script src="js/portals/student.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // Dark mode toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+    // On load, set theme from localStorage, default to dark
+    window.onload = function() {
+      const theme = localStorage.getItem('sepai-theme') || 'dark';
+      if(theme === 'dark') {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+    }
+  </script>
 </head>
-<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
+<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans dark">
 
   <!-- Sidebar Toggle Button -->
   <button id="sidebarToggle" class="fixed top-6 left-6 z-50 p-2 bg-white dark:bg-[#232326] rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-[#18181b] transition-colors">
