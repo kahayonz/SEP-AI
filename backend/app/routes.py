@@ -166,14 +166,16 @@ async def get_recent_submissions(current_user=Depends(get_current_user)):
         for submission in submissions:
             assessment = assessment_map.get(submission["assessment_id"], {})
             student_name = f"{submission['users']['first_name']} {submission['users']['last_name']}"
-            
+            # For newly added students with no actual submission, show "-" as date
+            submission_date = submission.get("created_at") or ("-" if submission.get("status") == "no submission" else "")
+
             result.append({
                 "id": submission["id"],
                 "student_name": student_name,
                 "project": submission.get("project_name", "Project"),
                 "assessment_title": assessment.get("title", "Unknown Assessment"),
                 "class_name": assessment.get("classes", {}).get("name", "Unknown Class"),
-                "submission_date": submission.get("created_at", ""),
+                "submission_date": submission_date,
                 "status": submission.get("status", "pending"),
                 "score": submission.get("final_score", "-")
             })
@@ -252,6 +254,31 @@ async def add_student_to_class(class_id: str, student_data: AddStudentToClass, c
             "class_id": class_id,
             "student_id": student_data.student_id
         }).execute()
+
+        # Get all assessments for this class
+        assessments_response = admin_client.table("assessments").select("id").eq("class_id", class_id).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+
+        # Create submission records for all existing assessments for this newly added student
+        # Set created_at to None to indicate newly added student (will display as "-")
+        import random
+        for assessment_id in assessment_ids:
+            # Check if submission already exists (shouldn't happen but safety check)
+            existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", student_data.student_id).execute()
+            if not existing_submission.data:
+                submission_id = random.randint(1000000000, 9999999999)
+                admin_client.table("submissions").insert({
+                    "id": submission_id,
+                    "assessment_id": assessment_id,
+                    "student_id": student_data.student_id,
+                    "ai_feedback": None,
+                    "ai_score": None,
+                    "professor_feedback": None,
+                    "final_score": None,
+                    "zip_path": None,
+                    "status": "no submission",
+                    "created_at": None  # Explicitly set to None to indicate newly added
+                }).execute()
 
         return {"message": "Student added to class successfully"}
     except Exception as e:
