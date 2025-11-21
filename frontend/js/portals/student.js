@@ -277,6 +277,7 @@ class StudentPortal {
     } else {
       // Not submitted yet - show submission form
       document.getElementById('submissionSection').classList.remove('hidden');
+      FileUploader.setupAssessmentDropbox();
       FileUploader.resetAssessmentDropbox();
     }
   }

@@ -44,18 +44,21 @@ class FileUploader {
     }
   }
 
-  static setupEventListeners(inputId, dropboxId, promptId, selectedId) {
+  static setupEventListeners(inputId, dropboxId, promptId, selectedId, nameElementId = null, sizeElementId = null, removeBtnId = null) {
     const fileInput = document.getElementById(inputId);
     const dropbox = document.getElementById(dropboxId);
     const uploadPrompt = document.getElementById(promptId);
     const fileSelected = document.getElementById(selectedId);
-    const removeFileBtn = document.getElementById('removeFile');
+
+    const nameElement = nameElementId ? document.getElementById(nameElementId) : document.getElementById('selectedFileName');
+    const sizeElement = sizeElementId ? document.getElementById(sizeElementId) : document.getElementById('selectedFileSize');
+    const removeFileBtn = removeBtnId ? document.getElementById(removeBtnId) : document.getElementById('removeFile');
 
     if (fileInput) {
       fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
-          this.updateFileDisplay(file, dropbox, uploadPrompt, fileSelected);
+          this.updateFileDisplay(file, dropbox, uploadPrompt, fileSelected, nameElement, sizeElement);
         } else {
           this.resetFileDisplay(dropbox, uploadPrompt, fileSelected);
         }
@@ -91,15 +94,19 @@ class FileUploader {
     }
   }
 
-  static updateFileDisplay(file, dropbox, uploadPrompt, fileSelected) {
+  static updateFileDisplay(file, dropbox, uploadPrompt, fileSelected, nameElement = null, sizeElement = null) {
     try {
       UIUtils.validateFile(file);
 
       const fileName = file.name;
       const fileSize = UIUtils.formatFileSize(file.size);
 
-      document.getElementById('selectedFileName').textContent = fileName;
-      document.getElementById('selectedFileSize').textContent = fileSize;
+      // Use provided elements or fall back to default IDs
+      const nameEl = nameElement || document.getElementById('selectedFileName');
+      const sizeEl = sizeElement || document.getElementById('selectedFileSize');
+
+      if (nameEl) nameEl.textContent = fileName;
+      if (sizeEl) sizeEl.textContent = fileSize;
 
       uploadPrompt.classList.add('hidden');
       fileSelected.classList.remove('hidden');
@@ -123,6 +130,60 @@ class FileUploader {
   }
 
   // Assessment-specific file uploader methods
+  static setupAssessmentDropbox() {
+    const dropbox = document.getElementById('assessmentDropbox');
+    if (!dropbox) return;
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropbox.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropbox.addEventListener(eventName, () => {
+        dropbox.classList.add('drag-over');
+      });
+    });
+
+    // Remove highlight when item is no longer over drop zone
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropbox.addEventListener(eventName, () => {
+        dropbox.classList.remove('drag-over');
+      });
+    });
+
+    // Handle dropped files
+    dropbox.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        this.handleFileSelect('assessmentFileUpload', files[0]);
+      }
+    });
+
+    // Handle click on dropbox
+    const uploadPrompt = document.getElementById('assessmentUploadPrompt');
+    if (uploadPrompt) {
+      uploadPrompt.addEventListener('click', () => {
+        document.getElementById('assessmentFileUpload').click();
+      });
+    }
+
+    // Setup event listeners for file input and display updates
+    this.setupEventListeners(
+      'assessmentFileUpload',
+      'assessmentDropbox',
+      'assessmentUploadPrompt',
+      'assessmentFileSelected',
+      'assessmentSelectedFileName',
+      'assessmentSelectedFileSize',
+      'assessmentRemoveFile'
+    );
+  }
+
   static resetAssessmentDropbox() {
     const dropbox = document.getElementById('assessmentDropbox');
     const uploadPrompt = document.getElementById('assessmentUploadPrompt');
@@ -133,3 +194,5 @@ class FileUploader {
     }
   }
 }
+
+window.FileUploader = FileUploader;

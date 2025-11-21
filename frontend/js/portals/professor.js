@@ -825,7 +825,7 @@ class ProfessorPortal {
         : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       
       const statusText = submission.status === 'released' ? 'Graded' : 'Pending';
-      const submissionDate = new Date(submission.submission_date).toLocaleString();
+      const submissionDate = submission.submission_date === '-' ? '-' : new Date(submission.submission_date).toLocaleString();
       
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -876,11 +876,14 @@ class ProfessorPortal {
       return;
     }
 
-    submissions.forEach(submission => {
+      submissions.forEach(submission => {
       const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                          submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                          submission.status === 'no submission' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+
+      const displayDate = submission.created_at ? new Date(submission.created_at).toLocaleString() : (submission.status === 'no submission' ? '-' : 'Not submitted');
+      const dateLabel = submission.created_at ? 'Submitted:' : 'Date:';
 
       const submissionDiv = document.createElement('div');
       submissionDiv.className = 'bg-white dark:bg-gray-600 p-4 rounded-lg';
@@ -889,7 +892,7 @@ class ProfessorPortal {
           <div>
             <h5 class="font-bold">${submission.student_name}</h5>
             <p class="text-gray-600 dark:text-gray-300 text-sm">${submission.student_email}</p>
-            ${submission.created_at ? `<p class="text-gray-500 text-sm">Submitted: ${new Date(submission.created_at).toLocaleString()}</p>` : '<p class="text-gray-500 text-sm">Not submitted</p>'}
+            <p class="text-gray-500 text-sm">${dateLabel} ${displayDate}</p>
           </div>
           <div class="text-right">
             <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${submission.status}</span>
