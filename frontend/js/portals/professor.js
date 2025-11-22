@@ -42,6 +42,7 @@ class ProfessorPortal {
     // Show Dashboard and Classes sections by default
     document.getElementById('dashboard').classList.remove('hidden');
     document.getElementById('classes').classList.remove('hidden');
+    // document.getElementById('assessments').classList.remove('hidden'); // Remove assessments from dashboard focus
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();
@@ -77,6 +78,11 @@ class ProfessorPortal {
     const createAssessmentForm = document.getElementById('createAssessmentForm');
     if (createAssessmentForm) {
       createAssessmentForm.addEventListener('submit', (e) => this.createAssessment(e));
+    }
+
+    const editAssessmentForm = document.getElementById('editAssessmentForm');
+    if (editAssessmentForm) {
+      editAssessmentForm.addEventListener('submit', (e) => this.updateAssessment(e));
     }
 
     const reviewForm = document.getElementById('reviewForm');
@@ -602,7 +608,17 @@ class ProfessorPortal {
   }
 
   static openCreateAssessmentModal() {
-    document.getElementById('createAssessmentModal').classList.remove('hidden');
+    console.log('Create Assessment Modal Opened');
+    const modal = document.getElementById('createAssessmentModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.setProperty('display', 'flex', 'important');
+      console.log('Modal opened');
+    } else {
+      console.error('Modal not found');
+    }
+    // Ensure classes are loaded for the dropdown
+    this.loadClasses();
   }
 
   static closeCreateAssessmentModal() {
@@ -614,6 +630,83 @@ class ProfessorPortal {
     document.getElementById('createClassModal').classList.add('hidden');
     document.getElementById('createClassForm').reset();
     modalSelectedStudents = [];
+  }
+
+  static async editAssessment(assessmentId) {
+    const token = UIUtils.getToken();
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const assessment = await response.json();
+
+        // Populate the edit form
+        document.getElementById('editAssessmentTitle').value = assessment.title;
+        document.getElementById('editAssessmentDescription').value = assessment.instructions;
+        document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+
+        currentAssessmentId = assessmentId;
+        const modal = document.getElementById('editAssessmentModal');
+        modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'flex', 'important');
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error loading assessment for editing:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
+  }
+
+  static closeEditAssessmentModal() {
+    document.getElementById('editAssessmentModal').classList.add('hidden');
+    document.getElementById('editAssessmentForm').reset();
+    currentAssessmentId = null;
+  }
+
+  static async updateAssessment(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('editAssessmentTitle').value.trim();
+    const instructions = document.getElementById('editAssessmentDescription').value.trim();
+    const deadline = document.getElementById('editAssessmentDueDate').value;
+
+    if (!title || !instructions || !deadline) {
+      UIUtils.showError('Please fill in all fields');
+      return;
+    }
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/assessments/${currentAssessmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: title,
+          instructions: instructions,
+          deadline: deadline
+        })
+      });
+
+      if (response.ok) {
+        UIUtils.showSuccess('Assessment updated successfully!');
+        this.closeEditAssessmentModal();
+        this.loadAssessments(); // Refresh the assessments list
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error updating assessment:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
   }
 
   static async deleteClass(classId, className) {
@@ -722,9 +815,14 @@ class ProfessorPortal {
             <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
             <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || 'Unknown'}</p>
           </div>
-          <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-            View Submissions
-          </button>
+          <div class="flex gap-2">
+            <button onclick="ProfessorPortal.editAssessment('${assessment.id}')" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700">
+              Edit
+            </button>
+            <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Submissions
+            </button>
+          </div>
         </div>
         <p class="text-gray-700 dark:text-gray-200">${assessment.instructions}</p>
       `;

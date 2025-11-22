@@ -386,6 +386,35 @@ async def get_professor_assessments(current_user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.put("/assessments/{assessment_id}")
+async def update_assessment(assessment_id: str, assessment_data: dict, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns the assessment
+        ownership_check = admin_client.table("assessments").select(
+            "class_id, classes!inner(professor_id)"
+        ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
+
+        if not ownership_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to update this assessment")
+
+        # Update the assessment
+        update_data = {}
+        if "title" in assessment_data:
+            update_data["title"] = assessment_data["title"]
+        if "instructions" in assessment_data:
+            update_data["instructions"] = assessment_data["instructions"]
+        if "deadline" in assessment_data:
+            update_data["deadline"] = assessment_data["deadline"]
+
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No valid fields provided for update")
+
+        response = admin_client.table("assessments").update(update_data).eq("id", assessment_id).execute()
+
+        return {"message": "Assessment updated successfully", "assessment": response.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/assessments/{assessment_id}")
 async def get_assessment_details(assessment_id: str, current_user=Depends(get_current_user)):
     try:
