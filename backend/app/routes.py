@@ -375,14 +375,15 @@ async def get_professor_assessments(current_user=Depends(get_current_user)):
     try:
         # Get all assessments for classes owned by this professor
         response = admin_client.table("assessments").select(
-            "*, classes!inner(professor_id)"
+            "*, classes!inner(name, professor_id)" 
         ).eq("classes.professor_id", current_user.id).execute()
+
 
         assessments = []
         for assessment in response.data:
             assessments.append(AssessmentResponse(**assessment))
 
-        return assessments
+        return response.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -617,7 +618,26 @@ async def release_assessment_scores(assessment_id: str, current_user=Depends(get
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.delete("/assessments/{assessment_id}")
+async def delete_assessment(assessment_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns the assessment
+        ownership_check = admin_client.table("assessments").select(
+            "class_id, classes!inner(professor_id)"
+        ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
 
+        if not ownership_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this assessment")
+
+        # Delete associated submissions first
+        admin_client.table("submissions").delete().eq("assessment_id", assessment_id).execute()
+
+        # Delete the assessment
+        admin_client.table("assessments").delete().eq("id", assessment_id).execute()
+
+        return {"message": "Assessment deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Student routes
 @router.get("/student/classes")

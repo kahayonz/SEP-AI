@@ -449,17 +449,17 @@
 </div>
 
 <!-- Create Assessment Modal -->
-<div id="createAssessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
-  <div class="flex items-center justify-center min-h-screen p-4">
+<div id="createAssessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+  <div class="p-4">
     <div class="bg-white dark:bg-[#232326] rounded-lg max-w-md w-full">
       <div class="p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold">Create New Assessment</h3>
-          <button onclick="ProfessorPortal.closeCreateAssessmentModal()" class="text-gray-500 hover:text-gray-700">
+        <div class="relative mb-6">
+          <button onclick="ProfessorPortal.closeCreateAssessmentModal()" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
+          <h3 class="text-xl font-bold text-center pr-8">Create New Assessment</h3>
         </div>
 
         <form id="createAssessmentForm" class="space-y-4">
@@ -491,10 +491,42 @@
     </div>
   </div>
 </div>
-            </form>
+
+<!-- Edit Assessment Modal -->
+<div id="editAssessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+  <div class="p-4">
+    <div class="bg-white dark:bg-[#232326] rounded-lg max-w-md w-full">
+      <div class="p-6">
+        <div class="relative mb-6">
+          <button onclick="ProfessorPortal.closeEditAssessmentModal()" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          <h3 class="text-xl font-bold text-center pr-8">Edit Assessment</h3>
         </div>
+
+        <form id="editAssessmentForm" class="space-y-4">
+          <div>
+            <label class="block mb-2">Assessment Title</label>
+            <input type="text" id="editAssessmentTitle" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block mb-2">Instructions</label>
+            <textarea id="editAssessmentDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3" required></textarea>
+          </div>
+          <div>
+            <label class="block mb-2">Due Date</label>
+            <input type="datetime-local" id="editAssessmentDueDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+          </div>
+          <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Update Assessment</button>
+            <button type="button" onclick="ProfessorPortal.closeEditAssessmentModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
+</div>
 </body>
 </html>

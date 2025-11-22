@@ -622,7 +622,9 @@ class ProfessorPortal {
   }
 
   static closeCreateAssessmentModal() {
-    document.getElementById('createAssessmentModal').classList.add('hidden');
+    const modal = document.getElementById('createAssessmentModal');
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
     document.getElementById('createAssessmentForm').reset();
   }
 
@@ -632,38 +634,39 @@ class ProfessorPortal {
     modalSelectedStudents = [];
   }
 
-  static async editAssessment(assessmentId) {
-    const token = UIUtils.getToken();
+static async editAssessment(assessmentId) {
+  const token = UIUtils.getToken();
 
-    try {
-      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  try {
+    const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
 
-      if (response.ok) {
-        const assessment = await response.json();
+    if (response.ok) {
+      const assessment = await response.json();
 
-        // Populate the edit form
-        document.getElementById('editAssessmentTitle').value = assessment.title;
-        document.getElementById('editAssessmentDescription').value = assessment.instructions;
-        document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+      // Populate the edit form
+      document.getElementById('editAssessmentTitle').value = assessment.title;
+      document.getElementById('editAssessmentDescription').value = assessment.instructions;
+      document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
 
-        currentAssessmentId = assessmentId;
-        const modal = document.getElementById('editAssessmentModal');
-        modal.classList.remove('hidden');
-        modal.style.setProperty('display', 'flex', 'important');
-      } else {
-        const error = await response.json();
-        UIUtils.showError(`Error: ${error.detail}`);
-      }
-    } catch (error) {
-      console.error('Error loading assessment for editing:', error);
-      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+      currentAssessmentId = assessmentId;
+      const modal = document.getElementById('editAssessmentModal');
+      modal.classList.remove('hidden');
+    } else {
+      const error = await response.json();
+      UIUtils.showError(`Error: ${error.detail}`);
     }
+  } catch (error) {
+    console.error('Error loading assessment for editing:', error);
+    UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
   }
+}
 
   static closeEditAssessmentModal() {
-    document.getElementById('editAssessmentModal').classList.add('hidden');
+    const modal = document.getElementById('editAssessmentModal');
+    modal.classList.add('hidden');
+    modal.style.removeProperty('display');
     document.getElementById('editAssessmentForm').reset();
     currentAssessmentId = null;
   }
@@ -729,6 +732,29 @@ class ProfessorPortal {
       }
     } catch (error) {
       console.error('Error deleting class:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
+  }
+
+  static async deleteAssessment(assessmentId) {
+    if (!confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) return;
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        UIUtils.showSuccess('Assessment deleted successfully!');
+        this.loadAssessments();
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
       UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
     }
   }
@@ -813,14 +839,17 @@ class ProfessorPortal {
           <div>
             <h4 class="font-bold text-lg">${assessment.title}</h4>
             <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || 'Unknown'}</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || assessment.class_name || 'Unknown'}</p>
           </div>
           <div class="flex gap-2">
+            <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Submissions
+            </button>
             <button onclick="ProfessorPortal.editAssessment('${assessment.id}')" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700">
               Edit
             </button>
-            <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-              View Submissions
+            <button onclick="ProfessorPortal.deleteAssessment('${assessment.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+              Delete
             </button>
           </div>
         </div>
