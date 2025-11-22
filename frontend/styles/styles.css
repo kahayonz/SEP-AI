@@ -253,10 +253,59 @@ body.dark .file-input {
 .dropdown-menu {
   background-color: #fff !important;
   color: #222 !important;
+  animation: slideDown 0.3s ease-out;
+  transform-origin: top;
+}
+.dropdown-menu.hidden {
+  animation: slideUp 0.3s ease-in forwards;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 body.dark .dropdown-menu {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
+}
+
+/* Dropdown items - no background highlight on hover */
+.dropdown-menu a,
+.dropdown-menu button {
+  background-color: transparent;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: transparent !important;
+  color: #222 !important;
+}
+
+body.dark .dropdown-menu a:hover,
+body.dark .dropdown-menu button:hover {
+  background-color: transparent !important;
+  color: #f3f4f6 !important;
+}
+
+/* Navbar buttons - no background highlight on hover */
+.navbar a:hover,
+.navbar button:hover {
+  background-color: transparent !important;
 }
 .about-section, .about-section p {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
@@ -313,4 +362,79 @@ body.dark .text-gray-900 {
 /* Score animation */
 #score {
   transition: all 0.5s ease;
+}
+
+/* Form styling for light and dark mode */
+.max-w-md {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.dark .max-w-md {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Form heading styling */
+.max-w-md h2 {
+  color: #222 !important;
+}
+
+body.dark .max-w-md h2 {
+  color: #f3f4f6 !important;
+}
+
+/* Form label styling */
+.max-w-md label {
+  color: #222 !important;
+}
+
+body.dark .max-w-md label {
+  color: #d1d5db !important;
+}
+
+/* Ensure form inputs are styled correctly */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.dark input[type="text"],
+body.dark input[type="email"],
+body.dark input[type="password"] {
+  background-color: #2a2a2e !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+/* Form paragraph styling */
+.max-w-md p {
+  color: #222 !important;
+}
+
+body.dark .max-w-md p {
+  color: #d1d5db !important;
+}
+
+/* Back button styling */
+.absolute.top-6.left-6 a {
+  color: #222 !important;
+}
+
+body.dark .absolute.top-6.left-6 a {
+  color: #f3f4f6 !important;
+}
+
+/* SVG stroke color for back button */
+.absolute.top-6.left-6 svg {
+  stroke: #222 !important;
+}
+
+body.dark .absolute.top-6.left-6 svg {
+  stroke: #f3f4f6 !important;
 }

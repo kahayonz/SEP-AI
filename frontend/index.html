@@ -7,23 +7,42 @@
   <link rel="stylesheet" href="styles/styles.css?v=2">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Apply theme immediately before page renders to avoid flash
+    (function() {
+      const theme = localStorage.getItem('sepai-theme');
+      if(theme === 'light') {
+        document.body.classList.remove('dark');
+      } else {
+        document.body.classList.add('dark');
+      }
+    })();
+  </script>
+  <script>
     // Dark mode toggle
     function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      const isDark = document.body.classList.toggle('dark');
+      const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      console.log('Index: Toggled to', theme);
+      localStorage.setItem('sepai-theme', theme);
+      console.log('Index: Saved to localStorage:', localStorage.getItem('sepai-theme'));
     }
-    // On load, set theme from localStorage, default to dark
+    // On load, set theme from localStorage
     window.onload = function() {
-      const theme = localStorage.getItem('sepai-theme') || 'dark';
-      if(theme === 'dark') {
-        document.body.classList.add('dark');
-      } else {
+      const theme = localStorage.getItem('sepai-theme');
+      console.log('Index: Loaded theme from localStorage:', theme);
+      if(theme === 'light') {
         document.body.classList.remove('dark');
+      } else {
+        document.body.classList.add('dark');
       }
     }
     function toggleLogoDropdown() {
       var menu = document.getElementById('logoDropdownMenu');
-      menu.classList.toggle('hidden');
+      if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+      } else {
+        menu.classList.add('hidden');
+      }
     }
     // Close dropdown when clicking outside
     document.addEventListener('click', function(event) {
@@ -45,16 +64,16 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
       </button>
       <div id="logoDropdownMenu" class="dropdown-menu absolute left-0 mt-2 w-48 bg-white dark:bg-[#232326] border border-gray-200 dark:border-[#27272a] rounded-xl shadow-lg py-2 hidden z-10">
-        <a href="about.html" class="block px-6 py-3 text-sm text-gray-800 hover:bg-gray-100 dark:hover:bg-[#18181b] transition">About</a>
+        <a href="about.html" class="block px-6 py-3 text-sm text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition">About</a>
         <div class="border-t border-gray-200 dark:border-[#27272a] my-2"></div>
-        <button class="w-full px-6 py-3 text-left text-sm text-gray-800 hover:bg-gray-100 dark:hover:bg-[#18181b] transition" onclick="toggleDarkMode()">
+        <button class="w-full px-6 py-3 text-left text-sm text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" onclick="toggleDarkMode()">
           <span class="toggle-icon" id="themeIcon">🌙</span> Toggle Light Mode
         </button>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <a href="signup.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-100 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
-      <a href="login.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-100 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
+      <a href="signup.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
+      <a href="login.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
     </div>
   </nav>
 
