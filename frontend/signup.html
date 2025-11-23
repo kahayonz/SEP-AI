@@ -6,7 +6,7 @@
   <title>SEP-AI - Sign Up</title>
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
   <script>
     // Dark mode toggle
     function toggleDarkMode() {
@@ -20,19 +20,85 @@
       } else {
         document.body.classList.add('dark');
       }
+
+      // Add input validation event listeners
+      setupValidation();
+    }
+
+    // Helper function to capitalize first name and last name
+    function capitalizeName(name) {
+      if (!name) return '';
+      return name.split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+    }
+
+    // Email validation function
+    function isValidEmail(email) {
+      // Basic email regex pattern
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // Setup validation event listeners
+    function setupValidation() {
+      const firstNameInput = document.getElementById('firstName');
+      const lastNameInput = document.getElementById('lastName');
+      const emailInput = document.getElementById('email');
+
+      // Capitalize names on input
+      firstNameInput.addEventListener('input', function(e) {
+        const cursorPosition = e.target.selectionStart;
+        e.target.value = capitalizeName(e.target.value);
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+      });
+
+      lastNameInput.addEventListener('input', function(e) {
+        const cursorPosition = e.target.selectionStart;
+        e.target.value = capitalizeName(e.target.value);
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+      });
+
+
     }
     
     async function handleSignup(event) {
       event.preventDefault();
-      
+
+      // Check if a role has been selected
+      const selectedButton = document.querySelector('button.selected');
+      if (!selectedButton) {
+        alert('Please select whether you are a Student or Professor');
+        return;
+      }
+
       const formData = {
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
-        role: document.querySelector('button.selected').dataset.role,
+        role: selectedButton.dataset.role,
         university: document.getElementById('university').value
       };
+
+      // Final validation before submission
+      const passwordVerify = document.getElementById('verifyPassword').value;
+
+      // Validate email format
+      if (!isValidEmail(formData.email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      // Validate password match
+      if (formData.password !== passwordVerify) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      // Validate name capitalization (should be automatic, but double-check)
+      formData.firstName = capitalizeName(formData.firstName);
+      formData.lastName = capitalizeName(formData.lastName);
       
       try {
         const response = await fetch('http://localhost:8000/signup', {
@@ -157,9 +223,7 @@
                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
           </div>
 
-          <div class="flex justify-center">
-            <div class="g-recaptcha" data-sitekey="your-site-key"></div>
-          </div>
+
         </div>
 
         <div>

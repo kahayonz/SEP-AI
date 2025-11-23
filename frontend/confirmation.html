@@ -10,21 +10,84 @@
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
   <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white dark:bg-[#232326] p-8 rounded-xl shadow-lg border border-gray-200 dark:border-[#27272a]">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Check Your Email</h2>
-        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          We've sent a confirmation email to your address. Please click the link in the email to verify your account.
-        </p>
-        <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          Once confirmed, you'll be automatically logged in and redirected to your dashboard.
-        </p>
+      <!-- Loading state (shown initially or when confirming) -->
+      <div id="confirmationProcessing" class="hidden text-center">
+        <div class="mb-4">
+          <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Confirming Your Account</h2>
+        <p class="text-gray-600 dark:text-gray-400">Please wait while we set up your account...</p>
       </div>
-      <div class="text-center">
-        <a href="login.html" class="text-blue-600 hover:text-blue-500 dark:text-blue-400">
-          Return to login
-        </a>
+
+      <!-- Initial confirmation page -->
+      <div id="confirmationPending">
+        <div>
+          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Check Your Email</h2>
+          <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            We've sent a confirmation email to your address. Please click the link in the email to verify your account.
+          </p>
+          <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+            Once confirmed, you'll be automatically logged in and redirected to your dashboard.
+          </p>
+        </div>
+        <div class="text-center">
+          <a href="login.html" class="text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            Return to login
+          </a>
+        </div>
       </div>
     </div>
   </div>
-</body>
-</html>
+
+  <script>
+    // Apply theme immediately after body loads
+    const theme = localStorage.getItem('sepai-theme');
+    if(theme === 'light') {
+      document.body.classList.remove('dark');
+    } else {
+      document.body.classList.add('dark');
+    }
+
+    // Check URL for confirmation parameters
+    function checkForConfirmation() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isConfirmed = urlParams.get('confirmed');
+
+      if (isConfirmed === 'true') {
+        // User just confirmed - try to extract auth data from URL fragment
+        const hash = window.location.hash.substring(1); // Remove the '#'
+        const authParams = new URLSearchParams(hash);
+
+        const accessToken = authParams.get('access_token');
+        const refreshToken = authParams.get('refresh_token');
+        const userId = authParams.get('user_id');
+        const email = authParams.get('email');
+        const role = authParams.get('role');
+
+        if (accessToken && userId) {
+          // Store authentication data
+          localStorage.setItem('sepaiauth', JSON.stringify({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            user: {
+              id: userId,
+              email: email,
+              role: role
+            }
+          }));
+
+          // Show processing state
+          document.getElementById('confirmationPending').classList.add('hidden');
+          document.getElementById('confirmationProcessing').classList.remove('hidden');
+
+          // Redirect to appropriate dashboard after a short delay
+          setTimeout(() => {
+            const dashboardUrl = role === 'student' ? 'student.html' : 'professor.html';
+            window.location.href = dashboardUrl;
+          }, 1500);
+        }
+      }
+    }
+
+    // Check for confirmation on page load
+    window.addEventListener('load', checkForConfirmation);

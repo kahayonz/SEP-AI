@@ -1,7 +1,8 @@
 # main.py
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Request, Query
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -162,3 +163,64 @@ async def update_me(update_data: UpdateUserIn, current_user=Depends(get_current_
             raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/confirm")
+async def confirm_email(
+    access_token: str = Query(...),
+    refresh_token: str = Query(None),
+    type: str = Query(None)
+):
+    """
+    Handle email confirmation and automatic login
+    This endpoint is called when user clicks the confirmation link in their email
+    """
+    try:
+        # Check if this is a confirmation flow
+        if type != "signup":
+            # For other confirmation types or direct access, just redirect to login
+            return RedirectResponse(url=f"http://localhost:3000/login.html?confirmed=true")
+
+        # Set the session using the tokens from the confirmation link
+        supabase.auth.set_session({
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        })
+
+        # Verify the user is authenticated and get their data
+        try:
+            user = supabase.auth.get_user(access_token)
+            user_id = user.user.id if user.user else None
+        except Exception:
+            return RedirectResponse(url=f"http://localhost:3000/login.html?error=invalid_token")
+
+        # Get user data from our database
+        try:
+            user_data = admin_client.table("users").select("role").eq("auth_id", user_id).execute()
+            if user_data.data and len(user_data.data) > 0:
+                role = user_data.data[0]["role"]
+            else:
+                return RedirectResponse(url=f"http://localhost:3000/login.html?error=user_not_found")
+        except Exception:
+            return RedirectResponse(url=f"http://localhost:3000/login.html?error=database_error")
+
+        # Create login response data
+        login_data = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": {
+                "id": user_id,
+                "email": user.user.email,
+                "role": role
+            }
+        }
+
+        # Redirect to the appropriate dashboard with the auth data
+        # We'll pass the tokens as URL fragments so the frontend can capture them
+        dashboard_url = "student.html" if role == "student" else "professor.html"
+        auth_params = f"access_token={access_token}&refresh_token={refresh_token}&user_id={user_id}&email={user.user.email}&role={role}"
+
+        return RedirectResponse(url=f"http://localhost:3000/{dashboard_url}?confirmed=true#{auth_params}")
+
+    except Exception as e:
+        print(f"Confirmation error: {e}")
+        return RedirectResponse(url=f"http://localhost:3000/login.html?error=confirmation_failed")
