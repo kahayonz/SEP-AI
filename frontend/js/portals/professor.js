@@ -178,13 +178,15 @@ class ProfessorPortal {
 
       if (response.ok) {
         const classData = await response.json();
-        UIUtils.showSuccess('Class created successfully!');
 
-        // Add selected students to the new class
+        // Add selected students to the new class without individual alerts
         if (modalSelectedStudents.length > 0) {
           for (const student of modalSelectedStudents) {
-            await this.addStudentToClass(classData.id, student.id);
+            await this.addStudentToClass(classData.id, student.id, true);
           }
+          UIUtils.showSuccess('Class created successfully with students!');
+        } else {
+          UIUtils.showSuccess('Class created successfully!');
         }
 
         document.getElementById('createClassForm').reset();
@@ -345,7 +347,7 @@ class ProfessorPortal {
     }
   }
 
-  static async addStudentToClass(classId, studentId) {
+  static async addStudentToClass(classId, studentId, suppressAlert = false) {
     const token = UIUtils.getToken();
     try {
       const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
@@ -358,8 +360,13 @@ class ProfessorPortal {
       });
 
       if (response.ok) {
-        UIUtils.showSuccess('Student added to class successfully!');
-        this.loadClassStudents(classId);
+        if (!suppressAlert) {
+          UIUtils.showSuccess('Student added to class successfully!');
+        }
+        // Only reload class students if alert is shown (individual add), not for modal bulk add
+        if (!suppressAlert) {
+          this.loadClassStudents(classId);
+        }
       } else {
         const error = await response.json();
         UIUtils.showError(`Error: ${error.detail}`);

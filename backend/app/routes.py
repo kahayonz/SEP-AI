@@ -192,7 +192,18 @@ async def delete_class(class_id: str, current_user=Depends(get_current_user)):
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to delete this class")
 
-        # Delete class_students first
+        # Get all assessments for this class
+        assessments_response = admin_client.table("assessments").select("id").eq("class_id", class_id).execute()
+
+        # Delete submissions and assessments in cascade order
+        for assessment in assessments_response.data:
+            assessment_id = assessment["id"]
+            # Delete associated submissions first
+            admin_client.table("submissions").delete().eq("assessment_id", assessment_id).execute()
+            # Delete the assessment
+            admin_client.table("assessments").delete().eq("id", assessment_id).execute()
+
+        # Delete class_students
         admin_client.table("class_students").delete().eq("class_id", class_id).execute()
 
         # Delete the class
@@ -260,7 +271,6 @@ async def add_student_to_class(class_id: str, student_data: AddStudentToClass, c
         assessment_ids = [a["id"] for a in assessments_response.data]
 
         # Create submission records for all existing assessments for this newly added student
-        # Set created_at to None to indicate newly added student (will display as "-")
         import random
         for assessment_id in assessment_ids:
             # Check if submission already exists (shouldn't happen but safety check)
