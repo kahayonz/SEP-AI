@@ -813,3 +813,85 @@ body.dark button[onclick*="toggleDarkMode"]:hover {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
 }
+
+/* Navbar styling - force light/dark mode */
+.navbar {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.dark .navbar {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+.navbar .logo {
+  color: #222 !important;
+}
+
+body.dark .navbar .logo {
+  color: #f3f4f6 !important;
+}
+
+.navbar a {
+  color: #222 !important;
+}
+
+body.dark .navbar a {
+  color: #f3f4f6 !important;
+}
+
+/* General text color fixes for about/for-students/for-professors pages */
+h1 {
+  color: #222 !important;
+}
+
+body.dark h1 {
+  color: #f3f4f6 !important;
+}
+
+h2 {
+  color: #222 !important;
+}
+
+body.dark h2 {
+  color: #f3f4f6 !important;
+}
+
+p {
+  color: #222 !important;
+}
+
+body.dark p {
+  color: #d1d5db !important;
+}
+
+li {
+  color: #222 !important;
+}
+
+body.dark li {
+  color: #d1d5db !important;
+}
+
+/* Card/box styling for content pages */
+.bg-white {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark .bg-white {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Ensure max-w container text is readable */
+.max-w-4xl {
+  color: #222 !important;
+}
+
+body.dark .max-w-4xl {
+  color: #f3f4f6 !important;
+}
