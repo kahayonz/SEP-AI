@@ -78,7 +78,7 @@ body.dark .nav-links a {
 body.dark .theme-toggle {
   color: #fff;
 }
-}
+
 .theme-toggle:hover {
   color: var(--secondary);
 }
@@ -437,4 +437,379 @@ body.dark .absolute.top-6.left-6 a {
 
 body.dark .absolute.top-6.left-6 svg {
   stroke: #f3f4f6 !important;
+}
+
+/* Portal-specific light mode fixes */
+/* Only apply these to portal pages */
+#dashboard, #classes, #assessments, #ai-evaluation, #account {
+  background-color: transparent !important;
+}
+
+/* Stats cards - data-stat targeting */
+[data-stat] {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark [data-stat] {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Stats card text */
+[data-stat] dt {
+  color: #666 !important;
+}
+
+body.dark [data-stat] dt {
+  color: #9ca3af !important;
+}
+
+[data-stat] dd {
+  color: #222 !important;
+}
+
+body.dark [data-stat] dd {
+  color: #f3f4f6 !important;
+}
+
+/* Section containers and cards */
+.overflow-hidden.shadow.rounded-lg {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark .overflow-hidden.shadow.rounded-lg {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Classes and assessments sections */
+.space-y-4 > div {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark .space-y-4 > div {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Modal and form containers */
+.max-w-2xl {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark .max-w-2xl {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Dashboard section headings and text */
+#dashboard h2, #dashboard h3 {
+  color: #222 !important;
+}
+
+body.dark #dashboard h2,
+body.dark #dashboard h3 {
+  color: #f3f4f6 !important;
+}
+
+#dashboard p {
+  color: #666 !important;
+}
+
+body.dark #dashboard p {
+  color: #d1d5db !important;
+}
+
+/* Classes section styling */
+#classes h2, #classes h3 {
+  color: #222 !important;
+}
+
+body.dark #classes h2,
+body.dark #classes h3 {
+  color: #f3f4f6 !important;
+}
+
+#classes p {
+  color: #666 !important;
+}
+
+body.dark #classes p {
+  color: #d1d5db !important;
+}
+
+/* Assessments section styling */
+#assessments h2, #assessments h3 {
+  color: #222 !important;
+}
+
+body.dark #assessments h2,
+body.dark #assessments h3 {
+  color: #f3f4f6 !important;
+}
+
+#assessments p {
+  color: #666 !important;
+}
+
+body.dark #assessments p {
+  color: #d1d5db !important;
+}
+
+/* AI Evaluation section styling */
+#ai-evaluation h2, #ai-evaluation h3 {
+  color: #222 !important;
+}
+
+body.dark #ai-evaluation h2,
+body.dark #ai-evaluation h3 {
+  color: #f3f4f6 !important;
+}
+
+#ai-evaluation p {
+  color: #666 !important;
+}
+
+body.dark #ai-evaluation p {
+  color: #d1d5db !important;
+}
+
+/* Account section styling */
+#account h2, #account h3 {
+  color: #222 !important;
+}
+
+body.dark #account h2,
+body.dark #account h3 {
+  color: #f3f4f6 !important;
+}
+
+#account p {
+  color: #666 !important;
+}
+
+body.dark #account p {
+  color: #d1d5db !important;
+}
+
+/* Table styling for portals */
+#recentSubmissionsTable {
+  background-color: #ffffff !important;
+}
+
+body.dark #recentSubmissionsTable {
+  background-color: #232326 !important;
+}
+
+#recentSubmissionsTable tr {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark #recentSubmissionsTable tr {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+#recentSubmissionsTable td {
+  color: #222 !important;
+  border-color: #e5e7eb !important;
+}
+
+body.dark #recentSubmissionsTable td {
+  color: #f3f4f6 !important;
+  border-color: #374151 !important;
+}
+
+/* Sidebar styling */
+#sidebar {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark #sidebar {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+#sidebar a, #sidebar button {
+  color: #222 !important;
+}
+
+body.dark #sidebar a,
+body.dark #sidebar button {
+  color: #f3f4f6 !important;
+}
+
+/* Modal styling - light and dark mode */
+#submissionsModal > div > div,
+#reviewSubmissionModal > div > div,
+#createClassModal > div > div,
+#createAssessmentModal > div > div {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+body.dark #submissionsModal > div > div,
+body.dark #reviewSubmissionModal > div > div,
+body.dark #createClassModal > div > div,
+body.dark #createAssessmentModal > div > div {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Modal input and form elements */
+#submissionsModal input,
+#submissionsModal textarea,
+#submissionsModal select,
+#reviewSubmissionModal input,
+#reviewSubmissionModal textarea,
+#reviewSubmissionModal select,
+#createClassModal input,
+#createClassModal textarea,
+#createClassModal select,
+#createAssessmentModal input,
+#createAssessmentModal textarea,
+#createAssessmentModal select {
+  background-color: #f5f5f5 !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.dark #submissionsModal input,
+body.dark #submissionsModal textarea,
+body.dark #submissionsModal select,
+body.dark #reviewSubmissionModal input,
+body.dark #reviewSubmissionModal textarea,
+body.dark #reviewSubmissionModal select,
+body.dark #createClassModal input,
+body.dark #createClassModal textarea,
+body.dark #createClassModal select,
+body.dark #createAssessmentModal input,
+body.dark #createAssessmentModal textarea,
+body.dark #createAssessmentModal select {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Modal headings and text */
+#submissionsModal h3,
+#reviewSubmissionModal h3,
+#createClassModal h3,
+#createAssessmentModal h3 {
+  color: #222 !important;
+}
+
+body.dark #submissionsModal h3,
+body.dark #reviewSubmissionModal h3,
+body.dark #createClassModal h3,
+body.dark #createAssessmentModal h3 {
+  color: #f3f4f6 !important;
+}
+
+/* Modal buttons */
+#submissionsModal .bg-green-600,
+#submissionsModal .bg-blue-600,
+#submissionsModal .bg-red-600,
+#reviewSubmissionModal .bg-green-600,
+#reviewSubmissionModal .bg-blue-600,
+#reviewSubmissionModal .bg-red-600,
+#createClassModal .bg-green-600,
+#createClassModal .bg-blue-600,
+#createClassModal .bg-red-600,
+#createAssessmentModal .bg-green-600,
+#createAssessmentModal .bg-blue-600,
+#createAssessmentModal .bg-red-600 {
+  opacity: 1 !important;
+}
+
+/* Modal autocomplete dropdown */
+#modal-autocomplete {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+body.dark #modal-autocomplete {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Modal selected items */
+#modal-selected-students {
+  color: #222 !important;
+}
+
+body.dark #modal-selected-students {
+  color: #f3f4f6 !important;
+}
+
+/* Sidebar links hover - light mode fix */
+.sidebar-link {
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-link:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+body.dark .sidebar-link:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+}
+
+/* Sidebar toggle button hover */
+#sidebarToggle:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+body.dark #sidebarToggle:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+}
+
+/* Logout button styling */
+button[onclick*="handleLogout"] {
+  color: #dc2626 !important;
+}
+
+button[onclick*="handleLogout"]:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+body.dark button[onclick*="handleLogout"] {
+  color: #ef4444 !important;
+}
+
+body.dark button[onclick*="handleLogout"]:hover {
+  background-color: #18181b !important;
+  color: #ef4444 !important;
+}
+
+/* Theme toggle button styling */
+button[onclick*="toggleDarkMode"] {
+  color: #374151 !important;
+}
+
+button[onclick*="toggleDarkMode"]:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+body.dark button[onclick*="toggleDarkMode"] {
+  color: #d1d5db !important;
+}
+
+body.dark button[onclick*="toggleDarkMode"]:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
 }
