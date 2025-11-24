@@ -39,8 +39,25 @@ class StudentPortal {
       document.body.classList.add('dark');
     }
 
-    // Show AI Evaluation section by default
-    document.getElementById('ai-evaluation').classList.remove('hidden');
+    // Check if there's a saved section to restore
+    const savedSection = localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION);
+    
+    if (savedSection && document.getElementById(savedSection)) {
+      // Restore saved section
+      UIUtils.navigateTo(savedSection);
+      
+      // Load data for specific sections
+      if (savedSection === 'classes') {
+        this.loadStudentClasses();
+      } else if (savedSection === 'account') {
+        AccountManager.loadAccountInformation();
+      }
+    } else {
+      // Show AI Evaluation section by default
+      document.getElementById('ai-evaluation').classList.remove('hidden');
+      // Save the default section
+      localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION, 'ai-evaluation');
+    }
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();

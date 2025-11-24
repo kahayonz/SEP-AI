@@ -39,10 +39,24 @@ class ProfessorPortal {
       document.body.classList.add('dark');
     }
 
-    // Show Dashboard and Classes sections by default
-    document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('classes').classList.remove('hidden');
-    // document.getElementById('assessments').classList.remove('hidden'); // Remove assessments from dashboard focus
+    // Check if there's a saved section to restore
+    const savedSection = localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION);
+    
+    if (savedSection && document.getElementById(savedSection)) {
+      // Restore saved section
+      UIUtils.navigateTo(savedSection);
+      
+      // Load data for specific sections
+      if (savedSection === 'account') {
+        AccountManager.loadAccountInformation();
+      }
+    } else {
+      // Show Dashboard and Classes sections by default
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('classes').classList.remove('hidden');
+      // Save the default section
+      localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION, 'dashboard');
+    }
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();

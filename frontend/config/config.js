@@ -4,7 +4,8 @@ const CONFIG = {
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'access_token',
     REFRESH_TOKEN: 'refresh_token',
-    THEME: 'sepai-theme'
+    THEME: 'sepai-theme',
+    CURRENT_SECTION: 'sepai-current-section'
   },
   ENDPOINTS: {
     ME: '/me',

@@ -150,6 +150,7 @@ class UIUtils {
 
   /**
    * Navigate to a specific section of the application.
+   * Automatically saves the current section for page reload persistence.
    * @static
    * @param {string} targetId - ID of the target section
    */
@@ -174,6 +175,9 @@ class UIUtils {
 
       // Scroll to section
       target.scrollIntoView({ behavior: 'smooth' });
+      
+      // Save current section to localStorage for page reload persistence
+      localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION, targetId);
     }
   }
 
@@ -305,6 +309,7 @@ class UIUtils {
   static clearAuth() {
     localStorage.removeItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_SECTION);
   }
 }
 
