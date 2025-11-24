@@ -325,16 +325,27 @@ async def remove_student_from_class(class_id: str, student_id: str, current_user
 @router.get("/students/search", response_model=List[StudentResponse])
 async def search_students(query: str, current_user=Depends(get_current_user)):
     try:
-        response = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("first_name", f"%{query}%").execute()
+        # Search across first_name, last_name, and email fields
+        first_name_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("first_name", f"%{query}%").execute()
+        last_name_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("last_name", f"%{query}%").execute()
+        email_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("email", f"%{query}%").execute()
 
-        students = []
-        for user in response.data:
-            students.append(StudentResponse(
-                id=user["auth_id"],
-                first_name=user["first_name"],
-                last_name=user["last_name"],
-                email=user["email"]
-            ))
+        # Combine and deduplicate results
+        all_users = {}
+
+        for user in first_name_results.data:
+            all_users[user["auth_id"]] = user
+        for user in last_name_results.data:
+            all_users[user["auth_id"]] = user
+        for user in email_results.data:
+            all_users[user["auth_id"]] = user
+
+        students = [StudentResponse(
+            id=user["auth_id"],
+            first_name=user["first_name"],
+            last_name=user["last_name"],
+            email=user["email"]
+        ) for user in all_users.values()]
 
         return students
     except Exception as e:

@@ -343,11 +343,11 @@ class ProfessorPortal {
 
     const student = students[0];
     if (confirm(`Add ${student.first_name} ${student.last_name} to this class?`)) {
-      this.addStudentToClass(classId, student.id);
+      this.addStudentToClass(classId, student.id, `${student.first_name} ${student.last_name} (${student.email})`);
     }
   }
 
-  static async addStudentToClass(classId, studentId, suppressAlert = false) {
+  static async addStudentToClass(classId, studentId, studentName = null, suppressAlert = false) {
     const token = UIUtils.getToken();
     try {
       const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
@@ -362,10 +362,46 @@ class ProfessorPortal {
       if (response.ok) {
         if (!suppressAlert) {
           UIUtils.showSuccess('Student added to class successfully!');
-        }
-        // Only reload class students if alert is shown (individual add), not for modal bulk add
-        if (!suppressAlert) {
-          this.loadClassStudents(classId);
+
+          // If we don't have the student name, we need to fetch it
+          if (!studentName) {
+            try {
+              const studentResponse = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(studentId)}&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+
+              if (studentResponse.ok) {
+                const studentData = await studentResponse.json();
+                if (studentData.length > 0) {
+                  studentName = `${studentData[0].first_name} ${studentData[0].last_name} (${studentData[0].email})`;
+                }
+              }
+            } catch (studentError) {
+              console.error('Error fetching student details:', studentError);
+            }
+          }
+
+          // Add student element directly to DOM instead of reloading the entire list
+          if (studentName) {
+            const studentsDiv = document.getElementById(`class-students-${classId}`);
+            if (studentsDiv) {
+              // Remove "No students enrolled" message if it exists
+              const noStudentsMsg = studentsDiv.querySelector('p');
+              if (noStudentsMsg && noStudentsMsg.textContent.includes('No students enrolled')) {
+                studentsDiv.innerHTML = '';
+              }
+
+              const studentDiv = document.createElement('div');
+              studentDiv.className = 'flex justify-between items-center bg-white dark:bg-gray-600 p-2 rounded';
+              studentDiv.innerHTML = `
+                <span class="text-sm">${studentName}</span>
+                <button onclick="ProfessorPortal.removeStudentFromClass('${classId}', '${studentId}')" class="text-red-600 hover:text-red-800 text-sm">
+                  Remove
+                </button>
+              `;
+              studentsDiv.appendChild(studentDiv);
+            }
+          }
         }
       } else {
         const error = await response.json();
@@ -388,7 +424,22 @@ class ProfessorPortal {
       });
 
       if (response.ok) {
-        this.loadClassStudents(classId);
+        // Find and remove the student element from DOM instead of reloading the entire list
+        const studentsDiv = document.getElementById(`class-students-${classId}`);
+        const studentElements = studentsDiv.querySelectorAll('div');
+
+        for (const studentDiv of studentElements) {
+          // Check if this is the student we want to remove by finding a way to identify it
+          // Since the onclick contains the studentId, we can check that
+          const removeButton = studentDiv.querySelector('button');
+          if (removeButton && removeButton.getAttribute('onclick').includes(`'${studentId}'`)) {
+            studentDiv.remove();
+            break;
+          }
+        }
+
+        // Show success message
+        UIUtils.showSuccess('Student removed from class successfully!');
       } else {
         const error = await response.json();
         UIUtils.showError(`Error: ${error.detail}`);
@@ -481,7 +532,7 @@ class ProfessorPortal {
     input.value = '';
 
     // Add student to class
-    await this.addStudentToClass(classId, studentId);
+    await this.addStudentToClass(classId, studentId, studentName);
   }
 
   static openCreateClassModal() {
