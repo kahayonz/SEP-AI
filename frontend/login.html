@@ -5,22 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEP-AI - Login</title>
   <link rel="stylesheet" href="styles/styles.css">
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Dark mode toggle function
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    tailwind.config = {
+      darkMode: 'class'
     }
-    window.onload = function() {
-      const theme = localStorage.getItem('sepai-theme');
-      if(theme === 'light') {
-        document.body.classList.remove('dark');
-      } else {
-        document.body.classList.add('dark');
-      }
-    }
-
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme.js"></script>
+  <script>
     async function handleLogin(event) {
       event.preventDefault();
       

@@ -11,12 +11,15 @@
   --card-bg: #ebebeb;
   --border: #d9d9d9;
 }
+
 body {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
+  background-color: #f5f5f5;
+  color: #222;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+html.dark,
 body.dark {
   --primary: #18181b; /* Even darker for dark mode */
   --secondary: #232326;
@@ -25,8 +28,12 @@ body.dark {
   --bg: #18181b;
   --card-bg: #232326;
   --border: #27272a;
-  background: var(--bg);
-  color: var(--text);
+}
+
+html.dark body,
+body.dark body {
+  background-color: #18181b;
+  color: #f3f4f6;
 }
 .navbar {
   display: flex;
@@ -37,7 +44,7 @@ body.dark {
   padding: 1rem 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-body.dark .navbar {
+html.dark , body.dark .navbar {
   color: var(--text);
 }
 .logo {
@@ -46,7 +53,7 @@ body.dark .navbar {
   letter-spacing: 0.05em;
   color: var(--text);
 }
-body.dark .logo {
+html.dark , body.dark .logo {
   color: var(--text);
 }
 .nav-links {
@@ -60,7 +67,7 @@ body.dark .logo {
   font-weight: 500;
   transition: opacity 0.2s;
 }
-body.dark .nav-links a {
+html.dark , body.dark .nav-links a {
   color: #fff;
 }
 .nav-links a:hover {
@@ -75,7 +82,7 @@ body.dark .nav-links a {
   margin-left: 1rem;
   transition: color 0.2s;
 }
-body.dark .theme-toggle {
+html.dark , body.dark .theme-toggle {
   color: #fff;
 }
 
@@ -116,7 +123,7 @@ body.dark .theme-toggle {
   background: var(--primary);
   color: var(--text);
 }
-body.dark .primary-btn {
+html.dark , body.dark .primary-btn {
   color: #fff;
 }
 .primary-btn:hover {
@@ -224,21 +231,21 @@ body.dark .primary-btn {
   margin-top: 4rem;
   letter-spacing: 0.03em;
 }
-body.dark .feature-card:hover {
+html.dark , body.dark .feature-card:hover {
   background: #232326;
 }
-body.dark .secondary-btn {
+html.dark , body.dark .secondary-btn {
   background: #232326;
   color: #60a5fa;
 }
-body.dark .secondary-btn:hover {
+html.dark , body.dark .secondary-btn:hover {
   background: #18181b;
 }
-body.dark .students-card, body.dark .professors-card {
+html.dark , body.dark .students-card, html.dark , body.dark .professors-card {
   background: #232326;
   border-color: #27272a;
 }
-body.dark .file-input {
+html.dark , body.dark .file-input {
   background: #18181b;
   color: #f3f4f6;
   border-color: #27272a;
@@ -279,7 +286,7 @@ body.dark .file-input {
     transform: translateY(-10px);
   }
 }
-body.dark .dropdown-menu {
+html.dark , body.dark .dropdown-menu {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -296,8 +303,8 @@ body.dark .dropdown-menu {
   color: #222 !important;
 }
 
-body.dark .dropdown-menu a:hover,
-body.dark .dropdown-menu button:hover {
+html.dark , body.dark .dropdown-menu a:hover,
+html.dark , body.dark .dropdown-menu button:hover {
   background-color: transparent !important;
   color: #f3f4f6 !important;
 }
@@ -342,20 +349,20 @@ body.dark .dropdown-menu button:hover {
   background-color: var(--bg) !important;
 }
 
-body.dark .bg-gray-50 {
+html.dark , body.dark .bg-gray-50 {
   background-color: #1c1c1f !important;
 }
 
 /* Dark mode text colors */
-body.dark .text-gray-800 {
+html.dark , body.dark .text-gray-800 {
   color: #fff !important;
 }
 
-body.dark .text-gray-600 {
+html.dark , body.dark .text-gray-600 {
   color: #d4d4d4 !important;
 }
 
-body.dark .text-gray-900 {
+html.dark , body.dark .text-gray-900 {
   color: #fff !important;
 }
 
@@ -371,7 +378,7 @@ body.dark .text-gray-900 {
   border-color: #d9d9d9 !important;
 }
 
-body.dark .max-w-md {
+html.dark , body.dark .max-w-md {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
   border-color: #27272a !important;
@@ -382,7 +389,7 @@ body.dark .max-w-md {
   color: #222 !important;
 }
 
-body.dark .max-w-md h2 {
+html.dark , body.dark .max-w-md h2 {
   color: #f3f4f6 !important;
 }
 
@@ -391,7 +398,7 @@ body.dark .max-w-md h2 {
   color: #222 !important;
 }
 
-body.dark .max-w-md label {
+html.dark , body.dark .max-w-md label {
   color: #d1d5db !important;
 }
 
@@ -404,9 +411,9 @@ input[type="password"] {
   border-color: #d9d9d9 !important;
 }
 
-body.dark input[type="text"],
-body.dark input[type="email"],
-body.dark input[type="password"] {
+html.dark , body.dark input[type="text"],
+html.dark , body.dark input[type="email"],
+html.dark , body.dark input[type="password"] {
   background-color: #2a2a2e !important;
   color: #f3f4f6 !important;
   border-color: #4b5563 !important;
@@ -417,7 +424,7 @@ body.dark input[type="password"] {
   color: #222 !important;
 }
 
-body.dark .max-w-md p {
+html.dark , body.dark .max-w-md p {
   color: #d1d5db !important;
 }
 
@@ -426,7 +433,7 @@ body.dark .max-w-md p {
   color: #222 !important;
 }
 
-body.dark .absolute.top-6.left-6 a {
+html.dark , body.dark .absolute.top-6.left-6 a {
   color: #f3f4f6 !important;
 }
 
@@ -435,7 +442,7 @@ body.dark .absolute.top-6.left-6 a {
   stroke: #222 !important;
 }
 
-body.dark .absolute.top-6.left-6 svg {
+html.dark , body.dark .absolute.top-6.left-6 svg {
   stroke: #f3f4f6 !important;
 }
 
@@ -451,7 +458,7 @@ body.dark .absolute.top-6.left-6 svg {
   color: #222 !important;
 }
 
-body.dark [data-stat] {
+html.dark , body.dark [data-stat] {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -461,7 +468,7 @@ body.dark [data-stat] {
   color: #666 !important;
 }
 
-body.dark [data-stat] dt {
+html.dark , body.dark [data-stat] dt {
   color: #9ca3af !important;
 }
 
@@ -469,7 +476,7 @@ body.dark [data-stat] dt {
   color: #222 !important;
 }
 
-body.dark [data-stat] dd {
+html.dark , body.dark [data-stat] dd {
   color: #f3f4f6 !important;
 }
 
@@ -479,7 +486,7 @@ body.dark [data-stat] dd {
   color: #222 !important;
 }
 
-body.dark .overflow-hidden.shadow.rounded-lg {
+html.dark , body.dark .overflow-hidden.shadow.rounded-lg {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -490,7 +497,7 @@ body.dark .overflow-hidden.shadow.rounded-lg {
   color: #222 !important;
 }
 
-body.dark .space-y-4 > div {
+html.dark , body.dark .space-y-4 > div {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -501,7 +508,7 @@ body.dark .space-y-4 > div {
   color: #222 !important;
 }
 
-body.dark .max-w-2xl {
+html.dark , body.dark .max-w-2xl {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -511,8 +518,8 @@ body.dark .max-w-2xl {
   color: #222 !important;
 }
 
-body.dark #dashboard h2,
-body.dark #dashboard h3 {
+html.dark , body.dark #dashboard h2,
+html.dark , body.dark #dashboard h3 {
   color: #f3f4f6 !important;
 }
 
@@ -520,7 +527,7 @@ body.dark #dashboard h3 {
   color: #666 !important;
 }
 
-body.dark #dashboard p {
+html.dark , body.dark #dashboard p {
   color: #d1d5db !important;
 }
 
@@ -529,8 +536,8 @@ body.dark #dashboard p {
   color: #222 !important;
 }
 
-body.dark #classes h2,
-body.dark #classes h3 {
+html.dark , body.dark #classes h2,
+html.dark , body.dark #classes h3 {
   color: #f3f4f6 !important;
 }
 
@@ -538,7 +545,7 @@ body.dark #classes h3 {
   color: #666 !important;
 }
 
-body.dark #classes p {
+html.dark , body.dark #classes p {
   color: #d1d5db !important;
 }
 
@@ -547,8 +554,8 @@ body.dark #classes p {
   color: #222 !important;
 }
 
-body.dark #assessments h2,
-body.dark #assessments h3 {
+html.dark , body.dark #assessments h2,
+html.dark , body.dark #assessments h3 {
   color: #f3f4f6 !important;
 }
 
@@ -556,7 +563,7 @@ body.dark #assessments h3 {
   color: #666 !important;
 }
 
-body.dark #assessments p {
+html.dark , body.dark #assessments p {
   color: #d1d5db !important;
 }
 
@@ -565,8 +572,8 @@ body.dark #assessments p {
   color: #222 !important;
 }
 
-body.dark #ai-evaluation h2,
-body.dark #ai-evaluation h3 {
+html.dark , body.dark #ai-evaluation h2,
+html.dark , body.dark #ai-evaluation h3 {
   color: #f3f4f6 !important;
 }
 
@@ -574,7 +581,7 @@ body.dark #ai-evaluation h3 {
   color: #666 !important;
 }
 
-body.dark #ai-evaluation p {
+html.dark , body.dark #ai-evaluation p {
   color: #d1d5db !important;
 }
 
@@ -583,8 +590,8 @@ body.dark #ai-evaluation p {
   color: #222 !important;
 }
 
-body.dark #account h2,
-body.dark #account h3 {
+html.dark , body.dark #account h2,
+html.dark , body.dark #account h3 {
   color: #f3f4f6 !important;
 }
 
@@ -592,7 +599,7 @@ body.dark #account h3 {
   color: #666 !important;
 }
 
-body.dark #account p {
+html.dark , body.dark #account p {
   color: #d1d5db !important;
 }
 
@@ -601,7 +608,7 @@ body.dark #account p {
   background-color: #ffffff !important;
 }
 
-body.dark #recentSubmissionsTable {
+html.dark , body.dark #recentSubmissionsTable {
   background-color: #232326 !important;
 }
 
@@ -610,7 +617,7 @@ body.dark #recentSubmissionsTable {
   color: #222 !important;
 }
 
-body.dark #recentSubmissionsTable tr {
+html.dark , body.dark #recentSubmissionsTable tr {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -620,7 +627,7 @@ body.dark #recentSubmissionsTable tr {
   border-color: #e5e7eb !important;
 }
 
-body.dark #recentSubmissionsTable td {
+html.dark , body.dark #recentSubmissionsTable td {
   color: #f3f4f6 !important;
   border-color: #374151 !important;
 }
@@ -631,7 +638,7 @@ body.dark #recentSubmissionsTable td {
   color: #222 !important;
 }
 
-body.dark #sidebar {
+html.dark , body.dark #sidebar {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -640,8 +647,8 @@ body.dark #sidebar {
   color: #222 !important;
 }
 
-body.dark #sidebar a,
-body.dark #sidebar button {
+html.dark , body.dark #sidebar a,
+html.dark , body.dark #sidebar button {
   color: #f3f4f6 !important;
 }
 
@@ -654,10 +661,10 @@ body.dark #sidebar button {
   color: #222 !important;
 }
 
-body.dark #submissionsModal > div > div,
-body.dark #reviewSubmissionModal > div > div,
-body.dark #createClassModal > div > div,
-body.dark #createAssessmentModal > div > div {
+html.dark , body.dark #submissionsModal > div > div,
+html.dark , body.dark #reviewSubmissionModal > div > div,
+html.dark , body.dark #createClassModal > div > div,
+html.dark , body.dark #createAssessmentModal > div > div {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -680,18 +687,18 @@ body.dark #createAssessmentModal > div > div {
   border-color: #d9d9d9 !important;
 }
 
-body.dark #submissionsModal input,
-body.dark #submissionsModal textarea,
-body.dark #submissionsModal select,
-body.dark #reviewSubmissionModal input,
-body.dark #reviewSubmissionModal textarea,
-body.dark #reviewSubmissionModal select,
-body.dark #createClassModal input,
-body.dark #createClassModal textarea,
-body.dark #createClassModal select,
-body.dark #createAssessmentModal input,
-body.dark #createAssessmentModal textarea,
-body.dark #createAssessmentModal select {
+html.dark , body.dark #submissionsModal input,
+html.dark , body.dark #submissionsModal textarea,
+html.dark , body.dark #submissionsModal select,
+html.dark , body.dark #reviewSubmissionModal input,
+html.dark , body.dark #reviewSubmissionModal textarea,
+html.dark , body.dark #reviewSubmissionModal select,
+html.dark , body.dark #createClassModal input,
+html.dark , body.dark #createClassModal textarea,
+html.dark , body.dark #createClassModal select,
+html.dark , body.dark #createAssessmentModal input,
+html.dark , body.dark #createAssessmentModal textarea,
+html.dark , body.dark #createAssessmentModal select {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
   border-color: #27272a !important;
@@ -705,10 +712,10 @@ body.dark #createAssessmentModal select {
   color: #222 !important;
 }
 
-body.dark #submissionsModal h3,
-body.dark #reviewSubmissionModal h3,
-body.dark #createClassModal h3,
-body.dark #createAssessmentModal h3 {
+html.dark , body.dark #submissionsModal h3,
+html.dark , body.dark #reviewSubmissionModal h3,
+html.dark , body.dark #createClassModal h3,
+html.dark , body.dark #createAssessmentModal h3 {
   color: #f3f4f6 !important;
 }
 
@@ -735,7 +742,7 @@ body.dark #createAssessmentModal h3 {
   border-color: #d9d9d9 !important;
 }
 
-body.dark #modal-autocomplete {
+html.dark , body.dark #modal-autocomplete {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
   border-color: #27272a !important;
@@ -746,7 +753,7 @@ body.dark #modal-autocomplete {
   color: #222 !important;
 }
 
-body.dark #modal-selected-students {
+html.dark , body.dark #modal-selected-students {
   color: #f3f4f6 !important;
 }
 
@@ -760,7 +767,7 @@ body.dark #modal-selected-students {
   color: #222 !important;
 }
 
-body.dark .sidebar-link:hover {
+html.dark , body.dark .sidebar-link:hover {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
 }
@@ -771,7 +778,7 @@ body.dark .sidebar-link:hover {
   color: #222 !important;
 }
 
-body.dark #sidebarToggle:hover {
+html.dark , body.dark #sidebarToggle:hover {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
 }
@@ -786,11 +793,11 @@ button[onclick*="handleLogout"]:hover {
   color: #dc2626 !important;
 }
 
-body.dark button[onclick*="handleLogout"] {
+html.dark , body.dark button[onclick*="handleLogout"] {
   color: #ef4444 !important;
 }
 
-body.dark button[onclick*="handleLogout"]:hover {
+html.dark , body.dark button[onclick*="handleLogout"]:hover {
   background-color: #18181b !important;
   color: #ef4444 !important;
 }
@@ -805,11 +812,11 @@ button[onclick*="toggleDarkMode"]:hover {
   color: #222 !important;
 }
 
-body.dark button[onclick*="toggleDarkMode"] {
+html.dark , body.dark button[onclick*="toggleDarkMode"] {
   color: #d1d5db !important;
 }
 
-body.dark button[onclick*="toggleDarkMode"]:hover {
+html.dark , body.dark button[onclick*="toggleDarkMode"]:hover {
   background-color: #18181b !important;
   color: #f3f4f6 !important;
 }
@@ -821,7 +828,7 @@ body.dark button[onclick*="toggleDarkMode"]:hover {
   border-color: #d9d9d9 !important;
 }
 
-body.dark .navbar {
+html.dark , body.dark .navbar {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
   border-color: #27272a !important;
@@ -831,7 +838,7 @@ body.dark .navbar {
   color: #222 !important;
 }
 
-body.dark .navbar .logo {
+html.dark , body.dark .navbar .logo {
   color: #f3f4f6 !important;
 }
 
@@ -839,7 +846,7 @@ body.dark .navbar .logo {
   color: #222 !important;
 }
 
-body.dark .navbar a {
+html.dark , body.dark .navbar a {
   color: #f3f4f6 !important;
 }
 
@@ -848,7 +855,7 @@ h1 {
   color: #222 !important;
 }
 
-body.dark h1 {
+html.dark , body.dark h1 {
   color: #f3f4f6 !important;
 }
 
@@ -856,7 +863,7 @@ h2 {
   color: #222 !important;
 }
 
-body.dark h2 {
+html.dark , body.dark h2 {
   color: #f3f4f6 !important;
 }
 
@@ -864,7 +871,7 @@ p {
   color: #222 !important;
 }
 
-body.dark p {
+html.dark , body.dark p {
   color: #d1d5db !important;
 }
 
@@ -872,7 +879,7 @@ li {
   color: #222 !important;
 }
 
-body.dark li {
+html.dark , body.dark li {
   color: #d1d5db !important;
 }
 
@@ -882,7 +889,7 @@ body.dark li {
   color: #222 !important;
 }
 
-body.dark .bg-white {
+html.dark , body.dark .bg-white {
   background-color: #232326 !important;
   color: #f3f4f6 !important;
 }
@@ -892,6 +899,453 @@ body.dark .bg-white {
   color: #222 !important;
 }
 
-body.dark .max-w-4xl {
+html.dark , body.dark .max-w-4xl {
   color: #f3f4f6 !important;
+}
+
+/* ===== COMPREHENSIVE THEME SYSTEM ===== */
+
+/* Base light mode (default) */
+html, body {
+  background-color: #f5f5f5;
+  color: #222;
+}
+
+/* Dark mode - applied to html and body */
+html.dark, 
+html.dark , body.dark {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Text elements - light mode */
+h1, h2, h3, h4, h5, h6, p, span, a, li {
+  color: #222;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark span,
+html.dark a,
+html.dark li {
+  color: #f3f4f6;
+}
+
+html.dark , body.dark h1,
+html.dark , body.dark h2,
+html.dark , body.dark h3,
+html.dark , body.dark h4,
+html.dark , body.dark h5,
+html.dark , body.dark h6,
+html.dark , body.dark p,
+html.dark , body.dark span,
+html.dark , body.dark a,
+html.dark , body.dark li {
+  color: #f3f4f6;
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: #ffffff;
+  color: #222;
+  border-color: #e5e7eb;
+}
+
+html.dark .navbar,
+html.dark , body.dark .navbar {
+  background-color: #232326;
+  color: #f3f4f6;
+  border-color: #27272a;
+}
+
+.navbar a, .navbar button, .navbar .logo {
+  color: #222;
+}
+
+html.dark .navbar a,
+html.dark .navbar button,
+html.dark .navbar .logo,
+html.dark , body.dark .navbar a,
+html.dark , body.dark .navbar button,
+html.dark , body.dark .navbar .logo {
+  color: #f3f4f6;
+}
+
+/* Card/Box styling */
+.bg-white, .evaluation-card, [class*="bg-white"] {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .bg-white,
+html.dark .evaluation-card,
+html.dark [class*="bg-white"],
+html.dark , body.dark .bg-white,
+html.dark , body.dark .evaluation-card,
+html.dark , body.dark [class*="bg-white"] {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Table styling */
+table, thead, tbody, th, td {
+  color: #222;
+}
+
+html.dark table,
+html.dark thead,
+html.dark tbody,
+html.dark th,
+html.dark td,
+html.dark , body.dark table,
+html.dark , body.dark thead,
+html.dark , body.dark tbody,
+html.dark , body.dark th,
+html.dark , body.dark td {
+  color: #f3f4f6;
+}
+
+thead {
+  background-color: #f3f4f6;
+}
+
+html.dark thead,
+html.dark , body.dark thead {
+  background-color: #18181b;
+}
+
+tbody {
+  background-color: #ffffff;
+}
+
+html.dark tbody,
+html.dark , body.dark tbody {
+  background-color: #232326;
+}
+
+/* Input fields */
+input, textarea, select {
+  background-color: #ffffff;
+  color: #222;
+  border-color: #d1d5db;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select,
+html.dark , body.dark input,
+html.dark , body.dark textarea,
+html.dark , body.dark select {
+  background-color: #18181b;
+  color: #f3f4f6;
+  border-color: #27272a;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+html.dark , body.dark input::placeholder,
+html.dark , body.dark textarea::placeholder {
+  color: #6b7280;
+}
+
+/* Sidebar styling */
+#sidebar {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark #sidebar,
+html.dark , body.dark #sidebar {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Sidebar links - specific hover styling */
+.sidebar-link {
+  color: #222;
+  transition: all 0.2s ease;
+}
+
+html.dark .sidebar-link,
+html.dark , body.dark .sidebar-link {
+  color: #f3f4f6;
+}
+
+.sidebar-link:hover {
+  background-color: #e8e8e8;
+  color: #222;
+}
+
+html.dark .sidebar-link:hover,
+html.dark , body.dark .sidebar-link:hover {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Logout button - force red color */
+#logoutBtn {
+  color: #dc2626 !important;
+  transition: all 0.2s ease;
+}
+
+#logoutBtn:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+html.dark #logoutBtn,
+html.dark , body.dark #logoutBtn {
+  color: #ef4444 !important;
+}
+
+html.dark #logoutBtn:hover,
+html.dark , body.dark #logoutBtn:hover {
+  background-color: #18181b !important;
+  color: #ef4444 !important;
+}
+
+/* Stat cards */
+[data-stat] {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark [data-stat],
+html.dark , body.dark [data-stat] {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Modal styling */
+.fixed.inset-0 > div > div,
+[id*="Modal"] > div > div {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .fixed.inset-0 > div > div,
+html.dark [id*="Modal"] > div > div,
+html.dark , body.dark .fixed.inset-0 > div > div,
+html.dark , body.dark [id*="Modal"] > div > div {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Buttons - preserve colors but ensure visibility */
+.primary-btn, .secondary-btn, .success-btn, .cta-button {
+  transition: all 0.2s ease;
+}
+
+/* Override any conflicting text colors on interactive elements */
+button:not([id*="logout"]):not([id*="theme"]) {
+  color: inherit;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .dropdown-menu,
+html.dark , body.dark .dropdown-menu {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #e8e8e8;
+  color: #222;
+}
+
+html.dark .dropdown-menu a:hover,
+html.dark .dropdown-menu button:hover,
+html.dark , body.dark .dropdown-menu a:hover,
+html.dark , body.dark .dropdown-menu button:hover {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Section backgrounds */
+#dashboard, #classes, #assessments, #ai-evaluation, #account {
+  color: #222;
+}
+
+html.dark #dashboard,
+html.dark #classes,
+html.dark #assessments,
+html.dark #ai-evaluation,
+html.dark #account,
+html.dark , body.dark #dashboard,
+html.dark , body.dark #classes,
+html.dark , body.dark #assessments,
+html.dark , body.dark #ai-evaluation,
+html.dark , body.dark #account {
+  color: #f3f4f6;
+}
+
+/* ===== LANDING PAGE STYLES ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Metric Progress Bars */
+.metric-bar {
+  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 8px;
+  height: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-bar.quality {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.metric-bar.documentation {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.metric-bar.time {
+  background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+html.dark .metric-bar {
+  background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+}
+
+/* Evaluation Cards */
+.evaluation-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+html.dark .evaluation-card {
+  background: #232326;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+html.dark , body.dark .evaluation-card {
+  background: #232326;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+html.dark .evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+html.dark , body.dark .evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Score Display */
+.score-display {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.score-display.quality {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score-display.documentation {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Feature Icons */
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+/* CTA Button */
+.cta-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ===== DARK MODE OVERRIDES FOR TAILWIND CLASSES ===== */
+
+/* Hero section gradient */
+html.dark header[class*="bg-gradient-to-b"],
+body.dark header[class*="bg-gradient-to-b"] {
+  background: linear-gradient(to bottom, #1c1c1f 0%, #18181b 100%) !important;
+}
+
+/* Evaluation section */
+html.dark section[class*="bg-gray-100"],
+body.dark section[class*="bg-gray-100"] {
+  background-color: #18181b !important;
+}
+
+/* Light section backgrounds */
+html.dark section[class*="bg-white"],
+body.dark section[class*="bg-white"] {
+  background-color: #1c1c1f !important;
+}
+
+/* For Students section */
+html.dark section[class*="from-blue-50"],
+body.dark section[class*="from-blue-50"] {
+  background: linear-gradient(to bottom right, #1a1a1f 0%, #232326 100%) !important;
+}
+
+/* For Professors section */
+html.dark section[class*="from-green-50"],
+body.dark section[class*="from-green-50"] {
+  background: linear-gradient(to bottom right, #232326 0%, #1a1a1f 100%) !important;
+}
+
+/* Footer */
+html.dark footer[class*="bg-gray-900"],
+body.dark footer[class*="bg-gray-900"] {
+  background-color: #0f0f0f !important;
 }

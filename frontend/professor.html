@@ -5,7 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEP-AI - Professor Portal</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme.js"></script>
 
   <!-- Load modular JavaScript -->
   <script src="config/config.js"></script>
@@ -15,161 +21,6 @@
   <script src="components/FileUploader.js"></script>
   <script src="js/portals/professor.js"></script>
   <script src="js/main.js"></script>
-  <script>
-    // Dark mode toggle with comprehensive DOM update
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      const isDark = document.body.classList.contains('dark');
-      localStorage.setItem('sepai-theme', isDark ? 'dark' : 'light');
-      
-      // Update background
-      document.body.style.backgroundColor = isDark ? '#18181b' : '#f5f5f5';
-      
-      // Update icon with rotation animation
-      const themeIcon = document.getElementById('themeIcon');
-      if(themeIcon) {
-        themeIcon.style.transform = 'rotate(180deg)';
-        setTimeout(() => {
-          themeIcon.textContent = isDark ? '🌙' : '☀️';
-          themeIcon.style.transform = 'rotate(0deg)';
-        }, 150);
-      }
-      
-      // Force update of all styled elements
-      applyThemeStyles(isDark);
-    }
-    
-    function applyThemeStyles(isDark) {
-      // Update all data-stat elements
-      document.querySelectorAll('[data-stat]').forEach(el => {
-        if(isDark) {
-          el.style.backgroundColor = '#232326';
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.backgroundColor = '#ffffff';
-          el.style.color = '#222';
-        }
-      });
-      
-      // Update all white bg divs with dark mode classes
-      document.querySelectorAll('.bg-white').forEach(el => {
-        if(isDark) {
-          el.style.backgroundColor = '#232326';
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.backgroundColor = '#ffffff';
-          el.style.color = '#222';
-        }
-      });
-      
-      // Update table headers
-      document.querySelectorAll('thead').forEach(el => {
-        if(isDark) {
-          el.style.backgroundColor = '#18181b';
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.backgroundColor = '#f5f5f5';
-          el.style.color = '#222';
-        }
-      });
-      
-      // Update table cells
-      document.querySelectorAll('tbody').forEach(el => {
-        if(isDark) {
-          el.style.backgroundColor = '#232326';
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.backgroundColor = '#ffffff';
-          el.style.color = '#222';
-        }
-      });
-      
-      // Update all th elements
-      document.querySelectorAll('th').forEach(el => {
-        if(isDark) {
-          el.style.color = '#9ca3af';
-        } else {
-          el.style.color = '#6b7280';
-        }
-      });
-      
-      // Update all td elements
-      document.querySelectorAll('td').forEach(el => {
-        if(isDark) {
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.color = '#222';
-        }
-      });
-      
-      // Update text colors in various sections
-      document.querySelectorAll('#dashboard, #classes, #assessments, #ai-evaluation, #account').forEach(section => {
-        if(isDark) {
-          section.style.color = '#f3f4f6';
-        } else {
-          section.style.color = '#222';
-        }
-      });
-      
-      // Update h3 headings (but not logout button)
-      document.querySelectorAll('h3').forEach(el => {
-        if(isDark) {
-          el.style.color = '#f3f4f6';
-        } else {
-          el.style.color = '#222';
-        }
-      });
-      
-      // Also update any button text that's not the logout button
-      document.querySelectorAll('button').forEach(btn => {
-        if(btn.id !== 'logoutBtn' && btn.id !== 'themeIcon') {
-          // Skip logout button
-        }
-      });
-      
-      // Update logout button text color - apply after all other updates
-      setTimeout(() => {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if(logoutBtn) {
-          logoutBtn.style.color = isDark ? '#ef4444' : '#dc2626' + ' !important';
-          logoutBtn.style.fontWeight = '500';
-          logoutBtn.style.setProperty('color', isDark ? '#ef4444' : '#dc2626', 'important');
-        }
-      }, 0);
-      
-      // Update modals
-      document.querySelectorAll('.fixed.inset-0 > div > div').forEach(modal => {
-        if(isDark) {
-          modal.style.backgroundColor = '#232326';
-          modal.style.color = '#f3f4f6';
-        } else {
-          modal.style.backgroundColor = '#ffffff';
-          modal.style.color = '#222';
-        }
-      });
-    }
-
-    // On load, set theme from localStorage, default to dark
-    window.onload = function() {
-      const theme = localStorage.getItem('sepai-theme') || 'dark';
-      const isDark = theme === 'dark';
-      
-      if(isDark) {
-        document.body.classList.add('dark');
-        document.body.style.backgroundColor = '#18181b';
-        const themeIcon = document.getElementById('themeIcon');
-        if(themeIcon) themeIcon.textContent = '🌙';
-      } else {
-        document.body.classList.remove('dark');
-        document.body.style.backgroundColor = '#f5f5f5';
-        const themeIcon = document.getElementById('themeIcon');
-        if(themeIcon) themeIcon.textContent = '☀️';
-      }
-      
-      // Apply theme styles to all elements
-      applyThemeStyles(isDark);
-    }
-  </script>
 </head>
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 font-sans" id="themeBody">
   <script>
