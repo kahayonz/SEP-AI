@@ -91,6 +91,23 @@ class AccountManager {
     input.className = 'w-full p-2 border rounded';
     input.value = originalValue;
 
+    // Auto-capitalize first letter for first name and last name fields
+    if (field === 'first_name' || field === 'last_name') {
+      input.addEventListener('input', (e) => {
+        const cursorPosition = e.target.selectionStart;
+        e.target.value = UIUtils.capitalizeFirst(e.target.value.toLowerCase());
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+      });
+      // Also capitalize on paste
+      input.addEventListener('paste', (e) => {
+        setTimeout(() => {
+          const cursorPosition = e.target.selectionStart;
+          e.target.value = UIUtils.capitalizeFirst(e.target.value.toLowerCase());
+          e.target.setSelectionRange(cursorPosition, cursorPosition);
+        }, 0);
+      });
+    }
+
     const saveBtn = document.createElement('button');
     saveBtn.className = 'bg-green-600 text-white px-3 py-1 rounded ml-2';
     saveBtn.textContent = 'Save';

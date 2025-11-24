@@ -4,3 +4,4 @@ supabase
 python-dotenv
 httpx      # optional, used for some client calls
 python-jose[cryptography]  # optional, for JWT verification if needed
+anthropic  # required for AI code evaluation (Claude API)
