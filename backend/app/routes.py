@@ -157,12 +157,12 @@ async def get_recent_submissions(current_user=Depends(get_current_user)):
         
         # Get all submissions for these assessments, ordered by created_at, limit to 5
         submissions_response = admin_client.table("submissions").select(
-            "id, student_id, assessment_id, status, final_score, created_at, users!inner(first_name, last_name)"
+            "id, student_id, assessment_id, status, ai_score, final_score, created_at, users!inner(first_name, last_name)"
         ).in_("assessment_id", assessment_ids).order("created_at", desc=True).limit(5).execute()
-        
+
         submissions = submissions_response.data
         result = []
-        
+
         for submission in submissions:
             assessment = assessment_map.get(submission["assessment_id"], {})
             student_name = f"{submission['users']['first_name']} {submission['users']['last_name']}"
@@ -177,7 +177,8 @@ async def get_recent_submissions(current_user=Depends(get_current_user)):
                 "class_name": assessment.get("classes", {}).get("name", "Unknown Class"),
                 "submission_date": submission_date,
                 "status": submission.get("status", "pending"),
-                "score": submission.get("final_score", "-")
+                "ai_score": submission.get("ai_score"),
+                "final_score": submission.get("final_score")
             })
         
         return result
@@ -534,15 +535,28 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
 @router.get("/submissions/{submission_id}")
 async def get_submission(submission_id: str, current_user=Depends(get_current_user)):
     try:
-        # Verify the professor owns the submission's assessment's class
-        submission_check = admin_client.table("submissions").select(
-            "*, assessments(classes(professor_id))"
-        ).eq("id", submission_id).execute()
+        # Get the submission first
+        submission_response = admin_client.table("submissions").select("*").eq("id", submission_id).execute()
 
-        if not submission_check.data or submission_check.data[0]["assessments"]["classes"]["professor_id"] != current_user.id:
+        if not submission_response.data:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        submission = submission_response.data[0]
+
+        # Get the assessment
+        assessment_response = admin_client.table("assessments").select("class_id").eq("id", submission["assessment_id"]).execute()
+
+        if not assessment_response.data:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+
+        assessment = assessment_response.data[0]
+
+        # Get the class and check professor_id
+        class_response = admin_client.table("classes").select("professor_id").eq("id", assessment["class_id"]).execute()
+
+        if not class_response.data or class_response.data[0]["professor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to access this submission")
 
-        submission = submission_check.data[0]
         return {
             "id": submission["id"],
             "assessment_id": submission["assessment_id"],

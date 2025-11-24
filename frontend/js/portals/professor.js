@@ -1005,13 +1005,13 @@ static async editAssessment(assessmentId) {
     }
 
     submissions.forEach(submission => {
-      const statusColor = submission.status === 'released' || submission.status === 'reviewed' 
-        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      
-      const statusText = submission.status === 'released' ? 'Graded' : 'Pending';
-      const submissionDate = submission.submission_date === '-' ? '-' : new Date(submission.submission_date).toLocaleString();
-      
+      const statusColor = submission.status === 'released' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                         submission.status === 'reviewed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+
+      const statusText = submission.status === 'reviewed' ? 'graded' : submission.status;
+      const submissionDate = submission.submission_date === '-' ? '-' : new Date(submission.submission_date).toLocaleDateString();
+
       const row = document.createElement('tr');
       row.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${submission.student_name}</td>
@@ -1020,10 +1020,10 @@ static async editAssessment(assessmentId) {
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusText}</span>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">-</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.score}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score || 'N/A'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score || '-'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-          <button onclick="ProfessorPortal.openReviewModal('${submission.student_name}', '${submission.score}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Review</button>
+          <button onclick="ProfessorPortal.reviewSubmission('${submission.id}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">${submission.final_score ? 'Edit Review' : 'Review'}</button>
         </td>
       `;
       tableBody.appendChild(row);
@@ -1062,8 +1062,8 @@ static async editAssessment(assessmentId) {
     }
 
       submissions.forEach(submission => {
-      const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                         submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+      const statusColor = submission.status === 'released' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                         submission.status === 'reviewed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                          submission.status === 'no submission' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
 
@@ -1109,9 +1109,37 @@ static async editAssessment(assessmentId) {
     document.getElementById('submissionsModal').classList.add('hidden');
   }
 
-  static reviewSubmission(submissionId) {
+  static async reviewSubmission(submissionId) {
     currentSubmissionId = submissionId;
-    document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+
+    // Fetch the submission details
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        UIUtils.showError('Failed to load submission details');
+        return;
+      }
+
+      const submission = await response.json();
+
+      // Populate AI feedback
+      document.getElementById('ai-score').textContent = submission.ai_score || 'N/A';
+      document.getElementById('ai-feedback').textContent = submission.ai_feedback || 'No feedback provided';
+
+      // Populate form with existing data
+      document.getElementById('professorFeedback').value = submission.professor_feedback || '';
+      document.getElementById('finalScore').value = submission.final_score || '';
+
+      // Show modal
+      document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading submission for review:', error);
+      UIUtils.showError('Failed to load submission details');
+    }
   }
 
   static closeReviewSubmissionModal() {
@@ -1142,6 +1170,8 @@ static async editAssessment(assessmentId) {
       if (response.ok) {
         UIUtils.showSuccess('Review submitted successfully!');
         this.closeReviewSubmissionModal();
+        // Refresh the dashboard submissions table
+        this.loadRecentSubmissions();
         if (currentAssessmentId) {
           this.viewSubmissions(currentAssessmentId);
         }
