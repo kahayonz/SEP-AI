@@ -68,110 +68,206 @@
   <!-- Navbar -->
   <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-[#27272a]">
     <div class="relative">
-      <button id="logoButton" class="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition text-gray-800" onclick="toggleLogoDropdown()">
+      <div class="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition text-gray-800">
         SEP-AI
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-      <div id="logoDropdownMenu" class="dropdown-menu absolute left-0 mt-2 w-48 bg-white dark:bg-[#232326] border border-gray-200 dark:border-[#27272a] rounded-xl shadow-lg py-2 hidden z-10">
-        <a href="about.html" class="block px-6 py-3 text-sm text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition">About</a>
-        <div class="border-t border-gray-200 dark:border-[#27272a] my-2"></div>
-        <button class="w-full px-6 py-3 text-left text-sm text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" onclick="toggleDarkMode()">
-          <span class="toggle-icon" id="themeIcon">🌙</span> Toggle Light Mode
-        </button>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <a href="signup.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
-      <a href="login.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
+      <a href="signup.html" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
+      <a href="login.html" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
+      <!-- light mode toggle -->
+      <button onclick="toggleDarkMode()" id="themeToggleBtn" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">
+        <span id="themeIcon"></span>
+      </button>
+      <script>
+        // Set theme icon depending on current mode
+        function setThemeIcon() {
+          var themeIcon = document.getElementById('themeIcon');
+          if (document.body.classList.contains('dark')) {
+            themeIcon.textContent = '☀️';
+          } else {
+            themeIcon.textContent = '🌙';
+          }
+        }
+        // Call setThemeIcon after theme toggle
+        const oldToggleDarkMode = window.toggleDarkMode;
+        window.toggleDarkMode = function() {
+          if (oldToggleDarkMode) oldToggleDarkMode();
+          setThemeIcon();
+        };
+        // Update icon on page load and after theme set
+        window.addEventListener('DOMContentLoaded', setThemeIcon);
+        window.addEventListener('load', setThemeIcon);
+      </script>
     </div>
   </nav>
 
-  <!-- Introduction (first section that you see whilst opening) -->
-  <header class="hero">
-    <h2 class="hero-title">Software Engineering Principle Evaluation with AI</h2>
-    <p class="hero-desc">
-      SEP-AI helps professors evaluate student projects faster and gives students self-assessment tools for improving their code quality, design, and documentation.
-    </p>
+  <!-- Hero -->
+  <header class="hero relative overflow-hidden">
+    <div class="hero-glow"></div>
+    <div class="max-w-6xl mx-auto px-6 py-16 lg:py-24 grid gap-14 lg:grid-cols-[1.1fr_0.9fr] items-center">
+      <div class="space-y-8 hero-copy">
+        <div class="space-y-4">
+          <p class="text-lg uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400">AI-powered academic tooling</p>
+          <h1 class="text-4xl lg:text-5xl font-bold leading-tight text-gray-900 dark:text-white">
+            Faster software engineering reviews for professors.
+            <span class="text-blue-600 dark:text-blue-400 block">Instant feedback for students.</span>
+          </h1>
+          <p class="text-lg">
+            SEP-AI analyzes projects against software engineering principles, generates rubric-aligned scores, and explains every recommendation so teaching teams can spend more time mentoring.
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 hero-cta">
+          <a href="signup.html" class="primary-btn">Get Started</a>
+          <a href="about.html" class="secondary-btn">Learn More</a>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <div class="hero-panel__card">
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Software Engineering Principles</h3>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300">Example</span>
+          </div>
+          <ul class="space-y-4">
+            <li class="hero-panel__row">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Architecture</p>
+                <h4>Good structure, clear parts used</h4>
+              </div>
+              <span>92%</span>
+            </li>
+            <li class="hero-panel__row">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Code Quality</p>
+                <h4>Good code quality, some improvements needed</h4>
+              </div>
+              <span>88%</span>
+            </li>
+            <li class="hero-panel__row">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Documentation</p>
+                <h4>Some docs are missing</h4>
+              </div>
+              <span class="text-amber-500">Needs update</span>
+            </li>
+          </ul>
+          <div class="hero-panel__footer">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Evaluation time</p>
+              <h5>45 seconds</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
   <!-- Features Section -->
   <section id="features" class="features-section">
-    <h3 class="section-title">Key Features</h3>
-    <div class="features-grid">
-      <div class="feature-card cursor-help">
-        <h4>AI-Powered Grading</h4>
-        <p class="feature-description">Checks functionality, code quality, documentation, and adherence to software engineering principles.</p>
+    <div class="max-w-6xl mx-auto px-6 space-y-12">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Core Features</p>
+          <h3 class="section-title text-left">What makes SEP-AI unique?</h3>
+        </div>
       </div>
-      <div class="feature-card cursor-help">
-        <h4>Detailed Feedback</h4>
-        <p class="feature-description">Generates structured feedback highlighting strengths, weaknesses, and recommendations.</p>
-      </div>
-      <div class="feature-card cursor-help">
-        <h4>Self-Evaluation Tool</h4>
-        <p class="feature-description">Students can test their projects before submission and receive actionable suggestions.</p>
+      <div class="features-grid">
+        <div class="feature-card cursor-help">
+          <div class="feature-icon">⚙️</div>
+          <h4>AI-powered rubric alignment</h4>
+          <p>Maps course-specific rubric items to code signals automatically so faculty keep their grading voice.</p>
+        </div>
+        <div class="feature-card cursor-help">
+          <div class="feature-icon">🧭</div>
+          <h4>Explainable recommendations</h4>
+          <p>Provides human-readable rationales, annotated diffs, and suggested next steps for each metric.</p>
+        </div>
+        <div class="feature-card cursor-help">
+          <div class="feature-icon">🚀</div>
+          <h4>Self-evaluation sandbox</h4>
+          <p>Students receive instant feedback loops before submitting, improving project health and confidence.</p>
+        </div>
+        <div class="feature-card cursor-help">
+          <div class="feature-icon">📊</div>
+          <h4>Program-level insights</h4>
+          <p>Track cohort trends, identify risky teams early, and export accreditation-ready evidence in one click.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- More Features Section -->
-  <section class="bg-gray-50 dark:bg-[#1c1c1f] py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h3 class="text-3xl font-bold text-center mb-12 text-gray-800">More Features</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- For Students -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 p-8 rounded-xl">
-          <h3 class="text-2xl font-bold mb-4 text-gray-800">For Students</h3>
-          <p class="mb-6 text-gray-600">Improve your software engineering skills with AI-powered feedback and self-assessment tools.</p>
-          <a href="for-students.html" class="inline-block px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white dark:text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition">Learn More</a>
-        </div>
-        
-        <!-- For Professors -->
-        <div class="bg-green-50 dark:bg-green-900/20 p-8 rounded-xl">
-          <h3 class="text-2xl font-bold mb-4 text-gray-800">For Professors</h3>
-          <p class="mb-6 text-gray-600">Streamline your grading process and provide consistent, detailed feedback to your students.</p>
-          <a href="for-professors.html" class="inline-block px-6 py-3 bg-green-600 dark:bg-green-700 text-white dark:text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition">Learn More</a>
-        </div>
+  <!-- Workflow -->
+  <section class="workflow-section">
+    <div class="max-w-6xl mx-auto px-6 py-16 space-y-12">
+      <div class="text-center space-y-3">
+        <p class="eyebrow">How it works</p>
+        <h3 class="text-3xl font-bold text-gray-900 dark:text-white">From upload to actionable insights</h3>
+        <p class="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">Modern CS programs combine automated quality gates with expert judgment. SEP-AI handles the repetitive diagnostics so instructors can deepen conversations about architecture, ethics, and collaboration.</p>
+      </div>
+      <div class="workflow-grid">
+        <article>
+          <span>01</span>
+          <h4>Upload project zip</h4>
+          <p>No extra steps for students - just upload the zip file and we'll do the rest.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h4>AI + rules engine review</h4>
+          <p>Static analysis, test execution, doc parsing, and architectural heuristics run in parallel.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h4>View feedback </h4>
+          <p>See the feedback and recommendations for your project.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-card">
+      <div>
+        <p class="eyebrow">Ready to try it?</p>
+        <h3>Give your cohort AI copilots for process and quality</h3>
+        <p>Schedule a quick walkthrough or invite your teaching staff to test-drive SEP-AI with archived projects.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="signup.html" class="secondary-btn">Get Started</a>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-900 text-white">
-    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <!-- Logo and Description -->
-        <div class="col-span-2">
-          <h2 class="text-2xl font-bold mb-4">SEP-AI</h2>
-          <p class="text-gray-400">Transforming software engineering education with AI-powered assessment and feedback.</p>
-        </div>
-        
-        <!-- Quick Links -->
-        <div>
-          <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-          <ul class="space-y-2">
-            <li><a href="about.html" class="text-gray-400 hover:text-white transition">About</a></li>
-            <li><a href="for-students.html" class="text-gray-400 hover:text-white transition">For Students</a></li>
-            <li><a href="for-professors.html" class="text-gray-400 hover:text-white transition">For Professors</a></li>
-          </ul>
-        </div>
-        
-        <!-- Get Started -->
-        <div>
-          <h3 class="text-lg font-semibold mb-4">Get Started</h3>
-          <ul class="space-y-2">
-            <li><a href="signup.html" class="text-gray-400 hover:text-white transition">Sign Up</a></li>
-            <li><a href="login.html" class="text-gray-400 hover:text-white transition">Login</a></li>
-          </ul>
-        </div>
+  <footer class="site-footer">
+    <div class="max-w-6xl mx-auto py-12 px-6 grid gap-10 md:grid-cols-4">
+      <div class="col-span-2 space-y-4">
+        <h2 class="text-2xl font-bold text-white">SEP-AI</h2>
+        <p class="text-gray-400">Transforming software engineering education with AI-powered assessment and feedback.</p>
       </div>
-      
-      <!-- Bottom Bar -->
-      <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-        <p class="text-gray-400">&copy; 2025 SEP-AI. All rights reserved.</p>
-        <div class="flex space-x-6 mt-4 md:mt-0">
-          <a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a>
-          <a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a>
-        </div>
+      <div>
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="for-students.html">For Students</a></li>
+          <li><a href="for-professors.html">For Professors</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Get Started</h3>
+        <ul>
+          <li><a href="signup.html">Sign Up</a></li>
+          <li><a href="login.html">Login</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 SEP-AI. All rights reserved.</p>
+      <div class="links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
       </div>
     </div>
   </footer>

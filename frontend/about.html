@@ -19,11 +19,30 @@
       document.body.classList.add('dark');
     }
   </script>
-  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#232326]">
-    <a href="index.html" class="logo text-gray-900 dark:text-white">SEP-AI</a>
+
+  <!-- Navbar -->
+  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-[#27272a]">
+    <div class="relative">
+      <a id="logoButton" href="index.html" class="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition text-gray-800">
+        SEP-AI
+      </a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="signup.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
+      <a href="login.html" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
+    </div>
   </nav>
 
-  <div class="max-w-4xl mx-auto px-4 py-16">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <a href="index.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 dark:text-white bg-white dark:bg-[#232326] hover:bg-gray-50 dark:hover:bg-[#18181b] transition mb-6">
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back Home
+    </a>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 py-8" style="padding-top: 2px;">
     <h1 class="text-4xl font-bold mb-8">About SEP-AI</h1>
     
     <div class="space-y-8">
@@ -48,6 +67,11 @@
         </ul>
       </section>
     </div>
+
+  <div class="flex gap-6 mt-10">
+    <a href="for-students.html" class="text-blue-700 dark:text-blue-400 underline hover:no-underline text-lg font-medium">For Students</a>
+    <a href="for-professors.html" class="text-green-700 dark:text-green-400 underline hover:no-underline text-lg font-medium">For Professors</a>
+  </div>
   </div>
 </body>
 </html>
