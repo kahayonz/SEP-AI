@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: sep-ai-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    command: npm run dev -- --host
+    networks:
+      - sep-network
+
+  backend:
+    image: sep-ai-backend:latest
+    container_name: sep-ai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/sep_ai
+    networks:
+      - sep-network
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: sep-ai-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sep_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - sep-network
+
+volumes:
+  db_data:
+
+networks:
+  sep-network:
+    driver: bridge

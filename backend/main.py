@@ -14,10 +14,8 @@ from app.database import supabase, admin_client
 
 app = FastAPI()
 security = HTTPBearer()
-app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
-app.include_router(main_router, prefix="/api", tags=["Main"])
 
-# Add CORS middleware
+# Add CORS middleware FIRST, before including routers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,6 +23,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
+app.include_router(main_router, prefix="/api", tags=["Main"])
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 class SignupIn(BaseModel):
     email: str
