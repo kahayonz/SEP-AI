@@ -9,11 +9,20 @@
   <script>
     // Apply theme immediately before page renders to avoid flash
     (function() {
-      const theme = localStorage.getItem('sepai-theme');
-      if(theme === 'light') {
-        document.body.classList.remove('dark');
+      // Ensure DOM is loaded before manipulating document.body
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyTheme);
       } else {
-        document.body.classList.add('dark');
+        applyTheme();
+      }
+      function applyTheme() {
+        if (!document.body) return;
+        const theme = localStorage.getItem('sepai-theme');
+        if (theme === 'light') {
+          document.body.classList.remove('dark');
+        } else {
+          document.body.classList.add('dark');
+        }
       }
     })();
   </script>

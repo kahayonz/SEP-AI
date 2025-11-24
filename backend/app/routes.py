@@ -1,18 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, File
-from fastapi.responses import FileResponse
+"""
+Main routes for SEP-AI application.
+Handles classes, assessments, submissions, and student operations.
+"""
+from fastapi import APIRouter, Depends, HTTPException, File, Query
 from pydantic import BaseModel
 from typing import List, Optional
+from gotrue.types import User
+
 from .auth import get_current_user
 from .database import admin_client, supabase
 from .ai_evaluator import evaluate_project
-import uuid
-from datetime import datetime
+from .models import (
+    ClassCreate, ClassResponse, AssessmentCreate, AssessmentResponse,
+    StudentResponse, AddStudentToClass, SubmissionUpdate,
+    DashboardStats, RecentSubmission
+)
+from .services import UserService, ClassService, AssessmentService, SubmissionService
+from .exceptions import (
+    ResourceNotFoundError, ResourceAlreadyExistsError,
+    AuthorizationError, DatabaseError, FileProcessingError
+)
+from .config import app_config, SubmissionStatus
+from .logger import get_logger
+from .utils import generate_uuid, generate_numeric_id, format_timestamp, sanitize_filename
+
 import os
 import zipfile
 import shutil
-import atexit
+from datetime import datetime
 
 router = APIRouter()
+logger = get_logger(__name__)
 
 # Pydantic models
 class ClassCreate(BaseModel):
@@ -301,22 +319,10 @@ async def remove_student_from_class(class_id: str, student_id: str, current_user
         class_check = admin_client.table("classes").select("id").eq("id", class_id).eq("professor_id", current_user.id).execute()
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to modify this class")
-        # Debug logging before delete
-        existing_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
-        print(f"DEBUG: Found {len(existing_records.data)} records to delete for class {class_id} and student {student_id}")
-        if existing_records.data:
-            print(f"DEBUG: Record data: {existing_records.data[0]}")
-
-        # Remove student from class
-        response = admin_client.table("class_students").delete().eq("class_id", class_id).eq("student_id", student_id).execute()
+        # Remove student from class using service layer
+        await ClassService.remove_student_from_class(class_id, student_id, current_user.id)
         
-        print(f"DEBUG: Delete response data: {response.data}")
-        print(f"DEBUG: Delete response status: {response.status_code if hasattr(response, 'status_code') else 'N/A'}")
-
-        # Check if still exists after delete
-        remaining_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
-        print(f"DEBUG: After delete, found {len(remaining_records.data)} records remaining")
-
+        logger.info(f"Student {student_id} removed from class {class_id}")
         return {"message": "Student removed from class successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -703,36 +709,51 @@ async def get_assessment_details(assessment_id: str, current_user=Depends(get_cu
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/student/assessments/{assessment_id}/submit")
-async def submit_assessment(assessment_id: str, file: bytes = File(...), current_user=Depends(get_current_user)):
+async def submit_assessment(
+    assessment_id: str,
+    file: bytes = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Submit a project for an assessment.
+    
+    Args:
+        assessment_id: Assessment ID
+        file: Uploaded ZIP file
+        current_user: Authenticated user
+        
+    Returns:
+        Submission confirmation with ID
+    """
     temp_dirs = []  # Track directories for cleanup
 
     try:
-        print(f"Starting submission for assessment {assessment_id} by user {current_user.id}")
+        logger.info(f"Starting submission for assessment {assessment_id} by user {current_user.id}")
 
         # Step 1: Get assessment details
         assessment_response = admin_client.table("assessments").select("*").eq("id", assessment_id).execute()
         if not assessment_response.data:
-            raise HTTPException(status_code=404, detail="Assessment not found")
+            raise ResourceNotFoundError("Assessment")
 
         assessment_data = assessment_response.data[0]
         class_id = assessment_data["class_id"]
-        print(f"Assessment data: {assessment_data}, Class ID: {class_id}")
+        logger.debug(f"Assessment found in class {class_id}")
 
-        # Step 2: Verify student is enrolled in this class
+        # Step 2: Verify student is enrolled
         enrollment_check = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", current_user.id).execute()
         if not enrollment_check.data:
-            raise HTTPException(status_code=403, detail="Not authorized to submit to this assessment - not enrolled in class")
+            raise AuthorizationError("Not authorized to submit to this assessment - not enrolled in class")
 
-        print(f"Student is enrolled in class {class_id}")
+        logger.debug(f"Student {current_user.id} is enrolled in class {class_id}")
 
         # Check if student already submitted
         existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
 
         if existing_submission.data:
-            raise HTTPException(status_code=400, detail="You have already submitted to this assessment")
+            raise ResourceAlreadyExistsError("Submission for this assessment")
 
         # Step 1: Create organized directory structure
-        base_upload_dir = "backend/uploads"
+        base_upload_dir = app_config.UPLOAD_DIR
         class_dir = os.path.join(base_upload_dir, f"class_{class_id}")
         assessment_dir = os.path.join(class_dir, f"assessment_{assessment_id}")
         extracted_dir = os.path.join(assessment_dir, "extracted")
@@ -742,8 +763,8 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         temp_dirs.extend([extracted_dir, assessment_dir, class_dir])
 
         # Step 2: Save ZIP file temporarily
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        zip_filename = f"student_{current_user.id}_project.zip"
+        timestamp = format_timestamp()
+        zip_filename = sanitize_filename(f"student_{current_user.id}_project.zip")
         zip_path = os.path.join(assessment_dir, zip_filename)
 
         with open(zip_path, "wb") as f:
@@ -754,36 +775,32 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extracted_dir)
         except zipfile.BadZipFile:
-            raise HTTPException(status_code=400, detail="Invalid ZIP file")
+            raise FileProcessingError("Invalid ZIP file")
+
+        logger.debug(f"ZIP file extracted to {extracted_dir}")
 
         # Step 4: Run AI evaluation on extracted files
         ai_result = evaluate_project(extracted_dir)
+        logger.info(f"AI evaluation completed with score: {ai_result['score']}")
 
         # Step 5: Upload ZIP to Supabase storage
         supabase_storage_path = f"submissions/student_{current_user.id}/{assessment_id}_{timestamp}.zip"
 
         # Upload file to Supabase storage
         with open(zip_path, 'rb') as f:
-            supabase.storage.from_("submissions").upload(
+            supabase.storage.from_(app_config.STORAGE_BUCKET).upload(
                 path=supabase_storage_path,
                 file=f,
                 file_options={"content-type": "application/zip"}
             )
 
         # Get public URL for the uploaded file
-        supabase_url = supabase.storage.from_("submissions").get_public_url(supabase_storage_path)
+        supabase_url = supabase.storage.from_(app_config.STORAGE_BUCKET).get_public_url(supabase_storage_path)
+        logger.debug(f"File uploaded to Supabase: {supabase_url}")
 
-        # Step 6: Create submission record in database
-        # Note: The submissions table uses bigint for id instead of uuid
-        # Generate a random integer ID for compatibility
-        import random
-        submission_id = random.randint(1000000000, 9999999999)  # 10-digit random number
-
-        print(f"Inserting submission with:")
-        print(f"  id: {submission_id} (type: {type(submission_id)})")
-        print(f"  assessment_id: {assessment_id} (type: {type(assessment_id)})")
-        print(f"  student_id: {current_user.id} (type: {type(current_user.id)})")
-
+        # Step 6: Create submission record using service
+        submission_id = generate_numeric_id()
+        
         submission_data = {
             "id": submission_id,
             "assessment_id": assessment_id,
@@ -792,21 +809,31 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
             "ai_score": ai_result["score"],
             "professor_feedback": "",
             "final_score": None,
-            "zip_path": supabase_url,  # Store Supabase URL for persistent file access
-            "status": "pending"
+            "zip_path": supabase_url,
+            "status": SubmissionStatus.PENDING
         }
-        print(f"Full submission data: {submission_data}")
-
+        
         response = admin_client.table("submissions").insert(submission_data).execute()
+        logger.info(f"Submission {submission_id} created successfully")
 
         # Step 7: Cleanup - Delete local files immediately after successful upload
         try:
-            shutil.rmtree(class_dir)  # Remove entire class directory
+            shutil.rmtree(class_dir)
+            logger.debug(f"Cleaned up temporary directory: {class_dir}")
         except Exception as e:
-            print(f"Warning: Failed to cleanup local files: {e}")
+            logger.warning(f"Failed to cleanup local files: {e}")
 
         return {"message": "Assessment submitted successfully", "submission_id": submission_id}
 
+    except (ResourceNotFoundError, AuthorizationError, ResourceAlreadyExistsError, FileProcessingError) as e:
+        # Cleanup any created directories on error
+        for temp_dir in temp_dirs:
+            try:
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+            except Exception as cleanup_error:
+                logger.warning(f"Failed to cleanup {temp_dir}: {cleanup_error}")
+        raise
     except Exception as e:
         # Cleanup any created directories on error
         for temp_dir in temp_dirs:
@@ -814,8 +841,7 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
                 if os.path.exists(temp_dir):
                     shutil.rmtree(temp_dir)
             except Exception as cleanup_error:
-                print(f"Warning: Failed to cleanup {temp_dir}: {cleanup_error}")
+                logger.warning(f"Failed to cleanup {temp_dir}: {cleanup_error}")
 
-        if isinstance(e, HTTPException):
-            raise e
-        raise HTTPException(status_code=500, detail=f"Submission failed: {str(e)}")
+        logger.error(f"Submission failed: {str(e)}")
+        raise DatabaseError(f"Submission failed: {str(e)}")
