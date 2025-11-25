@@ -1038,24 +1038,6 @@ body.dark button[onclick*="handleLogout"]:hover {
   color: #ef4444 !important;
 }
 
-/* Theme toggle button styling */
-button[onclick*="toggleDarkMode"] {
-  color: #374151 !important;
-}
-
-button[onclick*="toggleDarkMode"]:hover {
-  background-color: #e8e8e8 !important;
-  color: #222 !important;
-}
-
-body.dark button[onclick*="toggleDarkMode"] {
-  color: #d1d5db !important;
-}
-
-body.dark button[onclick*="toggleDarkMode"]:hover {
-  background-color: #18181b !important;
-  color: #f3f4f6 !important;
-}
 
 /* Navbar styling - force light/dark mode */
 .navbar {

@@ -7,43 +7,24 @@
   <link rel="stylesheet" href="styles/styles.css?v=2">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Apply theme immediately before page renders to avoid flash
+    // Always apply dark mode
     (function() {
       // Ensure DOM is loaded before manipulating document.body
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', applyTheme);
+        document.addEventListener('DOMContentLoaded', applyDarkMode);
       } else {
-        applyTheme();
+        applyDarkMode();
       }
-      function applyTheme() {
+      function applyDarkMode() {
         if (!document.body) return;
-        const theme = localStorage.getItem('sepai-theme');
-        if (theme === 'light') {
-          document.body.classList.remove('dark');
-        } else {
-          document.body.classList.add('dark');
-        }
+        document.body.classList.add('dark');
       }
     })();
   </script>
   <script>
-    // Dark mode toggle
-    function toggleDarkMode() {
-      const isDark = document.body.classList.toggle('dark');
-      const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
-      console.log('Index: Toggled to', theme);
-      localStorage.setItem('sepai-theme', theme);
-      console.log('Index: Saved to localStorage:', localStorage.getItem('sepai-theme'));
-    }
-    // On load, set theme from localStorage
+    // Always set dark mode on load
     window.onload = function() {
-      const theme = localStorage.getItem('sepai-theme');
-      console.log('Index: Loaded theme from localStorage:', theme);
-      if(theme === 'light') {
-        document.body.classList.remove('dark');
-      } else {
-        document.body.classList.add('dark');
-      }
+      document.body.classList.add('dark');
     }
     function toggleLogoDropdown() {
       var menu = document.getElementById('logoDropdownMenu');
@@ -75,37 +56,13 @@
     <div class="flex items-center gap-3">
       <a href="signup.html" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Get Started</a>
       <a href="login.html" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">Login</a>
-      <!-- light mode toggle -->
-      <button onclick="toggleDarkMode()" id="themeToggleBtn" class="px-4 py-2 rounded-lg text-gray-800 hover:bg-gray-50 dark:hover:bg-[#18181b] transition" style="font-family: 'Doto', sans-serif;">
-        <span id="themeIcon"></span>
-      </button>
-      <script>
-        // Set theme icon depending on current mode
-        function setThemeIcon() {
-          var themeIcon = document.getElementById('themeIcon');
-          if (document.body.classList.contains('dark')) {
-            themeIcon.textContent = '☀️';
-          } else {
-            themeIcon.textContent = '🌙';
-          }
-        }
-        // Call setThemeIcon after theme toggle
-        const oldToggleDarkMode = window.toggleDarkMode;
-        window.toggleDarkMode = function() {
-          if (oldToggleDarkMode) oldToggleDarkMode();
-          setThemeIcon();
-        };
-        // Update icon on page load and after theme set
-        window.addEventListener('DOMContentLoaded', setThemeIcon);
-        window.addEventListener('load', setThemeIcon);
-      </script>
     </div>
   </nav>
 
   <!-- Hero -->
   <header class="hero relative overflow-hidden">
     <div class="hero-glow"></div>
-    <div class="max-w-6xl mx-auto px-6 py-16 lg:py-24 grid gap-14 lg:grid-cols-[1.1fr_0.9fr] items-center">
+    <div class="max-w-6xl mx-auto px-6 py-16 lg:py-24 grid gap-14 lg:grid-cols-[1.1fr_0.9fr] items-center" style="padding-top: 50px;">
       <div class="space-y-8 hero-copy">
         <div class="space-y-4">
           <p class="text-lg uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400">AI-powered academic tooling</p>

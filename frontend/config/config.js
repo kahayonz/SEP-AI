@@ -15,7 +15,7 @@ const CONFIG = {
     STUDENT_ASSESSMENTS: '/api/student/assessments'
   },
   UI: {
-    DEFAULT_THEME: 'light',
+    DEFAULT_THEME: 'dark',
     LOAD_STATES: {
       EVALUATING: 'Evaluating...',
       SUBMITTING: 'Submitting...'

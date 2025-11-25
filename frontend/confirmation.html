@@ -40,13 +40,8 @@
   </div>
 
   <script>
-    // Apply theme immediately after body loads
-    const theme = localStorage.getItem('sepai-theme');
-    if(theme === 'light') {
-      document.body.classList.remove('dark');
-    } else {
-      document.body.classList.add('dark');
-    }
+    // Always apply dark mode
+    document.body.classList.add('dark');
 
     // Check URL for confirmation parameters
     function checkForConfirmation() {

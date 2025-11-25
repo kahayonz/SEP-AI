@@ -6,18 +6,6 @@
  */
 class UIUtils {
   /**
-   * Toggle dark mode on the application.
-   * @static
-   */
-  static toggleDarkMode() {
-    document.body.classList.toggle('dark');
-    localStorage.setItem(
-      CONFIG.STORAGE_KEYS.THEME,
-      document.body.classList.contains('dark') ? 'dark' : 'light'
-    );
-  }
-
-  /**
    * Show a notification message to the user.
    * @static
    * @param {string} message - The message to display

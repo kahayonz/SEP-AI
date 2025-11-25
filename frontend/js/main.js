@@ -1,10 +1,5 @@
 // Main Application Entry Point
 
-// Global dark mode toggle function
-function toggleDarkMode() {
-  UIUtils.toggleDarkMode();
-}
-
 // Initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('SEP-AI Portal initializing...');
