@@ -29,11 +29,20 @@
 
     <!-- Assessment Header -->
     <div id="assessment-header" class="bg-white dark:bg-[#232326] rounded-xl p-6 shadow-lg border border-gray-200 dark:border-[#27272a] mb-8">
-      <h1 id="assessment-title" class="text-3xl font-bold mb-2"></h1>
-      <p id="assessment-description" class="text-gray-600 dark:text-gray-300 text-lg"></p>
-      <div class="flex items-center mt-4 text-sm text-gray-500 dark:text-gray-400">
-        <span class="mr-6">Due: <span id="assessment-deadline"></span></span>
-        <span>Class: <span id="assessment-class"></span></span>
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <h1 id="assessment-title" class="text-3xl font-bold mb-2"></h1>
+          <p id="assessment-description" class="text-gray-600 dark:text-gray-300 text-lg"></p>
+          <div class="flex items-center mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <span class="mr-6">Due: <span id="assessment-deadline"></span></span>
+            <span>Class: <span id="assessment-class"></span></span>
+          </div>
+        </div>
+        <div id="edit-button-container" class="ml-4">
+          <button onclick="AssessmentDetails.openEditAssessmentModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Edit Assessment
+          </button>
+        </div>
       </div>
     </div>
 
@@ -205,6 +214,43 @@
                 </svg>
               </button>
               <button type="button" onclick="AssessmentDetails.closeReviewModal()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Assessment Modal -->
+  <div id="editAssessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="p-4">
+      <div class="bg-white dark:bg-[#232326] rounded-lg max-w-md w-full">
+        <div class="p-6">
+          <div class="relative mb-6">
+            <button onclick="AssessmentDetails.closeEditAssessmentModal()" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+            <h3 class="text-xl font-bold text-center pr-8">Edit Assessment</h3>
+          </div>
+
+          <form id="editAssessmentForm" class="space-y-4">
+            <div>
+              <label class="block mb-2">Assessment Title</label>
+              <input type="text" id="editAssessmentTitle" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+            </div>
+            <div>
+              <label class="block mb-2">Instructions</label>
+              <textarea id="editAssessmentDescription" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3" required></textarea>
+            </div>
+            <div>
+              <label class="block mb-2">Due Date</label>
+              <input type="datetime-local" id="editAssessmentDueDate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+            </div>
+            <div class="flex gap-4">
+              <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Update Assessment</button>
+              <button type="button" onclick="AssessmentDetails.closeEditAssessmentModal()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">Cancel</button>
             </div>
           </form>
         </div>

@@ -3,20 +3,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Doto:wght@400;700&display=swap');
 
 :root {
-  --primary: #222; /* Changed from blue to dark gray for better dark mode harmony */
-  --secondary: #f3f4f6;
+  --primary: #f0f0f0; /* Light grey for navbar */
+  --secondary: #e0e0e0;
   --success: #22c55e;
   --text: #222;
-  --bg: #fff;
-  --card-bg: #f9fafb;
-  --border: #e5e7eb;
+  --bg: #f5f5f5;
+  --card-bg: #ebebeb;
+  --border: #d9d9d9;
 }
+
 body {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
+  background-color: #f5f5f5;
+  color: #222;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+html.dark,
 body.dark {
   --primary: #18181b; /* Even darker for dark mode */
   --secondary: #232326;
@@ -25,22 +28,33 @@ body.dark {
   --bg: #18181b;
   --card-bg: #232326;
   --border: #27272a;
-  background: var(--bg);
-  color: var(--text);
+}
+
+html.dark body,
+body.dark body {
+  background-color: #18181b;
+  color: #f3f4f6;
 }
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--primary);
-  color: #fff;
+  color: var(--text);
   padding: 1rem 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+html.dark , body.dark .navbar {
+  color: var(--text);
 }
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
   letter-spacing: 0.05em;
+  color: var(--text);
+}
+html.dark , body.dark .logo {
+  color: var(--text);
 }
 .nav-links {
   display: flex;
@@ -48,10 +62,13 @@ body.dark {
   list-style: none;
 }
 .nav-links a {
-  color: #fff;
+  color: var(--text);
   text-decoration: none;
   font-weight: 500;
   transition: opacity 0.2s;
+}
+html.dark , body.dark .nav-links a {
+  color: #fff;
 }
 .nav-links a:hover {
   opacity: 0.7;
@@ -61,18 +78,22 @@ body.dark {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #fff;
+  color: var(--text);
   margin-left: 1rem;
   transition: color 0.2s;
 }
+html.dark , body.dark .theme-toggle {
+  color: #fff;
+}
+
 .theme-toggle:hover {
   color: var(--secondary);
 }
 .hero {
   text-align: center;
   padding: 5rem 2rem 3rem 2rem;
-  background: linear-gradient(90deg, var(--primary) 0%, #444 100%);
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
 }
 .hero-title {
   font-size: 2.5rem;
@@ -100,6 +121,9 @@ body.dark {
 }
 .primary-btn {
   background: var(--primary);
+  color: var(--text);
+}
+html.dark , body.dark .primary-btn {
   color: #fff;
 }
 .primary-btn:hover {
@@ -132,13 +156,14 @@ body.dark {
 .features-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1rem;
   max-width: 900px;
   margin: 0 auto;
 }
 @media (min-width: 768px) {
   .features-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
   }
 }
 .feature-card {
@@ -146,12 +171,33 @@ body.dark {
   border-radius: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 2rem;
-  transition: box-shadow 0.2s, background 0.2s;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
   border: 1px solid var(--border);
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .feature-card:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   background: var(--secondary);
+}
+.feature-card h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.feature-description {
+  margin: 0;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+}
+.feature-card:hover .feature-description {
+  opacity: 1;
+  max-height: 200px;
+  margin-top: 1rem;
 }
 .students-section, .professors-section, .about-section {
   background: var(--bg);
@@ -177,7 +223,7 @@ body.dark {
   color: var(--text);
 }
 .footer {
-  background: var(--primary);
+  background: #1a1a1a;
   color: #fff;
   text-align: center;
   padding: 2rem 0 1rem 0;
@@ -185,21 +231,21 @@ body.dark {
   margin-top: 4rem;
   letter-spacing: 0.03em;
 }
-body.dark .feature-card:hover {
+html.dark , body.dark .feature-card:hover {
   background: #232326;
 }
-body.dark .secondary-btn {
+html.dark , body.dark .secondary-btn {
   background: #232326;
   color: #60a5fa;
 }
-body.dark .secondary-btn:hover {
+html.dark , body.dark .secondary-btn:hover {
   background: #18181b;
 }
-body.dark .students-card, body.dark .professors-card {
+html.dark , body.dark .students-card, html.dark , body.dark .professors-card {
   background: #232326;
   border-color: #27272a;
 }
-body.dark .file-input {
+html.dark , body.dark .file-input {
   background: #18181b;
   color: #f3f4f6;
   border-color: #27272a;
@@ -209,6 +255,64 @@ body.dark .file-input {
 }
 .dropdown-menu, .dropdown-menu a, .dropdown-menu button {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
+}
+/* Dropdown menu styling */
+.dropdown-menu {
+  background-color: #fff !important;
+  color: #222 !important;
+  animation: slideDown 0.3s ease-out;
+  transform-origin: top;
+}
+.dropdown-menu.hidden {
+  animation: slideUp 0.3s ease-in forwards;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+html.dark , body.dark .dropdown-menu {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Dropdown items - no background highlight on hover */
+.dropdown-menu a,
+.dropdown-menu button {
+  background-color: transparent;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: transparent !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .dropdown-menu a:hover,
+html.dark , body.dark .dropdown-menu button:hover {
+  background-color: transparent !important;
+  color: #f3f4f6 !important;
+}
+
+/* Navbar buttons - no background highlight on hover */
+.navbar a:hover,
+.navbar button:hover {
+  background-color: transparent !important;
 }
 .about-section, .about-section p {
   font-family: 'Doto', 'Inter', 'Segoe UI', 'Arial', sans-serif;
@@ -240,7 +344,1008 @@ body.dark .file-input {
   transition: opacity 0.3s ease;
 }
 
+/* More Features section styling */
+.bg-gray-50 {
+  background-color: var(--bg) !important;
+}
+
+html.dark , body.dark .bg-gray-50 {
+  background-color: #1c1c1f !important;
+}
+
+/* Dark mode text colors */
+html.dark , body.dark .text-gray-800 {
+  color: #fff !important;
+}
+
+html.dark , body.dark .text-gray-600 {
+  color: #d4d4d4 !important;
+}
+
+html.dark , body.dark .text-gray-900 {
+  color: #fff !important;
+}
+
 /* Score animation */
 #score {
   transition: all 0.5s ease;
+}
+
+/* Form styling for light and dark mode */
+.max-w-md {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+html.dark , body.dark .max-w-md {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Form heading styling */
+.max-w-md h2 {
+  color: #222 !important;
+}
+
+html.dark , body.dark .max-w-md h2 {
+  color: #f3f4f6 !important;
+}
+
+/* Form label styling */
+.max-w-md label {
+  color: #222 !important;
+}
+
+html.dark , body.dark .max-w-md label {
+  color: #d1d5db !important;
+}
+
+/* Ensure form inputs are styled correctly */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+html.dark , body.dark input[type="text"],
+html.dark , body.dark input[type="email"],
+html.dark , body.dark input[type="password"] {
+  background-color: #2a2a2e !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+/* Form paragraph styling */
+.max-w-md p {
+  color: #222 !important;
+}
+
+html.dark , body.dark .max-w-md p {
+  color: #d1d5db !important;
+}
+
+/* Back button styling */
+.absolute.top-6.left-6 a {
+  color: #222 !important;
+}
+
+html.dark , body.dark .absolute.top-6.left-6 a {
+  color: #f3f4f6 !important;
+}
+
+/* SVG stroke color for back button */
+.absolute.top-6.left-6 svg {
+  stroke: #222 !important;
+}
+
+html.dark , body.dark .absolute.top-6.left-6 svg {
+  stroke: #f3f4f6 !important;
+}
+
+/* Portal-specific light mode fixes */
+/* Only apply these to portal pages */
+#dashboard, #classes, #assessments, #ai-evaluation, #account {
+  background-color: transparent !important;
+}
+
+/* Stats cards - data-stat targeting */
+[data-stat] {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark [data-stat] {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Stats card text */
+[data-stat] dt {
+  color: #666 !important;
+}
+
+html.dark , body.dark [data-stat] dt {
+  color: #9ca3af !important;
+}
+
+[data-stat] dd {
+  color: #222 !important;
+}
+
+html.dark , body.dark [data-stat] dd {
+  color: #f3f4f6 !important;
+}
+
+/* Section containers and cards */
+.overflow-hidden.shadow.rounded-lg {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .overflow-hidden.shadow.rounded-lg {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Classes and assessments sections */
+.space-y-4 > div {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .space-y-4 > div {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Modal and form containers */
+.max-w-2xl {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .max-w-2xl {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Dashboard section headings and text */
+#dashboard h2, #dashboard h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #dashboard h2,
+html.dark , body.dark #dashboard h3 {
+  color: #f3f4f6 !important;
+}
+
+#dashboard p {
+  color: #666 !important;
+}
+
+html.dark , body.dark #dashboard p {
+  color: #d1d5db !important;
+}
+
+/* Classes section styling */
+#classes h2, #classes h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #classes h2,
+html.dark , body.dark #classes h3 {
+  color: #f3f4f6 !important;
+}
+
+#classes p {
+  color: #666 !important;
+}
+
+html.dark , body.dark #classes p {
+  color: #d1d5db !important;
+}
+
+/* Assessments section styling */
+#assessments h2, #assessments h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #assessments h2,
+html.dark , body.dark #assessments h3 {
+  color: #f3f4f6 !important;
+}
+
+#assessments p {
+  color: #666 !important;
+}
+
+html.dark , body.dark #assessments p {
+  color: #d1d5db !important;
+}
+
+/* AI Evaluation section styling */
+#ai-evaluation h2, #ai-evaluation h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #ai-evaluation h2,
+html.dark , body.dark #ai-evaluation h3 {
+  color: #f3f4f6 !important;
+}
+
+#ai-evaluation p {
+  color: #666 !important;
+}
+
+html.dark , body.dark #ai-evaluation p {
+  color: #d1d5db !important;
+}
+
+/* Account section styling */
+#account h2, #account h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #account h2,
+html.dark , body.dark #account h3 {
+  color: #f3f4f6 !important;
+}
+
+#account p {
+  color: #666 !important;
+}
+
+html.dark , body.dark #account p {
+  color: #d1d5db !important;
+}
+
+/* Table styling for portals */
+#recentSubmissionsTable {
+  background-color: #ffffff !important;
+}
+
+html.dark , body.dark #recentSubmissionsTable {
+  background-color: #232326 !important;
+}
+
+#recentSubmissionsTable tr {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark #recentSubmissionsTable tr {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+#recentSubmissionsTable td {
+  color: #222 !important;
+  border-color: #e5e7eb !important;
+}
+
+html.dark , body.dark #recentSubmissionsTable td {
+  color: #f3f4f6 !important;
+  border-color: #374151 !important;
+}
+
+/* Sidebar styling */
+#sidebar {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark #sidebar {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+#sidebar a, #sidebar button {
+  color: #222 !important;
+}
+
+html.dark , body.dark #sidebar a,
+html.dark , body.dark #sidebar button {
+  color: #f3f4f6 !important;
+}
+
+/* Modal styling - light and dark mode */
+#submissionsModal > div > div,
+#reviewSubmissionModal > div > div,
+#createClassModal > div > div,
+#createAssessmentModal > div > div {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark #submissionsModal > div > div,
+html.dark , body.dark #reviewSubmissionModal > div > div,
+html.dark , body.dark #createClassModal > div > div,
+html.dark , body.dark #createAssessmentModal > div > div {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Modal input and form elements */
+#submissionsModal input,
+#submissionsModal textarea,
+#submissionsModal select,
+#reviewSubmissionModal input,
+#reviewSubmissionModal textarea,
+#reviewSubmissionModal select,
+#createClassModal input,
+#createClassModal textarea,
+#createClassModal select,
+#createAssessmentModal input,
+#createAssessmentModal textarea,
+#createAssessmentModal select {
+  background-color: #f5f5f5 !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+html.dark , body.dark #submissionsModal input,
+html.dark , body.dark #submissionsModal textarea,
+html.dark , body.dark #submissionsModal select,
+html.dark , body.dark #reviewSubmissionModal input,
+html.dark , body.dark #reviewSubmissionModal textarea,
+html.dark , body.dark #reviewSubmissionModal select,
+html.dark , body.dark #createClassModal input,
+html.dark , body.dark #createClassModal textarea,
+html.dark , body.dark #createClassModal select,
+html.dark , body.dark #createAssessmentModal input,
+html.dark , body.dark #createAssessmentModal textarea,
+html.dark , body.dark #createAssessmentModal select {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Modal headings and text */
+#submissionsModal h3,
+#reviewSubmissionModal h3,
+#createClassModal h3,
+#createAssessmentModal h3 {
+  color: #222 !important;
+}
+
+html.dark , body.dark #submissionsModal h3,
+html.dark , body.dark #reviewSubmissionModal h3,
+html.dark , body.dark #createClassModal h3,
+html.dark , body.dark #createAssessmentModal h3 {
+  color: #f3f4f6 !important;
+}
+
+/* Modal buttons */
+#submissionsModal .bg-green-600,
+#submissionsModal .bg-blue-600,
+#submissionsModal .bg-red-600,
+#reviewSubmissionModal .bg-green-600,
+#reviewSubmissionModal .bg-blue-600,
+#reviewSubmissionModal .bg-red-600,
+#createClassModal .bg-green-600,
+#createClassModal .bg-blue-600,
+#createClassModal .bg-red-600,
+#createAssessmentModal .bg-green-600,
+#createAssessmentModal .bg-blue-600,
+#createAssessmentModal .bg-red-600 {
+  opacity: 1 !important;
+}
+
+/* Modal autocomplete dropdown */
+#modal-autocomplete {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+html.dark , body.dark #modal-autocomplete {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+/* Modal selected items */
+#modal-selected-students {
+  color: #222 !important;
+}
+
+html.dark , body.dark #modal-selected-students {
+  color: #f3f4f6 !important;
+}
+
+/* Sidebar links hover - light mode fix */
+.sidebar-link {
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-link:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .sidebar-link:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+}
+
+/* Sidebar toggle button hover */
+#sidebarToggle:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark #sidebarToggle:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+}
+
+/* Logout button styling */
+button[onclick*="handleLogout"] {
+  color: #dc2626 !important;
+}
+
+button[onclick*="handleLogout"]:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+html.dark , body.dark button[onclick*="handleLogout"] {
+  color: #ef4444 !important;
+}
+
+html.dark , body.dark button[onclick*="handleLogout"]:hover {
+  background-color: #18181b !important;
+  color: #ef4444 !important;
+}
+
+/* Theme toggle button styling */
+button[onclick*="toggleDarkMode"] {
+  color: #374151 !important;
+}
+
+button[onclick*="toggleDarkMode"]:hover {
+  background-color: #e8e8e8 !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark button[onclick*="toggleDarkMode"] {
+  color: #d1d5db !important;
+}
+
+html.dark , body.dark button[onclick*="toggleDarkMode"]:hover {
+  background-color: #18181b !important;
+  color: #f3f4f6 !important;
+}
+
+/* Navbar styling - force light/dark mode */
+.navbar {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border-color: #d9d9d9 !important;
+}
+
+html.dark , body.dark .navbar {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+  border-color: #27272a !important;
+}
+
+.navbar .logo {
+  color: #222 !important;
+}
+
+html.dark , body.dark .navbar .logo {
+  color: #f3f4f6 !important;
+}
+
+.navbar a {
+  color: #222 !important;
+}
+
+html.dark , body.dark .navbar a {
+  color: #f3f4f6 !important;
+}
+
+/* General text color fixes for about/for-students/for-professors pages */
+h1 {
+  color: #222 !important;
+}
+
+html.dark , body.dark h1 {
+  color: #f3f4f6 !important;
+}
+
+h2 {
+  color: #222 !important;
+}
+
+html.dark , body.dark h2 {
+  color: #f3f4f6 !important;
+}
+
+p {
+  color: #222 !important;
+}
+
+html.dark , body.dark p {
+  color: #d1d5db !important;
+}
+
+li {
+  color: #222 !important;
+}
+
+html.dark , body.dark li {
+  color: #d1d5db !important;
+}
+
+/* Card/box styling for content pages */
+.bg-white {
+  background-color: #ffffff !important;
+  color: #222 !important;
+}
+
+html.dark , body.dark .bg-white {
+  background-color: #232326 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Ensure max-w container text is readable */
+.max-w-4xl {
+  color: #222 !important;
+}
+
+html.dark , body.dark .max-w-4xl {
+  color: #f3f4f6 !important;
+}
+
+/* ===== COMPREHENSIVE THEME SYSTEM ===== */
+
+/* Base light mode (default) */
+html, body {
+  background-color: #f5f5f5;
+  color: #222;
+}
+
+/* Dark mode - applied to html and body */
+html.dark, 
+html.dark , body.dark {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Text elements - light mode */
+h1, h2, h3, h4, h5, h6, p, span, a, li {
+  color: #222;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark span,
+html.dark a,
+html.dark li {
+  color: #f3f4f6;
+}
+
+html.dark , body.dark h1,
+html.dark , body.dark h2,
+html.dark , body.dark h3,
+html.dark , body.dark h4,
+html.dark , body.dark h5,
+html.dark , body.dark h6,
+html.dark , body.dark p,
+html.dark , body.dark span,
+html.dark , body.dark a,
+html.dark , body.dark li {
+  color: #f3f4f6;
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: #ffffff;
+  color: #222;
+  border-color: #e5e7eb;
+}
+
+html.dark .navbar,
+html.dark , body.dark .navbar {
+  background-color: #232326;
+  color: #f3f4f6;
+  border-color: #27272a;
+}
+
+.navbar a, .navbar button, .navbar .logo {
+  color: #222;
+}
+
+html.dark .navbar a,
+html.dark .navbar button,
+html.dark .navbar .logo,
+html.dark , body.dark .navbar a,
+html.dark , body.dark .navbar button,
+html.dark , body.dark .navbar .logo {
+  color: #f3f4f6;
+}
+
+/* Card/Box styling */
+.bg-white, .evaluation-card, [class*="bg-white"] {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .bg-white,
+html.dark .evaluation-card,
+html.dark [class*="bg-white"],
+html.dark , body.dark .bg-white,
+html.dark , body.dark .evaluation-card,
+html.dark , body.dark [class*="bg-white"] {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Table styling */
+table, thead, tbody, th, td {
+  color: #222;
+}
+
+html.dark table,
+html.dark thead,
+html.dark tbody,
+html.dark th,
+html.dark td,
+html.dark , body.dark table,
+html.dark , body.dark thead,
+html.dark , body.dark tbody,
+html.dark , body.dark th,
+html.dark , body.dark td {
+  color: #f3f4f6;
+}
+
+thead {
+  background-color: #f3f4f6;
+}
+
+html.dark thead,
+html.dark , body.dark thead {
+  background-color: #18181b;
+}
+
+tbody {
+  background-color: #ffffff;
+}
+
+html.dark tbody,
+html.dark , body.dark tbody {
+  background-color: #232326;
+}
+
+/* Input fields */
+input, textarea, select {
+  background-color: #ffffff;
+  color: #222;
+  border-color: #d1d5db;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select,
+html.dark , body.dark input,
+html.dark , body.dark textarea,
+html.dark , body.dark select {
+  background-color: #18181b;
+  color: #f3f4f6;
+  border-color: #27272a;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+html.dark , body.dark input::placeholder,
+html.dark , body.dark textarea::placeholder {
+  color: #6b7280;
+}
+
+/* Sidebar styling */
+#sidebar {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark #sidebar,
+html.dark , body.dark #sidebar {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Sidebar links - specific hover styling */
+.sidebar-link {
+  color: #222;
+  transition: all 0.2s ease;
+}
+
+html.dark .sidebar-link,
+html.dark , body.dark .sidebar-link {
+  color: #f3f4f6;
+}
+
+.sidebar-link:hover {
+  background-color: #e8e8e8;
+  color: #222;
+}
+
+html.dark .sidebar-link:hover,
+html.dark , body.dark .sidebar-link:hover {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Logout button - force red color */
+#logoutBtn {
+  color: #dc2626 !important;
+  transition: all 0.2s ease;
+}
+
+#logoutBtn:hover {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+html.dark #logoutBtn,
+html.dark , body.dark #logoutBtn {
+  color: #ef4444 !important;
+}
+
+html.dark #logoutBtn:hover,
+html.dark , body.dark #logoutBtn:hover {
+  background-color: #18181b !important;
+  color: #ef4444 !important;
+}
+
+/* Stat cards */
+[data-stat] {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark [data-stat],
+html.dark , body.dark [data-stat] {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Modal styling */
+.fixed.inset-0 > div > div,
+[id*="Modal"] > div > div {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .fixed.inset-0 > div > div,
+html.dark [id*="Modal"] > div > div,
+html.dark , body.dark .fixed.inset-0 > div > div,
+html.dark , body.dark [id*="Modal"] > div > div {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+/* Buttons - preserve colors but ensure visibility */
+.primary-btn, .secondary-btn, .success-btn, .cta-button {
+  transition: all 0.2s ease;
+}
+
+/* Override any conflicting text colors on interactive elements */
+button:not([id*="logout"]):not([id*="theme"]) {
+  color: inherit;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  background-color: #ffffff;
+  color: #222;
+}
+
+html.dark .dropdown-menu,
+html.dark , body.dark .dropdown-menu {
+  background-color: #232326;
+  color: #f3f4f6;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #e8e8e8;
+  color: #222;
+}
+
+html.dark .dropdown-menu a:hover,
+html.dark .dropdown-menu button:hover,
+html.dark , body.dark .dropdown-menu a:hover,
+html.dark , body.dark .dropdown-menu button:hover {
+  background-color: #18181b;
+  color: #f3f4f6;
+}
+
+/* Section backgrounds */
+#dashboard, #classes, #assessments, #ai-evaluation, #account {
+  color: #222;
+}
+
+html.dark #dashboard,
+html.dark #classes,
+html.dark #assessments,
+html.dark #ai-evaluation,
+html.dark #account,
+html.dark , body.dark #dashboard,
+html.dark , body.dark #classes,
+html.dark , body.dark #assessments,
+html.dark , body.dark #ai-evaluation,
+html.dark , body.dark #account {
+  color: #f3f4f6;
+}
+
+/* ===== LANDING PAGE STYLES ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Metric Progress Bars */
+.metric-bar {
+  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 8px;
+  height: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-bar.quality {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.metric-bar.documentation {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.metric-bar.time {
+  background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+html.dark .metric-bar {
+  background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+}
+
+/* Evaluation Cards */
+.evaluation-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+html.dark .evaluation-card {
+  background: #232326;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+html.dark , body.dark .evaluation-card {
+  background: #232326;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+html.dark .evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+html.dark , body.dark .evaluation-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Score Display */
+.score-display {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.score-display.quality {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score-display.documentation {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Feature Icons */
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+/* CTA Button */
+.cta-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* ===== DARK MODE OVERRIDES FOR TAILWIND CLASSES ===== */
+
+/* Hero section gradient */
+html.dark header[class*="bg-gradient-to-b"],
+body.dark header[class*="bg-gradient-to-b"] {
+  background: linear-gradient(to bottom, #1c1c1f 0%, #18181b 100%) !important;
+}
+
+/* Evaluation section */
+html.dark section[class*="bg-gray-100"],
+body.dark section[class*="bg-gray-100"] {
+  background-color: #18181b !important;
+}
+
+/* Light section backgrounds */
+html.dark section[class*="bg-white"],
+body.dark section[class*="bg-white"] {
+  background-color: #1c1c1f !important;
+}
+
+/* For Students section */
+html.dark section[class*="from-blue-50"],
+body.dark section[class*="from-blue-50"] {
+  background: linear-gradient(to bottom right, #1a1a1f 0%, #232326 100%) !important;
+}
+
+/* For Professors section */
+html.dark section[class*="from-green-50"],
+body.dark section[class*="from-green-50"] {
+  background: linear-gradient(to bottom right, #232326 0%, #1a1a1f 100%) !important;
+}
+
+/* Footer */
+html.dark footer[class*="bg-gray-900"],
+body.dark footer[class*="bg-gray-900"] {
+  background-color: #0f0f0f !important;
 }

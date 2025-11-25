@@ -21,6 +21,12 @@ class AssessmentDetails {
         if (reviewForm) {
             reviewForm.addEventListener('submit', (e) => this.saveReview(e));
         }
+
+        // Edit assessment form submission
+        const editForm = document.getElementById('editAssessmentForm');
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => this.updateAssessment(e));
+        }
     }
 
     static async loadAssessmentDetails() {
@@ -75,6 +81,9 @@ class AssessmentDetails {
                 day: 'numeric'
             });
         document.getElementById('assessment-class').textContent = assessment.class_name;
+
+        // Check user role after the header is populated
+        await this.checkUserRole();
     }
 
     static async loadClassInfo(classId) {
@@ -122,16 +131,21 @@ class AssessmentDetails {
                                submission.status === 'reviewed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
 
+            // Handle submission date display for newly added students
+            const submissionDate = submission.created_at
+                ? new Date(submission.created_at).toLocaleDateString()
+                : (submission.status === 'no submission' ? '-' : 'Invalid Date');
+
             return `
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${submission.student_name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.student_email}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${new Date(submission.created_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submissionDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusDisplay}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score ?? '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button onclick="AssessmentDetails.reviewSubmission('${submission.id}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
                             ${submission.professor_feedback ? 'Edit Review' : 'Review'}
@@ -289,6 +303,122 @@ class AssessmentDetails {
             }
         } catch (error) {
             console.error('Error releasing scores:', error);
+            UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+        }
+    }
+
+    static async checkUserRole() {
+        const token = UIUtils.getToken();
+        if (!token) return;
+
+        try {
+            const response = await fetch('http://localhost:8000/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                const isProfessor = userData.user?.role === 'professor';
+
+                if (isProfessor) {
+                    this.showEditButton();
+                }
+            }
+        } catch (error) {
+            console.error('Error checking user role:', error);
+        }
+    }
+
+    static showEditButton() {
+        const editButtonContainer = document.getElementById('edit-button-container');
+        if (editButtonContainer) {
+            editButtonContainer.innerHTML = `
+                <button onclick="AssessmentDetails.editAssessment()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <span>Edit Assessment</span>
+                </button>
+            `;
+        }
+    }
+
+    static editAssessment() {
+        const token = UIUtils.getToken();
+
+        try {
+            const response = fetch(`http://localhost:8000/api/assessments/${this.currentAssessmentId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            response.then(resp => {
+                if (resp.ok) {
+                    resp.json().then(assessment => {
+                        // Populate the edit form
+                        document.getElementById('editAssessmentTitle').value = assessment.title;
+                        document.getElementById('editAssessmentDescription').value = assessment.instructions;
+                        document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+
+                        const modal = document.getElementById('editAssessmentModal');
+                        modal.classList.remove('hidden');
+                    });
+                } else {
+                    resp.json().then(error => {
+                        UIUtils.showError(`Error: ${error.detail}`);
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('Error loading assessment for editing:', error);
+            UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+        }
+    }
+
+    static closeEditAssessmentModal() {
+        const modal = document.getElementById('editAssessmentModal');
+        modal.classList.add('hidden');
+        modal.style.removeProperty('display');
+        document.getElementById('editAssessmentForm').reset();
+    }
+
+    static async updateAssessment(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('editAssessmentTitle').value.trim();
+        const instructions = document.getElementById('editAssessmentDescription').value.trim();
+        const deadline = document.getElementById('editAssessmentDueDate').value;
+
+        if (!title || !instructions || !deadline) {
+            UIUtils.showError('Please fill in all fields');
+            return;
+        }
+
+        const token = UIUtils.getToken();
+        try {
+            const response = await fetch(`http://localhost:8000/api/assessments/${this.currentAssessmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    instructions: instructions,
+                    deadline: deadline
+                })
+            });
+
+            if (response.ok) {
+                UIUtils.showSuccess('Assessment updated successfully!');
+                this.closeEditAssessmentModal();
+                // Refresh assessment details
+                await this.loadAssessmentInfo(this.currentAssessmentId);
+            } else {
+                const error = await response.json();
+                UIUtils.showError(`Error: ${error.detail}`);
+            }
+        } catch (error) {
+            console.error('Error updating assessment:', error);
             UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
         }
     }

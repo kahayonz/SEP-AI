@@ -6,21 +6,88 @@
   <title>SEP-AI - Sign Up</title>
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script src="js/theme.js"></script>
+
   <script>
-    // Dark mode toggle function (same as other pages)
+    window.onload = function() {
+      // Add input validation event listeners
+      setupValidation();
+    }
+
+    // Helper function to capitalize first name and last name
+    function capitalizeName(name) {
+      if (!name) return '';
+      return name.split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+    }
+
+    // Email validation function
+    function isValidEmail(email) {
+      // Basic email regex pattern
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // Setup validation event listeners
+    function setupValidation() {
+      const firstNameInput = document.getElementById('firstName');
+      const lastNameInput = document.getElementById('lastName');
+      const emailInput = document.getElementById('email');
+
+      // Capitalize names on input
+      firstNameInput.addEventListener('input', function(e) {
+        const cursorPosition = e.target.selectionStart;
+        e.target.value = capitalizeName(e.target.value);
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+      });
+
+      lastNameInput.addEventListener('input', function(e) {
+        const cursorPosition = e.target.selectionStart;
+        e.target.value = capitalizeName(e.target.value);
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+      });
+
+
+    }
     
     async function handleSignup(event) {
       event.preventDefault();
-      
+
+      // Check if a role has been selected
+      const selectedButton = document.querySelector('button.selected');
+      if (!selectedButton) {
+        alert('Please select whether you are a Student or Professor');
+        return;
+      }
+
       const formData = {
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
-        role: document.querySelector('button.selected').dataset.role,
+        role: selectedButton.dataset.role,
         university: document.getElementById('university').value
       };
+
+      // Final validation before submission
+      const passwordVerify = document.getElementById('verifyPassword').value;
+
+      // Validate email format
+      if (!isValidEmail(formData.email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      // Validate password match
+      if (formData.password !== passwordVerify) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      // Validate name capitalization (should be automatic, but double-check)
+      formData.firstName = capitalizeName(formData.firstName);
+      formData.lastName = capitalizeName(formData.lastName);
       
       try {
         const response = await fetch('http://localhost:8000/signup', {
@@ -59,7 +126,32 @@
   </script>
 </head>
 <body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white font-sans">
-  <!-- Same navbar as other pages -->
+  <script>
+    // Apply theme immediately after body loads
+    const theme = localStorage.getItem('sepai-theme');
+    console.log('Signup: Theme from localStorage:', theme);
+    if(theme === 'light') {
+      console.log('Signup: Removing dark class');
+      document.body.classList.remove('dark');
+      // Force light mode colors with inline styles
+      document.body.style.backgroundColor = '#f5f5f5';
+      document.body.style.color = '#222';
+    } else {
+      console.log('Signup: Adding dark class');
+      document.body.classList.add('dark');
+      document.body.style.backgroundColor = '#18181b';
+      document.body.style.color = '#f3f4f6';
+    }
+  </script>
+  <!-- Back Button -->
+  <div class="absolute top-6 left-6">
+    <a href="index.html" class="flex items-center gap-2 text-gray-800 dark:text-white hover:opacity-70 transition" style="font-family: 'Doto', sans-serif;">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span class="font-semibold">SEP-AI</span>
+    </a>
+  </div>
 
   <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white dark:bg-[#232326] p-8 rounded-xl shadow-lg border border-gray-200 dark:border-[#27272a]">
@@ -120,9 +212,7 @@
                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
           </div>
 
-          <div class="flex justify-center">
-            <div class="g-recaptcha" data-sitekey="your-site-key"></div>
-          </div>
+
         </div>
 
         <div>

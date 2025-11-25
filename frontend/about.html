@@ -5,38 +5,159 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About SEP-AI</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme.js"></script>
 </head>
-<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white">
-  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200">
-    <a href="index.html" class="logo">SEP-AI</a>
+<body class="bg-white dark:bg-[#18181b] text-gray-800 dark:text-gray-100">
+  <!-- Navbar -->
+  <nav class="navbar sticky top-0 z-50 flex justify-between items-center px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a1d] backdrop-blur-sm">
+    <a href="index.html" class="logo text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">SEP-AI</a>
+    <button id="themeToggle" class="theme-toggle p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">🌙</button>
   </nav>
 
-  <div class="max-w-4xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold mb-8">About SEP-AI</h1>
-    
-    <div class="space-y-8">
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">Our Mission</h2>
-        <p class="text-lg">SEP-AI aims to revolutionize how software engineering principles are taught and evaluated in academic settings.</p>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">The Platform</h2>
-        <p class="text-lg">We combine artificial intelligence with educational expertise to provide accurate, consistent, and helpful feedback on student projects.</p>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">Benefits</h2>
-        <ul class="list-disc list-inside text-lg space-y-2">
-          <li>Automated assessment of software engineering principles</li>
-          <li>Consistent grading criteria across all submissions</li>
-          <li>Detailed feedback for continuous improvement</li>
-          <li>Time-saving tools for professors</li>
-          <li>Self-assessment capabilities for students</li>
-        </ul>
-      </section>
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-[#1a1a1d] dark:to-[#232326] py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl sm:text-6xl font-bold mb-6 text-gray-900 dark:text-white">About SEP-AI</h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        Revolutionizing how software engineering is taught, evaluated, and learned through intelligent assessment.
+      </p>
     </div>
   </div>
+
+  <!-- Main Content -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <!-- Mission Section -->
+    <section class="mb-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white">Our Mission</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
+            SEP-AI aims to revolutionize how software engineering principles are taught and evaluated in academic settings.
+          </p>
+          <p class="text-lg text-gray-600 dark:text-gray-300">
+            We believe that quality education paired with intelligent feedback creates better engineers. Our mission is to make that possible at scale.
+          </p>
+        </div>
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-8 text-white text-center">
+          <div class="text-6xl mb-4">🎓</div>
+          <h3 class="text-2xl font-bold">Quality Education</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Section -->
+    <section class="mb-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="order-2 md:order-1 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-8 text-white text-center">
+          <div class="text-6xl mb-4">⚙️</div>
+          <h3 class="text-2xl font-bold">Smart Technology</h3>
+        </div>
+        <div class="order-1 md:order-2">
+          <h2 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white">The Platform</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
+            SEP-AI combines artificial intelligence with educational expertise to provide accurate, consistent, and helpful feedback on student projects.
+          </p>
+          <p class="text-lg text-gray-600 dark:text-gray-300">
+            Our advanced algorithms analyze code quality, architectural decisions, documentation, and adherence to software engineering best practices.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features Grid -->
+    <section class="mb-20">
+      <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-white">How It Works</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Automated Assessment</h3>
+          <p class="text-gray-600 dark:text-gray-400">AI-powered analysis of code submissions against industry best practices and engineering principles.</p>
+        </div>
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">💬</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Detailed Feedback</h3>
+          <p class="text-gray-600 dark:text-gray-400">Comprehensive, actionable insights that help students and professors understand evaluation criteria.</p>
+        </div>
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">📈</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Progress Tracking</h3>
+          <p class="text-gray-600 dark:text-gray-400">Monitor improvement over time with consistent metrics and detailed analytics dashboards.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="mb-20">
+      <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-white">Why Choose SEP-AI?</h2>
+      <div class="bg-white dark:bg-[#232326] rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Automated Assessment</h3>
+              <p class="text-gray-600 dark:text-gray-400">Evaluate submissions consistently without manual grading overhead</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Consistent Criteria</h3>
+              <p class="text-gray-600 dark:text-gray-400">Same evaluation standards across all submissions and classes</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Continuous Learning</h3>
+              <p class="text-gray-600 dark:text-gray-400">Detailed feedback that helps students improve incrementally</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Time Savings</h3>
+              <p class="text-gray-600 dark:text-gray-400">Reduce grading time and focus on meaningful instruction</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Self-Assessment</h3>
+              <p class="text-gray-600 dark:text-gray-400">Students can test projects before official submission</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">✅</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Analytics Dashboard</h3>
+              <p class="text-gray-600 dark:text-gray-400">Visualize trends and identify areas for curriculum improvement</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="text-center">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-12 text-white">
+        <h2 class="text-4xl font-bold mb-6">Ready to Transform Education?</h2>
+        <p class="text-xl mb-8 text-blue-100">Join educators and students using SEP-AI to improve software engineering practices.</p>
+        <a href="signup.html" class="cta-button">Get Started Today</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 dark:bg-[#1a1a1d] border-t border-gray-200 dark:border-gray-800 py-8 mt-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 dark:text-gray-400">
+      <p>&copy; 2024 SEP-AI. All rights reserved.</p>
+    </div>
+  </footer>
 </body>
 </html>

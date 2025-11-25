@@ -3,142 +3,320 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEP-AI Prototype</title>
-  <link rel="stylesheet" href="styles/styles.css">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>SEP-AI - Software Engineering Evaluation with AI</title>
+  <link rel="stylesheet" href="styles/styles.css?v=3">
   <script>
-    // Dark mode toggle
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('sepai-theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    tailwind.config = {
+      darkMode: 'class'
     }
-    // On load, set theme from localStorage
-    window.onload = function() {
-      if(localStorage.getItem('sepai-theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme.js"></script>
+  <script>
+    function toggleDarkMode() {
+      window.toggleDarkMode?.();
     }
   </script>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body class="font-sans">
 
   <!-- Navbar -->
-  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200">
-    <h1 class="logo">SEP-AI</h1>
-    <div class="relative">
-      <button id="menuButton" class="nav-menu-btn flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 bg-white text-black hover:bg-gray-100 transition" onclick="toggleDropdown()">
-        Menu
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-      <div id="dropdownMenu" class="dropdown-menu absolute right-0 mt-2 w-48 bg-white dark:bg-[#232326] border border-gray-200 dark:border-[#27272a] rounded-xl shadow-lg py-2 hidden z-10">
-        <a href="signup.html" class="block px-6 py-3 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#18181b] transition">Get Started</a>
-        <a href="login.html" class="block px-6 py-3 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#18181b] transition">Login</a>
-        <a href="about.html" class="block px-6 py-3 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#18181b] transition">About</a>
-        <div class="border-t border-gray-200 dark:border-[#27272a] my-2"></div>
-        <button class="w-full px-6 py-3 text-left text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#18181b] transition" onclick="toggleDarkMode()">
-          <span class="toggle-icon">🌙</span> Toggle Dark Mode
-        </button>
-      </div>
+  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#232326] sticky top-0 z-50 shadow-sm">
+    <a href="index.html" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition" style="font-family: 'Doto', sans-serif;">
+      SEP-AI
+    </a>
+    <div class="flex items-center gap-3">
+      <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b] transition">🌙</button>
+      <a href="login.html" class="px-5 py-2 rounded-lg border border-gray-300 dark:border-[#27272a] text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#18181b] transition font-medium" style="font-family: 'Doto', sans-serif;">Login</a>
     </div>
   </nav>
-  <script>
-    function toggleDropdown() {
-      var menu = document.getElementById('dropdownMenu');
-      menu.classList.toggle('hidden');
-    }
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-      var menu = document.getElementById('dropdownMenu');
-      var button = document.getElementById('menuButton');
-      if (!menu.contains(event.target) && !button.contains(event.target)) {
-        menu.classList.add('hidden');
-      }
-    });
-  </script>
 
-  <!-- Introduction (first section that you see whilst opening) -->
-  <header class="hero">
-    <h2 class="hero-title">Software Engineering Principle Evaluation with AI</h2>
-    <p class="hero-desc">
-      SEP-AI helps professors evaluate student projects faster and gives students self-assessment tools for improving their code quality, design, and documentation.
-    </p>
+  <!-- Hero Section -->
+  <header class="px-4 sm:px-6 lg:px-8 py-20 md:py-40 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-[#1c1c1f] dark:to-[#18181b] relative overflow-hidden">
+    <!-- Background decoration -->
+    <div class="absolute inset-0 opacity-5">
+      <div class="absolute top-10 left-10 w-72 h-72 bg-blue-400 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-10 right-10 w-72 h-72 bg-purple-400 rounded-full blur-3xl"></div>
+    </div>
+    
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <div class="mb-6 inline-block">
+        <span class="inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-1 rounded-full text-sm font-medium">Powered by AI</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight" style="font-family: 'Doto', sans-serif;">
+        AI-Powered Code Evaluation for Education
+      </h1>
+      <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto font-light">
+        Intelligent assessment of student projects with detailed feedback on architecture, code quality, documentation, and design principles.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="signup.html" class="cta-button">Get Started</a>
+      </div>
+    </div>
   </header>
 
-  <!-- Features Section -->
-  <section id="features" class="features-section">
-    <h3 class="section-title">Key Features</h3>
-    <div class="features-grid">
-      <div class="feature-card">
-        <h4>AI-Powered Grading</h4>
-        <p>Checks functionality, code quality, documentation, and adherence to software engineering principles.</p>
+  <!-- Evaluation Example Section -->
+  <section class="px-4 sm:px-6 lg:px-8 py-20 bg-gray-100 dark:bg-[#18181b]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4" style="font-family: 'Doto', sans-serif;">
+          See What You Get
+        </h2>
+        <p class="text-lg text-gray-600 dark:text-gray-400">
+          Comprehensive evaluation across all key areas of software engineering
+        </p>
       </div>
-      <div class="feature-card">
-        <h4>Detailed Feedback</h4>
-        <p>Generates structured feedback highlighting strengths, weaknesses, and recommendations.</p>
-      </div>
-      <div class="feature-card">
-        <h4>Self-Evaluation Tool</h4>
-        <p>Students can test their projects before submission and receive actionable suggestions.</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- Evaluation Cards -->
+        <div class="space-y-4">
+          <!-- Architecture Score -->
+          <div class="evaluation-card">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Architecture</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Structural design evaluation</p>
+              </div>
+              <div class="score-display">90%</div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Structure Clarity</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">85%</span>
+                </div>
+                <div class="metric-bar" style="width: 85%;"></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Design Patterns</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">95%</span>
+                </div>
+                <div class="metric-bar" style="width: 95%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code Quality Score -->
+          <div class="evaluation-card">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Code Quality</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Best practices & standards</p>
+              </div>
+              <div class="score-display quality">78%</div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Readability</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">80%</span>
+                </div>
+                <div class="metric-bar quality" style="width: 80%;"></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Error Handling</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">75%</span>
+                </div>
+                <div class="metric-bar quality" style="width: 75%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documentation Score -->
+          <div class="evaluation-card">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Documentation</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Comments & explanation</p>
+              </div>
+              <div class="score-display documentation">88%</div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Completeness</span>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">88%</span>
+              </div>
+              <div class="metric-bar documentation" style="width: 88%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="space-y-6">
+          <div class="bg-white dark:bg-[#232326] rounded-xl p-6 border border-gray-200 dark:border-[#27272a]">
+            <div class="feature-icon bg-blue-100 dark:bg-blue-900/30">🏗️</div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Architecture Analysis</h3>
+            <p class="text-gray-600 dark:text-gray-400">Evaluates project structure, design patterns, and separation of concerns. Clear parts and logical organization.</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#232326] rounded-xl p-6 border border-gray-200 dark:border-[#27272a]">
+            <div class="feature-icon bg-green-100 dark:bg-green-900/30">✨</div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Code Quality Review</h3>
+            <p class="text-gray-600 dark:text-gray-400">Analyzes readability, maintainability, error handling, and adherence to software engineering best practices.</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#232326] rounded-xl p-6 border border-gray-200 dark:border-[#27272a]">
+            <div class="feature-icon bg-orange-100 dark:bg-orange-900/30">📚</div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Documentation Check</h3>
+            <p class="text-gray-600 dark:text-gray-400">Evaluates code comments, README files, and overall documentation quality and completeness.</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#232326] rounded-xl p-6 border border-gray-200 dark:border-[#27272a]">
+            <div class="feature-icon bg-purple-100 dark:bg-purple-900/30">⚡</div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Instant Evaluation</h3>
+            <p class="text-gray-600 dark:text-gray-400">Get comprehensive assessment in seconds. Detailed feedback reports with actionable recommendations.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- More Features Section -->
-  <section class="bg-gray-50 dark:bg-[#1c1c1f] py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h3 class="text-3xl font-bold text-center mb-12">More features to power your workflow</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div class="bg-white dark:bg-[#232326] p-6 rounded-lg shadow-md">
-          <h4 class="text-xl font-semibold mb-3">Real-time Analysis</h4>
-          <p>Get instant feedback on code quality, patterns, and potential improvements</p>
+  <!-- Features Grid Section -->
+  <section class="px-4 sm:px-6 lg:px-8 py-20 bg-white dark:bg-[#1c1c1f]">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-16" style="font-family: 'Doto', sans-serif;">
+        Powerful Features for Everyone
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="group">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-2xl p-8 group-hover:shadow-lg transition-all duration-300">
+            <div class="text-4xl mb-4">🎯</div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Precise Grading</h3>
+            <p class="text-gray-600 dark:text-gray-400">AI-powered evaluation that checks functionality, code quality, documentation, and software engineering principles.</p>
+          </div>
         </div>
-        <div class="bg-white dark:bg-[#232326] p-6 rounded-lg shadow-md">
-          <h4 class="text-xl font-semibold mb-3">Automated Testing</h4>
-          <p>Run comprehensive tests to verify functionality and code coverage</p>
+
+        <div class="group">
+          <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-2xl p-8 group-hover:shadow-lg transition-all duration-300">
+            <div class="text-4xl mb-4">📊</div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Detailed Feedback</h3>
+            <p class="text-gray-600 dark:text-gray-400">Structured reports highlighting strengths, areas for improvement, and specific recommendations for each project.</p>
+          </div>
         </div>
-        <div class="bg-white dark:bg-[#232326] p-6 rounded-lg shadow-md">
-          <h4 class="text-xl font-semibold mb-3">Progress Tracking</h4>
-          <p>Monitor improvement over time with detailed analytics and insights</p>
+
+        <div class="group">
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/10 rounded-2xl p-8 group-hover:shadow-lg transition-all duration-300">
+            <div class="text-4xl mb-4">⚡</div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Self-Evaluation</h3>
+            <p class="text-gray-600 dark:text-gray-400">Students test projects before submission and receive actionable suggestions to improve their work.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- For Students & Professors Section -->
-  <section class="py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- For Students -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 p-8 rounded-xl">
-          <h3 class="text-2xl font-bold mb-4">For Students</h3>
-          <p class="mb-6">Improve your software engineering skills with AI-powered feedback and self-assessment tools.</p>
-          <a href="for-students.html" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Learn More</a>
+  <!-- For Students Section -->
+  <section class="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-[#1a1a1f] dark:to-[#232326]">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6" style="font-family: 'Doto', sans-serif;">
+            For Students
+          </h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+            Get instant feedback on your code and learn best practices before submission. Test your projects, improve continuously, and ace your assignments.
+          </p>
+          <ul class="space-y-4 mb-8">
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Self-assess your work before submission</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Get detailed recommendations for improvement</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Track your progress across assignments</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Learn software engineering best practices</span>
+            </li>
+          </ul>
+          <a href="for-students.html" class="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">Learn More</a>
         </div>
-        
-        <!-- For Professors -->
-        <div class="bg-green-50 dark:bg-green-900/20 p-8 rounded-xl">
-          <h3 class="text-2xl font-bold mb-4">For Professors</h3>
-          <p class="mb-6">Streamline your grading process and provide consistent, detailed feedback to your students.</p>
-          <a href="for-professors.html" class="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Learn More</a>
+        <div class="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-12 text-white text-center">
+          <div class="text-7xl mb-4">🎓</div>
+          <h3 class="text-3xl font-bold mb-3">Improve Your Skills</h3>
+          <p class="text-blue-100">Get feedback that helps you grow as a developer</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- For Professors Section -->
+  <section class="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-[#232326] dark:to-[#1a1a1f]">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="order-2 md:order-1 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-12 text-white text-center">
+          <div class="text-7xl mb-4">👨‍🏫</div>
+          <h3 class="text-3xl font-bold mb-3">Streamline Grading</h3>
+          <p class="text-green-100">Save time while maintaining consistent evaluation standards</p>
+        </div>
+        <div class="order-1 md:order-2">
+          <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6" style="font-family: 'Doto', sans-serif;">
+            For Professors
+          </h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+            Reduce grading time by up to 60% while maintaining consistent evaluation criteria. Let AI handle initial assessment so you can focus on meaningful feedback.
+          </p>
+          <ul class="space-y-4 mb-8">
+            <li class="flex gap-3 items-start">
+              <span class="text-green-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Automated code review and assessment</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-green-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Consistent grading standards across all submissions</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-green-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Comprehensive class analytics and insights</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-green-600 font-bold text-xl">✓</span>
+              <span class="text-gray-700 dark:text-gray-300">Track class performance and identify trends</span>
+            </li>
+          </ul>
+          <a href="for-professors.html" class="inline-block px-8 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-800">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-4xl md:text-5xl font-bold text-white mb-6" style="font-family: 'Doto', sans-serif;">
+        Ready to Transform Your Classroom?
+      </h2>
+      <p class="text-xl text-blue-100 mb-8">
+        Join professors and students who are improving their workflow with SEP-AI
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="signup.html" class="px-8 py-4 bg-white text-blue-600 rounded-lg font-bold hover:bg-gray-100 transition">Get Started</a>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-900 text-white">
+  <footer class="bg-gray-900 dark:bg-[#0f0f0f] text-gray-400">
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
         <!-- Logo and Description -->
-        <div class="col-span-2">
-          <h2 class="text-2xl font-bold mb-4">SEP-AI</h2>
-          <p class="text-gray-400">Transforming software engineering education with AI-powered assessment and feedback.</p>
+        <div class="col-span-1 md:col-span-2">
+          <h2 class="text-2xl font-bold text-white mb-2" style="font-family: 'Doto', sans-serif;">SEP-AI</h2>
+          <p class="text-gray-400">Transforming software engineering education with AI-powered assessment and intelligent feedback.</p>
         </div>
         
         <!-- Quick Links -->
         <div>
-          <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-          <ul class="space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4">Product</h3>
+          <ul class="space-y-3">
             <li><a href="about.html" class="text-gray-400 hover:text-white transition">About</a></li>
             <li><a href="for-students.html" class="text-gray-400 hover:text-white transition">For Students</a></li>
             <li><a href="for-professors.html" class="text-gray-400 hover:text-white transition">For Professors</a></li>
@@ -147,8 +325,8 @@
         
         <!-- Get Started -->
         <div>
-          <h3 class="text-lg font-semibold mb-4">Get Started</h3>
-          <ul class="space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4">Get Started</h3>
+          <ul class="space-y-3">
             <li><a href="signup.html" class="text-gray-400 hover:text-white transition">Sign Up</a></li>
             <li><a href="login.html" class="text-gray-400 hover:text-white transition">Login</a></li>
           </ul>
@@ -156,7 +334,7 @@
       </div>
       
       <!-- Bottom Bar -->
-      <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
         <p class="text-gray-400">&copy; 2025 SEP-AI. All rights reserved.</p>
         <div class="flex space-x-6 mt-4 md:mt-0">
           <a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a>

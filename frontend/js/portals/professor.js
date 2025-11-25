@@ -39,8 +39,10 @@ class ProfessorPortal {
       document.body.classList.add('dark');
     }
 
-    // Show Dashboard section by default
+    // Show Dashboard and Classes sections by default
     document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('classes').classList.remove('hidden');
+    // document.getElementById('assessments').classList.remove('hidden'); // Remove assessments from dashboard focus
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();
@@ -49,6 +51,8 @@ class ProfessorPortal {
     // Load initial data
     this.loadClasses();
     this.loadAssessments();
+    this.loadDashboardStats();
+    this.loadRecentSubmissions();
   }
 
   static setupEventListeners() {
@@ -74,6 +78,11 @@ class ProfessorPortal {
     const createAssessmentForm = document.getElementById('createAssessmentForm');
     if (createAssessmentForm) {
       createAssessmentForm.addEventListener('submit', (e) => this.createAssessment(e));
+    }
+
+    const editAssessmentForm = document.getElementById('editAssessmentForm');
+    if (editAssessmentForm) {
+      editAssessmentForm.addEventListener('submit', (e) => this.updateAssessment(e));
     }
 
     const reviewForm = document.getElementById('reviewForm');
@@ -169,13 +178,15 @@ class ProfessorPortal {
 
       if (response.ok) {
         const classData = await response.json();
-        UIUtils.showSuccess('Class created successfully!');
 
-        // Add selected students to the new class
+        // Add selected students to the new class without individual alerts
         if (modalSelectedStudents.length > 0) {
           for (const student of modalSelectedStudents) {
-            await this.addStudentToClass(classData.id, student.id);
+            await this.addStudentToClass(classData.id, student.id, true);
           }
+          UIUtils.showSuccess('Class created successfully with students!');
+        } else {
+          UIUtils.showSuccess('Class created successfully!');
         }
 
         document.getElementById('createClassForm').reset();
@@ -332,11 +343,11 @@ class ProfessorPortal {
 
     const student = students[0];
     if (confirm(`Add ${student.first_name} ${student.last_name} to this class?`)) {
-      this.addStudentToClass(classId, student.id);
+      this.addStudentToClass(classId, student.id, `${student.first_name} ${student.last_name} (${student.email})`);
     }
   }
 
-  static async addStudentToClass(classId, studentId) {
+  static async addStudentToClass(classId, studentId, studentName = null, suppressAlert = false) {
     const token = UIUtils.getToken();
     try {
       const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
@@ -349,8 +360,49 @@ class ProfessorPortal {
       });
 
       if (response.ok) {
-        UIUtils.showSuccess('Student added to class successfully!');
-        this.loadClassStudents(classId);
+        if (!suppressAlert) {
+          UIUtils.showSuccess('Student added to class successfully!');
+
+          // If we don't have the student name, we need to fetch it
+          if (!studentName) {
+            try {
+              const studentResponse = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(studentId)}&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+
+              if (studentResponse.ok) {
+                const studentData = await studentResponse.json();
+                if (studentData.length > 0) {
+                  studentName = `${studentData[0].first_name} ${studentData[0].last_name} (${studentData[0].email})`;
+                }
+              }
+            } catch (studentError) {
+              console.error('Error fetching student details:', studentError);
+            }
+          }
+
+          // Add student element directly to DOM instead of reloading the entire list
+          if (studentName) {
+            const studentsDiv = document.getElementById(`class-students-${classId}`);
+            if (studentsDiv) {
+              // Remove "No students enrolled" message if it exists
+              const noStudentsMsg = studentsDiv.querySelector('p');
+              if (noStudentsMsg && noStudentsMsg.textContent.includes('No students enrolled')) {
+                studentsDiv.innerHTML = '';
+              }
+
+              const studentDiv = document.createElement('div');
+              studentDiv.className = 'flex justify-between items-center bg-white dark:bg-gray-600 p-2 rounded';
+              studentDiv.innerHTML = `
+                <span class="text-sm">${studentName}</span>
+                <button onclick="ProfessorPortal.removeStudentFromClass('${classId}', '${studentId}')" class="text-red-600 hover:text-red-800 text-sm">
+                  Remove
+                </button>
+              `;
+              studentsDiv.appendChild(studentDiv);
+            }
+          }
+        }
       } else {
         const error = await response.json();
         UIUtils.showError(`Error: ${error.detail}`);
@@ -372,7 +424,22 @@ class ProfessorPortal {
       });
 
       if (response.ok) {
-        this.loadClassStudents(classId);
+        // Find and remove the student element from DOM instead of reloading the entire list
+        const studentsDiv = document.getElementById(`class-students-${classId}`);
+        const studentElements = studentsDiv.querySelectorAll('div');
+
+        for (const studentDiv of studentElements) {
+          // Check if this is the student we want to remove by finding a way to identify it
+          // Since the onclick contains the studentId, we can check that
+          const removeButton = studentDiv.querySelector('button');
+          if (removeButton && removeButton.getAttribute('onclick').includes(`'${studentId}'`)) {
+            studentDiv.remove();
+            break;
+          }
+        }
+
+        // Show success message
+        UIUtils.showSuccess('Student removed from class successfully!');
       } else {
         const error = await response.json();
         UIUtils.showError(`Error: ${error.detail}`);
@@ -465,7 +532,7 @@ class ProfessorPortal {
     input.value = '';
 
     // Add student to class
-    await this.addStudentToClass(classId, studentId);
+    await this.addStudentToClass(classId, studentId, studentName);
   }
 
   static openCreateClassModal() {
@@ -599,11 +666,23 @@ class ProfessorPortal {
   }
 
   static openCreateAssessmentModal() {
-    document.getElementById('createAssessmentModal').classList.remove('hidden');
+    console.log('Create Assessment Modal Opened');
+    const modal = document.getElementById('createAssessmentModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.setProperty('display', 'flex', 'important');
+      console.log('Modal opened');
+    } else {
+      console.error('Modal not found');
+    }
+    // Ensure classes are loaded for the dropdown
+    this.loadClasses();
   }
 
   static closeCreateAssessmentModal() {
-    document.getElementById('createAssessmentModal').classList.add('hidden');
+    const modal = document.getElementById('createAssessmentModal');
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
     document.getElementById('createAssessmentForm').reset();
   }
 
@@ -611,6 +690,84 @@ class ProfessorPortal {
     document.getElementById('createClassModal').classList.add('hidden');
     document.getElementById('createClassForm').reset();
     modalSelectedStudents = [];
+  }
+
+static async editAssessment(assessmentId) {
+  const token = UIUtils.getToken();
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const assessment = await response.json();
+
+      // Populate the edit form
+      document.getElementById('editAssessmentTitle').value = assessment.title;
+      document.getElementById('editAssessmentDescription').value = assessment.instructions;
+      document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+
+      currentAssessmentId = assessmentId;
+      const modal = document.getElementById('editAssessmentModal');
+      modal.classList.remove('hidden');
+    } else {
+      const error = await response.json();
+      UIUtils.showError(`Error: ${error.detail}`);
+    }
+  } catch (error) {
+    console.error('Error loading assessment for editing:', error);
+    UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+  }
+}
+
+  static closeEditAssessmentModal() {
+    const modal = document.getElementById('editAssessmentModal');
+    modal.classList.add('hidden');
+    modal.style.removeProperty('display');
+    document.getElementById('editAssessmentForm').reset();
+    currentAssessmentId = null;
+  }
+
+  static async updateAssessment(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('editAssessmentTitle').value.trim();
+    const instructions = document.getElementById('editAssessmentDescription').value.trim();
+    const deadline = document.getElementById('editAssessmentDueDate').value;
+
+    if (!title || !instructions || !deadline) {
+      UIUtils.showError('Please fill in all fields');
+      return;
+    }
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/assessments/${currentAssessmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: title,
+          instructions: instructions,
+          deadline: deadline
+        })
+      });
+
+      if (response.ok) {
+        UIUtils.showSuccess('Assessment updated successfully!');
+        this.closeEditAssessmentModal();
+        this.loadAssessments(); // Refresh the assessments list
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error updating assessment:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
   }
 
   static async deleteClass(classId, className) {
@@ -633,6 +790,29 @@ class ProfessorPortal {
       }
     } catch (error) {
       console.error('Error deleting class:', error);
+      UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+    }
+  }
+
+  static async deleteAssessment(assessmentId) {
+    if (!confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) return;
+
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        UIUtils.showSuccess('Assessment deleted successfully!');
+        this.loadAssessments();
+      } else {
+        const error = await response.json();
+        UIUtils.showError(`Error: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
       UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
     }
   }
@@ -717,11 +897,19 @@ class ProfessorPortal {
           <div>
             <h4 class="font-bold text-lg">${assessment.title}</h4>
             <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || 'Unknown'}</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || assessment.class_name || 'Unknown'}</p>
           </div>
-          <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-            View Submissions
-          </button>
+          <div class="flex gap-2">
+            <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              View Submissions
+            </button>
+            <button onclick="ProfessorPortal.editAssessment('${assessment.id}')" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700">
+              Edit
+            </button>
+            <button onclick="ProfessorPortal.deleteAssessment('${assessment.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+              Delete
+            </button>
+          </div>
         </div>
         <p class="text-gray-700 dark:text-gray-200">${assessment.instructions}</p>
       `;
@@ -740,6 +928,105 @@ class ProfessorPortal {
       option.value = cls.id;
       option.textContent = cls.name;
       select.appendChild(option);
+    });
+  }
+
+  static async loadDashboardStats() {
+    const token = UIUtils.getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/api/professor/dashboard-stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        this.displayDashboardStats(stats);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    }
+  }
+
+  static displayDashboardStats(stats) {
+    // Update total submissions
+    const totalSubmissionsEl = document.querySelector('[data-stat="total-submissions"]');
+    if (totalSubmissionsEl) {
+      totalSubmissionsEl.querySelector('.text-2xl').textContent = stats.total_submissions;
+    }
+
+    // Update graded submissions
+    const gradedEl = document.querySelector('[data-stat="graded"]');
+    if (gradedEl) {
+      gradedEl.querySelector('.text-2xl').textContent = stats.graded_submissions;
+    }
+
+    // Update pending submissions
+    const pendingEl = document.querySelector('[data-stat="pending"]');
+    if (pendingEl) {
+      pendingEl.querySelector('.text-2xl').textContent = stats.pending_submissions;
+    }
+
+    // Update average score
+    const averageEl = document.querySelector('[data-stat="average"]');
+    if (averageEl) {
+      averageEl.querySelector('.text-2xl').textContent = stats.average_score;
+    }
+  }
+
+  static async loadRecentSubmissions() {
+    const token = UIUtils.getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/api/professor/recent-submissions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const submissions = await response.json();
+        this.displayRecentSubmissions(submissions);
+      }
+    } catch (error) {
+      console.error('Error loading recent submissions:', error);
+    }
+  }
+
+  static displayRecentSubmissions(submissions) {
+    const tableBody = document.getElementById('recentSubmissionsTable');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    if (submissions.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No submissions yet</td></tr>';
+      return;
+    }
+
+    submissions.forEach(submission => {
+      const statusColor = submission.status === 'released' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                         submission.status === 'reviewed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+
+      const statusText = submission.status === 'reviewed' ? 'graded' : submission.status;
+      const submissionDate = submission.submission_date === '-' ? '-' : new Date(submission.submission_date).toLocaleDateString();
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${submission.student_name}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.assessment_title}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submissionDate}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusText}</span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score || 'N/A'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score || '-'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button onclick="ProfessorPortal.reviewSubmission('${submission.id}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">${submission.final_score ? 'Edit Review' : 'Review'}</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
     });
   }
 
@@ -774,11 +1061,14 @@ class ProfessorPortal {
       return;
     }
 
-    submissions.forEach(submission => {
-      const statusColor = submission.status === 'released' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                         submission.status === 'reviewed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+      submissions.forEach(submission => {
+      const statusColor = submission.status === 'released' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                         submission.status === 'reviewed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                          submission.status === 'no submission' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+
+      const displayDate = submission.created_at ? new Date(submission.created_at).toLocaleString() : (submission.status === 'no submission' ? '-' : 'Not submitted');
+      const dateLabel = submission.created_at ? 'Submitted:' : 'Date:';
 
       const submissionDiv = document.createElement('div');
       submissionDiv.className = 'bg-white dark:bg-gray-600 p-4 rounded-lg';
@@ -787,7 +1077,7 @@ class ProfessorPortal {
           <div>
             <h5 class="font-bold">${submission.student_name}</h5>
             <p class="text-gray-600 dark:text-gray-300 text-sm">${submission.student_email}</p>
-            ${submission.created_at ? `<p class="text-gray-500 text-sm">Submitted: ${new Date(submission.created_at).toLocaleString()}</p>` : '<p class="text-gray-500 text-sm">Not submitted</p>'}
+            <p class="text-gray-500 text-sm">${dateLabel} ${displayDate}</p>
           </div>
           <div class="text-right">
             <span class="px-2 py-1 rounded text-xs font-medium ${statusColor}">${submission.status}</span>
@@ -819,9 +1109,37 @@ class ProfessorPortal {
     document.getElementById('submissionsModal').classList.add('hidden');
   }
 
-  static reviewSubmission(submissionId) {
+  static async reviewSubmission(submissionId) {
     currentSubmissionId = submissionId;
-    document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+
+    // Fetch the submission details
+    const token = UIUtils.getToken();
+    try {
+      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        UIUtils.showError('Failed to load submission details');
+        return;
+      }
+
+      const submission = await response.json();
+
+      // Populate AI feedback
+      document.getElementById('ai-score').textContent = submission.ai_score || 'N/A';
+      document.getElementById('ai-feedback').textContent = submission.ai_feedback || 'No feedback provided';
+
+      // Populate form with existing data
+      document.getElementById('professorFeedback').value = submission.professor_feedback || '';
+      document.getElementById('finalScore').value = submission.final_score || '';
+
+      // Show modal
+      document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading submission for review:', error);
+      UIUtils.showError('Failed to load submission details');
+    }
   }
 
   static closeReviewSubmissionModal() {
@@ -852,6 +1170,8 @@ class ProfessorPortal {
       if (response.ok) {
         UIUtils.showSuccess('Review submitted successfully!');
         this.closeReviewSubmissionModal();
+        // Refresh the dashboard submissions table
+        this.loadRecentSubmissions();
         if (currentAssessmentId) {
           this.viewSubmissions(currentAssessmentId);
         }

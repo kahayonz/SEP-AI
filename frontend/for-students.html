@@ -5,43 +5,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEP-AI for Students</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme.js"></script>
 </head>
-<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-white">
-  <nav class="navbar flex justify-between items-center px-8 py-6 border-b border-gray-200">
-    <a href="index.html" class="logo">SEP-AI</a>
-    <a href="signup.html" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Get Started</a>
+<body class="bg-white dark:bg-[#18181b] text-gray-800 dark:text-gray-100">
+  <!-- Navbar -->
+  <nav class="navbar sticky top-0 z-50 flex justify-between items-center px-8 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a1d] backdrop-blur-sm">
+    <a href="index.html" class="logo text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">SEP-AI</a>
+    <div class="flex items-center gap-4">
+      <button id="themeToggle" class="theme-toggle p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">🌙</button>
+      <a href="signup.html" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Get Started</a>
+    </div>
   </nav>
 
-  <div class="max-w-4xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold mb-8">For Students</h1>
-    
-    <div class="space-y-12">
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">Improve Your Skills</h2>
-        <p class="text-lg mb-4">Get instant feedback on your code and learn best practices in software engineering.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-white dark:bg-[#232326] p-6 rounded-lg shadow">
-            <h3 class="font-semibold mb-2">Self Assessment</h3>
-            <p>Test your projects before submission and get detailed feedback</p>
-          </div>
-          <div class="bg-white dark:bg-[#232326] p-6 rounded-lg shadow">
-            <h3 class="font-semibold mb-2">Learning Resources</h3>
-            <p>Access guides and examples of best practices</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">Key Benefits</h2>
-        <ul class="list-disc list-inside space-y-2">
-          <li>Instant feedback on your code</li>
-          <li>Learn from detailed recommendations</li>
-          <li>Track your progress over time</li>
-          <li>Practice with real-world scenarios</li>
-        </ul>
-      </section>
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-[#1a1a1d] dark:to-[#232326] py-20 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl sm:text-6xl font-bold mb-6 text-gray-900 dark:text-white">For Students</h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        Get instant feedback on your code, learn best practices, and improve your skills with SEP-AI
+      </p>
     </div>
   </div>
+
+  <!-- Main Content -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <!-- Self-Assessment Section -->
+    <section class="mb-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white">Self-Assessment Before Submission</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
+            Test your projects before official submission to identify issues early. Get detailed feedback on code quality, architecture, documentation, and more.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Catch problems before grading</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Iterative improvements encouraged</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-blue-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Learn evaluation criteria in advance</span>
+            </li>
+          </ul>
+        </div>
+        <div class="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-8 text-white text-center">
+          <div class="text-6xl mb-4">🧪</div>
+          <h3 class="text-2xl font-bold">Test Before Submit</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Learning Resources Section -->
+    <section class="mb-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div class="order-2 md:order-1 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-8 text-white text-center">
+          <div class="text-6xl mb-4">📚</div>
+          <h3 class="text-2xl font-bold">Expert Guidance</h3>
+        </div>
+        <div class="order-1 md:order-2">
+          <h2 class="text-4xl font-bold mb-6 text-gray-900 dark:text-white">Learn from Feedback</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
+            Our AI provides actionable recommendations based on industry standards and best practices. Understand not just what needs improvement, but why and how.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex gap-3 items-start">
+              <span class="text-purple-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Detailed recommendations for improvement</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-purple-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Real-world best practices explained</span>
+            </li>
+            <li class="flex gap-3 items-start">
+              <span class="text-purple-600 font-bold">✓</span>
+              <span class="text-gray-600 dark:text-gray-400">Track your learning progress</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features Grid -->
+    <section class="mb-20">
+      <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-white">What You'll Get</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">⚡</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Instant Feedback</h3>
+          <p class="text-gray-600 dark:text-gray-400">Get comprehensive analysis of your code in seconds, not hours or days</p>
+        </div>
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">🎯</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Detailed Metrics</h3>
+          <p class="text-gray-600 dark:text-gray-400">See scores for architecture, code quality, documentation, and more</p>
+        </div>
+        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">Progress Tracking</h3>
+          <p class="text-gray-600 dark:text-gray-400">Monitor your improvement across assignments and courses</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Highlight -->
+    <section class="mb-20">
+      <div class="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-[#232326] dark:to-[#2a2a2d] rounded-2xl p-12 border border-gray-100 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">Why Students Love SEP-AI</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">🚀</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Improve Faster</h3>
+              <p class="text-gray-600 dark:text-gray-400">Iterative feedback helps you grow as a developer continuously</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">💡</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Learn Best Practices</h3>
+              <p class="text-gray-600 dark:text-gray-400">Understand industry standards through detailed recommendations</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">⏰</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Reduce Revision Time</h3>
+              <p class="text-gray-600 dark:text-gray-400">Know exactly what needs improvement before resubmission</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="text-3xl flex-shrink-0">🎓</div>
+            <div>
+              <h3 class="font-bold text-gray-900 dark:text-white mb-2">Ace Your Assignments</h3>
+              <p class="text-gray-600 dark:text-gray-400">Submit better code with confidence in your improvements</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="text-center">
+      <div class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-12 text-white">
+        <h2 class="text-4xl font-bold mb-6">Start Improving Your Code Today</h2>
+        <p class="text-xl mb-8 text-blue-100">Get instant feedback and learn software engineering best practices.</p>
+        <a href="signup.html" class="cta-button">Get Started Free</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 dark:bg-[#1a1a1d] border-t border-gray-200 dark:border-gray-800 py-8 mt-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 dark:text-gray-400">
+      <p>&copy; 2024 SEP-AI. All rights reserved.</p>
+    </div>
+  </footer>
 </body>
 </html>

@@ -87,6 +87,104 @@ async def get_professor_classes(current_user=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/professor/dashboard-stats")
+async def get_professor_dashboard_stats(current_user=Depends(get_current_user)):
+    try:
+        # Get all classes for the professor
+        classes_response = admin_client.table("classes").select("id").eq("professor_id", current_user.id).execute()
+        class_ids = [cls["id"] for cls in classes_response.data]
+        
+        if not class_ids:
+            return {
+                "total_submissions": 0,
+                "graded_submissions": 0,
+                "pending_submissions": 0,
+                "average_score": 0.0
+            }
+        
+        # Get all assessments for these classes
+        assessments_response = admin_client.table("assessments").select("id").in_("class_id", class_ids).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+        
+        if not assessment_ids:
+            return {
+                "total_submissions": 0,
+                "graded_submissions": 0,
+                "pending_submissions": 0,
+                "average_score": 0.0
+            }
+        
+        # Get all submissions for these assessments
+        submissions_response = admin_client.table("submissions").select("*").in_("assessment_id", assessment_ids).execute()
+        submissions = submissions_response.data
+        
+        total_submissions = len(submissions)
+        # A submission is graded if it has been reviewed (status = 'reviewed' or 'released')
+        graded_submissions = len([s for s in submissions if s.get("status") in ["reviewed", "released"]])
+        pending_submissions = len([s for s in submissions if s.get("status") not in ["reviewed", "released"]])
+        
+        # Calculate average score from graded submissions
+        graded_list = [s for s in submissions if s.get("status") in ["reviewed", "released"]]
+        scores = [s.get("final_score") for s in graded_list if s.get("final_score") is not None]
+        average_score = sum(scores) / len(scores) if scores else 0.0
+        
+        return {
+            "total_submissions": total_submissions,
+            "graded_submissions": graded_submissions,
+            "pending_submissions": pending_submissions,
+            "average_score": round(average_score, 1)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/professor/recent-submissions")
+async def get_recent_submissions(current_user=Depends(get_current_user)):
+    try:
+        # Get all classes for the professor
+        classes_response = admin_client.table("classes").select("id").eq("professor_id", current_user.id).execute()
+        class_ids = [cls["id"] for cls in classes_response.data]
+        
+        if not class_ids:
+            return []
+        
+        # Get all assessments for these classes
+        assessments_response = admin_client.table("assessments").select("id, title, classes(name)").in_("class_id", class_ids).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+        assessment_map = {a["id"]: a for a in assessments_response.data}
+        
+        if not assessment_ids:
+            return []
+        
+        # Get all submissions for these assessments, ordered by created_at, limit to 5
+        submissions_response = admin_client.table("submissions").select(
+            "id, student_id, assessment_id, status, ai_score, final_score, created_at, users!inner(first_name, last_name)"
+        ).in_("assessment_id", assessment_ids).order("created_at", desc=True).limit(5).execute()
+
+        submissions = submissions_response.data
+        result = []
+
+        for submission in submissions:
+            assessment = assessment_map.get(submission["assessment_id"], {})
+            student_name = f"{submission['users']['first_name']} {submission['users']['last_name']}"
+            # For newly added students with no actual submission, show "-" as date
+            submission_date = submission.get("created_at") or ("-" if submission.get("status") == "no submission" else "")
+
+            result.append({
+                "id": submission["id"],
+                "student_name": student_name,
+                "project": submission.get("project_name", "Project"),
+                "assessment_title": assessment.get("title", "Unknown Assessment"),
+                "class_name": assessment.get("classes", {}).get("name", "Unknown Class"),
+                "submission_date": submission_date,
+                "status": submission.get("status", "pending"),
+                "ai_score": submission.get("ai_score"),
+                "final_score": submission.get("final_score")
+            })
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.delete("/classes/{class_id}")
 async def delete_class(class_id: str, current_user=Depends(get_current_user)):
     try:
@@ -95,7 +193,18 @@ async def delete_class(class_id: str, current_user=Depends(get_current_user)):
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to delete this class")
 
-        # Delete class_students first
+        # Get all assessments for this class
+        assessments_response = admin_client.table("assessments").select("id").eq("class_id", class_id).execute()
+
+        # Delete submissions and assessments in cascade order
+        for assessment in assessments_response.data:
+            assessment_id = assessment["id"]
+            # Delete associated submissions first
+            admin_client.table("submissions").delete().eq("assessment_id", assessment_id).execute()
+            # Delete the assessment
+            admin_client.table("assessments").delete().eq("id", assessment_id).execute()
+
+        # Delete class_students
         admin_client.table("class_students").delete().eq("class_id", class_id).execute()
 
         # Delete the class
@@ -158,6 +267,30 @@ async def add_student_to_class(class_id: str, student_data: AddStudentToClass, c
             "student_id": student_data.student_id
         }).execute()
 
+        # Get all assessments for this class
+        assessments_response = admin_client.table("assessments").select("id").eq("class_id", class_id).execute()
+        assessment_ids = [a["id"] for a in assessments_response.data]
+
+        # Create submission records for all existing assessments for this newly added student
+        import random
+        for assessment_id in assessment_ids:
+            # Check if submission already exists (shouldn't happen but safety check)
+            existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", student_data.student_id).execute()
+            if not existing_submission.data:
+                submission_id = random.randint(1000000000, 9999999999)
+                admin_client.table("submissions").insert({
+                    "id": submission_id,
+                    "assessment_id": assessment_id,
+                    "student_id": student_data.student_id,
+                    "ai_feedback": None,
+                    "ai_score": None,
+                    "professor_feedback": None,
+                    "final_score": None,
+                    "zip_path": None,
+                    "status": "no submission",
+                    "created_at": None  # Explicitly set to None to indicate newly added
+                }).execute()
+
         return {"message": "Student added to class successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -193,16 +326,27 @@ async def remove_student_from_class(class_id: str, student_id: str, current_user
 @router.get("/students/search", response_model=List[StudentResponse])
 async def search_students(query: str, current_user=Depends(get_current_user)):
     try:
-        response = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("first_name", f"%{query}%").execute()
+        # Search across first_name, last_name, and email fields
+        first_name_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("first_name", f"%{query}%").execute()
+        last_name_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("last_name", f"%{query}%").execute()
+        email_results = admin_client.table("users").select("auth_id, first_name, last_name, email").eq("role", "student").ilike("email", f"%{query}%").execute()
 
-        students = []
-        for user in response.data:
-            students.append(StudentResponse(
-                id=user["auth_id"],
-                first_name=user["first_name"],
-                last_name=user["last_name"],
-                email=user["email"]
-            ))
+        # Combine and deduplicate results
+        all_users = {}
+
+        for user in first_name_results.data:
+            all_users[user["auth_id"]] = user
+        for user in last_name_results.data:
+            all_users[user["auth_id"]] = user
+        for user in email_results.data:
+            all_users[user["auth_id"]] = user
+
+        students = [StudentResponse(
+            id=user["auth_id"],
+            first_name=user["first_name"],
+            last_name=user["last_name"],
+            email=user["email"]
+        ) for user in all_users.values()]
 
         return students
     except Exception as e:
@@ -253,14 +397,44 @@ async def get_professor_assessments(current_user=Depends(get_current_user)):
     try:
         # Get all assessments for classes owned by this professor
         response = admin_client.table("assessments").select(
-            "*, classes!inner(professor_id)"
+            "*, classes!inner(name, professor_id)" 
         ).eq("classes.professor_id", current_user.id).execute()
+
 
         assessments = []
         for assessment in response.data:
             assessments.append(AssessmentResponse(**assessment))
 
-        return assessments
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/assessments/{assessment_id}")
+async def update_assessment(assessment_id: str, assessment_data: dict, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns the assessment
+        ownership_check = admin_client.table("assessments").select(
+            "class_id, classes!inner(professor_id)"
+        ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
+
+        if not ownership_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to update this assessment")
+
+        # Update the assessment
+        update_data = {}
+        if "title" in assessment_data:
+            update_data["title"] = assessment_data["title"]
+        if "instructions" in assessment_data:
+            update_data["instructions"] = assessment_data["instructions"]
+        if "deadline" in assessment_data:
+            update_data["deadline"] = assessment_data["deadline"]
+
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No valid fields provided for update")
+
+        response = admin_client.table("assessments").update(update_data).eq("id", assessment_id).execute()
+
+        return {"message": "Assessment updated successfully", "assessment": response.data[0]}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -361,15 +535,28 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
 @router.get("/submissions/{submission_id}")
 async def get_submission(submission_id: str, current_user=Depends(get_current_user)):
     try:
-        # Verify the professor owns the submission's assessment's class
-        submission_check = admin_client.table("submissions").select(
-            "*, assessments(classes(professor_id))"
-        ).eq("id", submission_id).execute()
+        # Get the submission first
+        submission_response = admin_client.table("submissions").select("*").eq("id", submission_id).execute()
 
-        if not submission_check.data or submission_check.data[0]["assessments"]["classes"]["professor_id"] != current_user.id:
+        if not submission_response.data:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        submission = submission_response.data[0]
+
+        # Get the assessment
+        assessment_response = admin_client.table("assessments").select("class_id").eq("id", submission["assessment_id"]).execute()
+
+        if not assessment_response.data:
+            raise HTTPException(status_code=404, detail="Assessment not found")
+
+        assessment = assessment_response.data[0]
+
+        # Get the class and check professor_id
+        class_response = admin_client.table("classes").select("professor_id").eq("id", assessment["class_id"]).execute()
+
+        if not class_response.data or class_response.data[0]["professor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to access this submission")
 
-        submission = submission_check.data[0]
         return {
             "id": submission["id"],
             "assessment_id": submission["assessment_id"],
@@ -466,7 +653,26 @@ async def release_assessment_scores(assessment_id: str, current_user=Depends(get
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.delete("/assessments/{assessment_id}")
+async def delete_assessment(assessment_id: str, current_user=Depends(get_current_user)):
+    try:
+        # Verify the professor owns the assessment
+        ownership_check = admin_client.table("assessments").select(
+            "class_id, classes!inner(professor_id)"
+        ).eq("id", assessment_id).eq("classes.professor_id", current_user.id).execute()
 
+        if not ownership_check.data:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this assessment")
+
+        # Delete associated submissions first
+        admin_client.table("submissions").delete().eq("assessment_id", assessment_id).execute()
+
+        # Delete the assessment
+        admin_client.table("assessments").delete().eq("id", assessment_id).execute()
+
+        return {"message": "Assessment deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Student routes
 @router.get("/student/classes")
