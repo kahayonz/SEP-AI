@@ -67,9 +67,7 @@ class ProfessorPortal {
     EventHandlers.setupSidebar();
     EventHandlers.setupNavigation();
 
-    // Load initial data
-    this.loadClasses();
-    this.loadAssessments();
+    // Load only dashboard data initially
     this.loadDashboardStats();
     this.loadRecentSubmissions();
   }
@@ -107,6 +105,28 @@ class ProfessorPortal {
     const reviewForm = document.getElementById('reviewForm');
     if (reviewForm) {
       reviewForm.addEventListener('submit', (e) => this.submitReview(e));
+    }
+  }
+
+  // Lazy load methods - only called when user navigates to that section
+  static async lazyLoadClasses() {
+    if (!this.classesLoaded) {
+      await this.loadClasses();
+      this.classesLoaded = true;
+    }
+  }
+
+  static async lazyLoadAssessments() {
+    if (!this.assessmentsLoaded) {
+      await this.loadAssessments();
+      this.assessmentsLoaded = true;
+    }
+  }
+
+  static async lazyLoadAccount() {
+    if (!this.accountLoaded) {
+      AccountManager.loadAccountInformation();
+      this.accountLoaded = true;
     }
   }
 
@@ -917,7 +937,7 @@ static async editAssessment(assessmentId) {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/professor/dashboard-stats', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/professor/dashboard-stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -934,25 +954,37 @@ static async editAssessment(assessmentId) {
     // Update total submissions
     const totalSubmissionsEl = document.querySelector('[data-stat="total-submissions"]');
     if (totalSubmissionsEl) {
-      totalSubmissionsEl.querySelector('.text-2xl').textContent = stats.total_submissions;
+      const valueEl = totalSubmissionsEl.querySelector('.text-3xl');
+      if (valueEl) {
+        valueEl.textContent = stats.total_submissions;
+      }
     }
 
     // Update graded submissions
     const gradedEl = document.querySelector('[data-stat="graded"]');
     if (gradedEl) {
-      gradedEl.querySelector('.text-2xl').textContent = stats.graded_submissions;
+      const valueEl = gradedEl.querySelector('.text-3xl');
+      if (valueEl) {
+        valueEl.textContent = stats.graded_submissions;
+      }
     }
 
     // Update pending submissions
     const pendingEl = document.querySelector('[data-stat="pending"]');
     if (pendingEl) {
-      pendingEl.querySelector('.text-2xl').textContent = stats.pending_submissions;
+      const valueEl = pendingEl.querySelector('.text-3xl');
+      if (valueEl) {
+        valueEl.textContent = stats.pending_submissions;
+      }
     }
 
     // Update average score
     const averageEl = document.querySelector('[data-stat="average"]');
     if (averageEl) {
-      averageEl.querySelector('.text-2xl').textContent = stats.average_score;
+      const valueEl = averageEl.querySelector('.text-3xl');
+      if (valueEl) {
+        valueEl.textContent = stats.average_score;
+      }
     }
   }
 
@@ -961,7 +993,7 @@ static async editAssessment(assessmentId) {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/professor/recent-submissions', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/professor/recent-submissions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

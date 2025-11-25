@@ -33,18 +33,10 @@ class StudentPortal {
   }
 
   static initializeUI() {
-    // Initialize theme
-    const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark');
-    }
-
     // Show AI Evaluation section by default
     document.getElementById('ai-evaluation').classList.remove('hidden');
-
-    // Setup sidebar and navigation
-    EventHandlers.setupSidebar();
-    EventHandlers.setupNavigation();
+    document.getElementById('classes').classList.add('hidden');
+    document.getElementById('account').classList.add('hidden');
   }
 
   static setupEventListeners() {
@@ -54,18 +46,14 @@ class StudentPortal {
     // File upload functionality
     FileUploader.setupMainDropzone();
     FileUploader.setupEventListeners('fileUpload', 'dropbox', 'uploadPrompt', 'fileSelected');
+  }
 
-    // Classes navigation
-    const classesLink = document.querySelector('a[href="#classes"]');
-    if (classesLink) {
-      classesLink.addEventListener('click', () => this.loadStudentClasses());
-    }
-
-    // Logout functionality
-    const logoutBtn = document.querySelector('button[onclick="handleLogout()"]');
-    if (logoutBtn) {
-      logoutBtn.onclick = () => this.handleLogout();
-    }
+  static lazyLoadAccount() {
+    // Flag to prevent duplicate loads
+    if (this.accountLoaded) return;
+    
+    AccountManager.loadAccountInformation();
+    this.accountLoaded = true;
   }
 
   static async handleProjectSubmission() {
@@ -84,7 +72,7 @@ class StudentPortal {
       formData.append("file", file);
 
       // Show loading state
-      const submitButton = document.querySelector('button[onclick="handleProjectSubmission()"]');
+      const submitButton = document.querySelector('button[onclick="StudentPortal.handleProjectSubmission()"]');
       const originalText = UIUtils.setLoading(submitButton, true, CONFIG.UI.LOAD_STATES.EVALUATING);
 
       const data = await api.evaluateProject(formData);
@@ -105,7 +93,7 @@ class StudentPortal {
       feedbackLines.forEach(line => {
         if (line.trim()) {
           const div = document.createElement('div');
-          div.className = 'p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg';
+          div.className = 'p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg text-blue-200';
           div.textContent = line.trim();
           recommendations.appendChild(div);
         }
@@ -118,7 +106,7 @@ class StudentPortal {
       UIUtils.showError(error.message || CONFIG.UI.MESSAGES.NETWORK_ERROR);
     } finally {
       // Reset button state
-      const submitButton = document.querySelector('button[onclick="handleProjectSubmission()"]');
+      const submitButton = document.querySelector('button[onclick="StudentPortal.handleProjectSubmission()"]');
       UIUtils.setLoading(submitButton, false, 'Submit Project');
     }
   }
@@ -161,31 +149,31 @@ class StudentPortal {
     container.innerHTML = '';
 
     if (classes.length === 0) {
-      container.innerHTML = '<p class="text-gray-500">You are not enrolled in any classes yet.</p>';
+      container.innerHTML = '<p class="text-gray-400">You are not enrolled in any classes yet.</p>';
       return;
     }
 
     classes.forEach(cls => {
       const classDiv = document.createElement('div');
-      classDiv.className = 'bg-gray-50 dark:bg-gray-700 p-6 rounded-lg';
+      classDiv.className = 'bg-[#1a1a1d] border border-[#27272a] rounded-lg p-6 hover:border-green-500/30 transition-colors';
 
       let assessmentsHtml = '';
       if (cls.assessments && cls.assessments.length > 0) {
-        assessmentsHtml = '<h5 class="font-semibold mb-3">Assessments:</h5><div class="space-y-2">';
+        assessmentsHtml = '<h5 class="font-semibold mb-3 text-green-400">Assessments:</h5><div class="space-y-2">';
         cls.assessments.forEach(assessment => {
           const deadline = new Date(assessment.deadline);
           const isOverdue = deadline < new Date();
-          const deadlineClass = isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400';
+          const deadlineClass = isOverdue ? 'text-red-400' : 'text-gray-400';
 
           assessmentsHtml += `
-            <div class="bg-white dark:bg-gray-600 p-3 rounded border-l-4 border-blue-500">
+            <div class="bg-[#232326] border border-[#27272a] p-3 rounded-lg hover:border-blue-500/50 transition-colors">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
-                  <h6 class="font-medium">${assessment.title}</h6>
+                  <h6 class="font-medium text-white">${assessment.title}</h6>
                   <p class="text-sm ${deadlineClass}">Due: ${deadline.toLocaleString()}</p>
                 </div>
-                <button onclick="StudentPortal.viewAssessment('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                  View Details
+                <button onclick="StudentPortal.viewAssessment('${assessment.id}')" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-3 py-1 rounded text-sm font-medium transition-all">
+                  View
                 </button>
               </div>
             </div>
@@ -193,12 +181,12 @@ class StudentPortal {
         });
         assessmentsHtml += '</div>';
       } else {
-        assessmentsHtml = '<p class="text-gray-500 text-sm">No assessments available yet.</p>';
+        assessmentsHtml = '<p class="text-gray-400 text-sm">No assessments available yet.</p>';
       }
 
       classDiv.innerHTML = `
-        <h4 class="font-bold text-xl mb-2">${cls.name}</h4>
-        <p class="text-gray-600 dark:text-gray-300 mb-4">${cls.description || 'No description available'}</p>
+        <h4 class="font-bold text-xl mb-2 text-white">${cls.name}</h4>
+        <p class="text-gray-400 mb-4">${cls.description || 'No description available'}</p>
         ${assessmentsHtml}
       `;
 
@@ -232,20 +220,20 @@ class StudentPortal {
 
     content.innerHTML = `
       <div class="mb-6">
-        <h4 class="text-lg font-semibold mb-2">Instructions</h4>
-        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded">
-          <p class="whitespace-pre-wrap">${assessment.instructions}</p>
+        <h4 class="text-lg font-semibold mb-2 text-white">Instructions</h4>
+        <div class="bg-[#1a1a1d] border border-[#27272a] p-4 rounded-lg">
+          <p class="whitespace-pre-wrap text-gray-300">${assessment.instructions}</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <h5 class="font-medium mb-1">Deadline</h5>
-          <p class="text-gray-600 dark:text-gray-300">${deadline.toLocaleString()}</p>
+          <h5 class="font-medium mb-1 text-gray-300">Deadline</h5>
+          <p class="text-gray-400">${deadline.toLocaleString()}</p>
         </div>
         <div>
-          <h5 class="font-medium mb-1">Status</h5>
-          <p class="text-gray-600 dark:text-gray-300">${submission ? 'Submitted' : 'Not Submitted'}</p>
+          <h5 class="font-medium mb-1 text-gray-300">Status</h5>
+          <p class="text-gray-400">${submission ? '✓ Submitted' : '○ Not Submitted'}</p>
         </div>
       </div>
     `;
@@ -259,19 +247,19 @@ class StudentPortal {
       document.getElementById('submittedSection').classList.remove('hidden');
 
       // Show submission status
-      let statusHtml = '<div class="mt-4"><h5 class="font-medium mb-2">Submission Status</h5>';
-      statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">Status: ${submission.status}</p>`;
+      let statusHtml = '<div class="mt-4"><h5 class="font-medium mb-2 text-gray-300">Submission Status</h5>';
+      statusHtml += `<p class="text-sm text-gray-400">Status: ${submission.status}</p>`;
 
       if (submission.ai_score) {
-        statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">AI Score: ${submission.ai_score}</p>`;
+        statusHtml += `<p class="text-sm text-gray-400">AI Score: ${submission.ai_score}</p>`;
       }
 
       if (submission.final_score) {
-        statusHtml += `<p class="text-sm text-gray-600 dark:text-gray-300">Final Score: ${submission.final_score}</p>`;
+        statusHtml += `<p class="text-sm text-gray-400">Final Score: ${submission.final_score}</p>`;
       }
 
       if (submission.professor_feedback) {
-        statusHtml += `<div class="mt-2"><h6 class="font-medium">Professor Feedback:</h6><p class="text-sm text-gray-700 dark:text-gray-200 mt-1">${submission.professor_feedback}</p></div>`;
+        statusHtml += `<div class="mt-2"><h6 class="font-medium text-gray-300">Professor Feedback:</h6><p class="text-sm text-gray-400 mt-1">${submission.professor_feedback}</p></div>`;
       }
 
       statusHtml += '</div>';
@@ -292,7 +280,7 @@ class StudentPortal {
 
     // Add missed assessment warning to the content
     const missedWarning = document.createElement('div');
-    missedWarning.className = 'mt-6 p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg';
+    missedWarning.className = 'mt-6 p-6 bg-red-900/20 border border-red-500/50 rounded-lg';
     missedWarning.innerHTML = `
       <div class="flex items-start space-x-3">
         <div class="flex-shrink-0">
@@ -301,10 +289,10 @@ class StudentPortal {
           </svg>
         </div>
         <div class="flex-1">
-          <h4 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Assessment Deadline Missed</h4>
-          <div class="space-y-2 text-red-700 dark:text-red-300">
+          <h4 class="text-lg font-semibold text-red-300 mb-2">Assessment Deadline Missed</h4>
+          <div class="space-y-2 text-red-400 text-sm">
             <p><strong>Due Date:</strong> ${deadline.toLocaleString()}</p>
-            <p class="text-sm"><strong>Submissions past the deadline automatically receive a grade of 0.</strong></p>
+            <p><strong>Submissions past the deadline automatically receive a grade of 0.</strong></p>
           </div>
         </div>
       </div>
