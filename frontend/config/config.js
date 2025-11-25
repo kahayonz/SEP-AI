@@ -1,6 +1,18 @@
 // SEP-AI Configuration
+function getApiBase() {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  } else {
+    // For production, construct API URL based on environment
+    // In Render, set RENDER_EXTERNAL_URL as env var, but since this is client-side,
+    // use a heuristic or single API URL for now
+    return 'https://your-render-app.onrender.com';  // Replace with actual Render URL
+  }
+}
+
 const CONFIG = {
-  API_BASE: 'http://localhost:8000',
+  API_BASE: getApiBase(),
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'access_token',
     REFRESH_TOKEN: 'refresh_token',
