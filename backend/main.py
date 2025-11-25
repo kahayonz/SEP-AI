@@ -231,5 +231,5 @@ async def confirm_email(
         print(f"Confirmation error: {e}")
         return RedirectResponse(url=f"http://localhost:3000/login.html?error=confirmation_failed")
 
-# Mount static files from frontend directory with SPA support (last, so routes take priority)
+# Mount static files from frontend directory with SPA support
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")

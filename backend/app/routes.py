@@ -39,6 +39,7 @@ class AssessmentResponse(BaseModel):
     instructions: str
     deadline: str
     created_at: str
+    class_name: Optional[str] = None
 
 class StudentSearch(BaseModel):
     name: str
@@ -282,13 +283,13 @@ async def add_student_to_class(class_id: str, student_data: AddStudentToClass, c
                     "id": submission_id,
                     "assessment_id": assessment_id,
                     "student_id": student_data.student_id,
-                    "ai_feedback": None,
+                    "ai_feedback": "No submission yet.",
                     "ai_score": None,
-                    "professor_feedback": None,
+                    "professor_feedback": "",
                     "final_score": None,
                     "zip_path": None,
                     "status": "no submission",
-                    "created_at": None  # Explicitly set to None to indicate newly added
+                    "created_at": datetime.utcnow().isoformat()  # Set current time for new records
                 }).execute()
 
         return {"message": "Student added to class successfully"}
@@ -395,17 +396,24 @@ async def create_assessment(assessment_data: AssessmentCreate, current_user=Depe
 @router.get("/assessments", response_model=List[AssessmentResponse])
 async def get_professor_assessments(current_user=Depends(get_current_user)):
     try:
-        # Get all assessments for classes owned by this professor
-        response = admin_client.table("assessments").select(
-            "*, classes!inner(name, professor_id)" 
-        ).eq("classes.professor_id", current_user.id).execute()
+        # Get professor's classes first to get class names
+        classes_response = admin_client.table("classes").select("id, name").eq("professor_id", current_user.id).execute()
+        class_map = {cls["id"]: cls["name"] for cls in classes_response.data}
+        class_ids = list(class_map.keys())
+
+        if not class_ids:
+            return []
+
+        # Get assessments for these classes
+        response = admin_client.table("assessments").select("*").in_("class_id", class_ids).execute()
 
 
         assessments = []
         for assessment in response.data:
+            assessment['class_name'] = class_map.get(assessment['class_id'], 'Unknown')
             assessments.append(AssessmentResponse(**assessment))
 
-        return response.data
+        return assessments
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

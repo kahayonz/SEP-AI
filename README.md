@@ -19,9 +19,5 @@ All backend code (FastAPI, requirements, .env, etc.)
 
 **How to run:**
 
-- Start backend:  
-  ```
-  cd backend
-  uvicorn main:app --reload
-  ```
-- Open `frontend/index.html` in your browser (or serve via a static server).
+npm run start
+npm run dev (reload backend)
