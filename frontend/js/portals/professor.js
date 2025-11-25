@@ -203,7 +203,7 @@ class ProfessorPortal {
     const classDescription = document.getElementById('classDescription').value;
 
     try {
-      const response = await fetch('http://localhost:8000/api/classes', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${UIUtils.getToken()}`,
@@ -247,7 +247,7 @@ class ProfessorPortal {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/classes', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -314,15 +314,15 @@ class ProfessorPortal {
     if (isHidden) {
       const token = UIUtils.getToken();
       try {
-        const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes/${classId}/students`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-        if (response.ok) {
-          const students = await response.json();
-          this.displayClassStudents(classId, students);
-          this.setupAutocomplete(classId);
-        }
+      if (response.ok) {
+        const students = await response.json();
+        this.displayClassStudents(classId, students);
+        this.setupAutocomplete(classId);
+      }
       } catch (error) {
         console.error('Error loading class students:', error);
       }
@@ -361,7 +361,7 @@ class ProfessorPortal {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/students/search?query=${encodeURIComponent(query)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -389,7 +389,7 @@ class ProfessorPortal {
   static async addStudentToClass(classId, studentId, studentName = null, suppressAlert = false) {
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/classes/${classId}/students`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes/${classId}/students`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -419,7 +419,7 @@ class ProfessorPortal {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/classes/${classId}/students/${studentId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes/${classId}/students/${studentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -499,7 +499,7 @@ class ProfessorPortal {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/students/search?query=${encodeURIComponent(query)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -591,7 +591,7 @@ class ProfessorPortal {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/students/search?query=${encodeURIComponent(query)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -697,7 +697,7 @@ static async editAssessment(assessmentId) {
   const token = UIUtils.getToken();
 
   try {
-    const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+    const response = await fetch(`${CONFIG.API_BASE}/api/assessments/${assessmentId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -744,7 +744,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/assessments/${currentAssessmentId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments/${currentAssessmentId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -776,7 +776,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/classes/${classId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/classes/${classId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -800,7 +800,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments/${assessmentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -834,7 +834,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch('http://localhost:8000/api/assessments', {
+      const response = await fetch('${CONFIG.API_BASE}/api/assessments', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -866,7 +866,7 @@ static async editAssessment(assessmentId) {
   static async loadAssessments() {
     const token = UIUtils.getToken();
     try {
-      const response = await fetch('http://localhost:8000/api/assessments', {
+      const response = await fetch('${CONFIG.API_BASE}/api/assessments', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1049,7 +1049,7 @@ static async editAssessment(assessmentId) {
     const token = UIUtils.getToken();
 
     try {
-      const response = await fetch(`http://localhost:8000/api/assessments/${assessmentId}/submissions`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments/${assessmentId}/submissions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1128,7 +1128,7 @@ static async editAssessment(assessmentId) {
     // Fetch the submission details
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${submissionId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1168,7 +1168,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/submissions/${currentSubmissionId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${currentSubmissionId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1203,7 +1203,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch(`http://localhost:8000/api/assessments/${currentAssessmentId}/release-scores`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments/${currentAssessmentId}/release-scores`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1230,7 +1230,7 @@ static async editAssessment(assessmentId) {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}`, {
+      const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${submissionId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
