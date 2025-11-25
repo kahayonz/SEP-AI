@@ -6,6 +6,8 @@
   <title>SEP-AI - Sign Up</title>
   <link rel="stylesheet" href="styles/styles.css">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config/config.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
 
   <script>
@@ -90,7 +92,7 @@
       formData.lastName = capitalizeName(formData.lastName);
       
       try {
-        const response = await fetch('http://localhost:8000/signup', {
+        const response = await fetch(`${CONFIG.API_BASE}/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
