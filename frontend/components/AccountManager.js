@@ -2,40 +2,21 @@
 
 class AccountManager {
   static async loadAccountInformation() {
-    console.log('Loading account information...');
-
-    // First, try to load static test data to see if display works
-    const testUser = {
-      id: 'test-id',
-      email: 'test@example.com',
-      first_name: 'John',
-      last_name: 'Doe',
-      role: 'student',
-      university: 'Test University'
-    };
-    console.log('Testing display with static data first...');
-    this.displayAccountInformation(testUser);
-
-    // Now try the real API call
     const token = UIUtils.getToken();
     if (!token) {
-      console.log('No token found, redirecting to login');
       UIUtils.showError(CONFIG.UI.MESSAGES.LOGIN_REQUIRED);
       UIUtils.redirectToLogin();
       return;
     }
 
     try {
-      console.log('Calling api.getCurrentUser()...');
       const data = await api.getCurrentUser();
-      console.log('Received user data:', data);
       const user = data.user;
       if (!user) {
         console.error('No user data received');
         UIUtils.showError('Failed to load account information');
         return;
       }
-      // Replace test data with real data
       this.displayAccountInformation(user);
     } catch (error) {
       console.error('Error loading account information:', error);
@@ -44,7 +25,6 @@ class AccountManager {
   }
 
   static displayAccountInformation(user) {
-    console.log('Displaying account information for user:', user);
     const container = document.getElementById('accountContainer');
     if (!container) {
       console.error('accountContainer not found');
@@ -69,9 +49,7 @@ class AccountManager {
       { label: 'University', value: safeValue(user.university), editable: true, key: 'university' }
     ];
 
-    console.log('Fields to display:', fields);
-    fields.forEach((field, index) => {
-      console.log(`Creating field ${index + 1}:`, field);
+    fields.forEach(field => {
       const fieldDiv = this.createFieldElement(field);
       container.appendChild(fieldDiv);
     });

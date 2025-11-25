@@ -57,9 +57,9 @@ class ProfessorPortal {
       document.getElementById('assessments').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
     } else {
-      // Show Dashboard and Classes sections by default
+      // Show only Dashboard by default
       document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('classes').classList.remove('hidden');
+      document.getElementById('classes').classList.add('hidden');
       document.getElementById('assessments').classList.add('hidden');
     }
 
@@ -276,7 +276,7 @@ class ProfessorPortal {
       const classDiv = document.createElement('div');
       classDiv.className = 'bg-gray-50 dark:bg-gray-700 p-4 rounded-lg';
       classDiv.innerHTML = `
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-2">
           <div>
             <h4 class="font-bold text-lg">${cls.name}</h4>
             <p class="text-gray-600 dark:text-gray-300">${cls.description || 'No description'}</p>
@@ -667,12 +667,10 @@ class ProfessorPortal {
   }
 
   static openCreateAssessmentModal() {
-    console.log('Create Assessment Modal Opened');
     const modal = document.getElementById('createAssessmentModal');
     if (modal) {
       modal.classList.remove('hidden');
       modal.style.setProperty('display', 'flex', 'important');
-      console.log('Modal opened');
     } else {
       console.error('Modal not found');
     }
@@ -834,7 +832,7 @@ static async editAssessment(assessmentId) {
 
     const token = UIUtils.getToken();
     try {
-      const response = await fetch('${CONFIG.API_BASE}/api/assessments', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -866,7 +864,7 @@ static async editAssessment(assessmentId) {
   static async loadAssessments() {
     const token = UIUtils.getToken();
     try {
-      const response = await fetch('${CONFIG.API_BASE}/api/assessments', {
+      const response = await fetch(`${CONFIG.API_BASE}/api/assessments`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -1245,22 +1243,6 @@ static async editAssessment(assessmentId) {
       console.error('Error downloading file:', error);
       UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
     }
-  }
-
-  // Utility functions (used by inline onclicks)
-  static openReviewModal(studentName, aiScore) {
-    // This is a placeholder - the modal was removed, use openReviewModal functionality instead
-    console.log(`Would review ${studentName} with AI score ${aiScore}`);
-  }
-
-  static closeReviewModal() {
-    // This is a placeholder - the modal was removed
-    console.log('Would close review modal');
-  }
-
-  static downloadProject() {
-    // This is a placeholder - the modal was removed
-    console.log('Would download project');
   }
 }
 

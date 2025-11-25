@@ -312,7 +312,7 @@ class AssessmentDetails {
         if (!token) return;
 
         try {
-            const response = await fetch('${CONFIG.API_BASE}/me', {
+            const response = await fetch(`${CONFIG.API_BASE}/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

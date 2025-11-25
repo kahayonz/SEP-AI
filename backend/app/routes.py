@@ -303,21 +303,9 @@ async def remove_student_from_class(class_id: str, student_id: str, current_user
         class_check = admin_client.table("classes").select("id").eq("id", class_id).eq("professor_id", current_user.id).execute()
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to modify this class")
-        # Debug logging before delete
-        existing_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
-        print(f"DEBUG: Found {len(existing_records.data)} records to delete for class {class_id} and student {student_id}")
-        if existing_records.data:
-            print(f"DEBUG: Record data: {existing_records.data[0]}")
 
         # Remove student from class
-        response = admin_client.table("class_students").delete().eq("class_id", class_id).eq("student_id", student_id).execute()
-        
-        print(f"DEBUG: Delete response data: {response.data}")
-        print(f"DEBUG: Delete response status: {response.status_code if hasattr(response, 'status_code') else 'N/A'}")
-
-        # Check if still exists after delete
-        remaining_records = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", student_id).execute()
-        print(f"DEBUG: After delete, found {len(remaining_records.data)} records remaining")
+        admin_client.table("class_students").delete().eq("class_id", class_id).eq("student_id", student_id).execute()
 
         return {"message": "Student removed from class successfully"}
     except Exception as e:
@@ -740,8 +728,6 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
     temp_dirs = []  # Track directories for cleanup
 
     try:
-        print(f"Starting submission for assessment {assessment_id} by user {current_user.id}")
-
         # Step 1: Get assessment details
         assessment_response = admin_client.table("assessments").select("*").eq("id", assessment_id).execute()
         if not assessment_response.data:
@@ -749,14 +735,11 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
 
         assessment_data = assessment_response.data[0]
         class_id = assessment_data["class_id"]
-        print(f"Assessment data: {assessment_data}, Class ID: {class_id}")
 
         # Step 2: Verify student is enrolled in this class
         enrollment_check = admin_client.table("class_students").select("*").eq("class_id", class_id).eq("student_id", current_user.id).execute()
         if not enrollment_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to submit to this assessment - not enrolled in class")
-
-        print(f"Student is enrolled in class {class_id}")
 
         # Check if student already submitted
         existing_submission = admin_client.table("submissions").select("id").eq("assessment_id", assessment_id).eq("student_id", current_user.id).execute()
@@ -812,11 +795,6 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         import random
         submission_id = random.randint(1000000000, 9999999999)  # 10-digit random number
 
-        print(f"Inserting submission with:")
-        print(f"  id: {submission_id} (type: {type(submission_id)})")
-        print(f"  assessment_id: {assessment_id} (type: {type(assessment_id)})")
-        print(f"  student_id: {current_user.id} (type: {type(current_user.id)})")
-
         submission_data = {
             "id": submission_id,
             "assessment_id": assessment_id,
@@ -828,7 +806,6 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
             "zip_path": supabase_url,  # Store Supabase URL for persistent file access
             "status": "pending"
         }
-        print(f"Full submission data: {submission_data}")
 
         response = admin_client.table("submissions").insert(submission_data).execute()
 
