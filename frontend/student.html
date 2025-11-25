@@ -22,58 +22,115 @@
   <script src="js/portals/student.js"></script>
   <script src="js/main.js"></script>
 </head>
-<body class="bg-gray-100 dark:bg-[#18181b] text-gray-800 font-sans" id="themeBody">
+<body class="dark bg-[#18181b] text-white font-sans" id="themeBody">
 
-  <!-- Sidebar Toggle Button -->
-  <button id="sidebarToggle" class="fixed top-6 left-6 z-50 p-2 bg-white dark:bg-[#232326] rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-[#18181b] transition-colors">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-    </svg>
-  </button>
-
-  <!-- Sidebar -->
-  <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-white dark:bg-[#232326] shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out z-40">
-    <div class="p-6 pt-20 h-full flex flex-col">
-      <div class="absolute top-6 left-20">
-        <h2 class="text-xl font-bold">SEP-AI</h2>
-      </div>
-      <nav class="space-y-4 flex-1">
-        <a href="#ai-evaluation" class="sidebar-link block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
-          AI Self-Evaluation
-        </a>
-        <a href="#classes" class="sidebar-link block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
-          Classes
-        </a>
-        <a href="#account" class="sidebar-link block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
-          Account
-        </a>
-        <button id="logoutBtn" onclick="StudentPortal.handleLogout()" class="w-full text-left p-3 text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b]">
-          Logout
-        </button>
-      </nav>
-      <div class="border-t border-gray-200 dark:border-[#27272a] mt-auto pt-4">
-        <button onclick="toggleDarkMode()" class="p-3 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-[#18181b] text-2xl transition-transform duration-300" style="transform-origin: center;">
-          <span id="themeIcon" style="display: inline-block; transition: transform 0.3s ease-in-out;">🌙</span>
-        </button>
-      </div>
+  <!-- Navigation Bar -->
+  <nav class="bg-gradient-to-r from-[#1a1a1d] to-[#232326] border-b border-[#27272a]">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent" style="font-family: 'Doto', sans-serif;">SEP-AI</h1>
+      <button id="logoutBtn" onclick="StudentPortal.handleLogout()" class="text-red-400 hover:text-red-300 font-medium transition-colors">
+        🚪 Logout
+      </button>
     </div>
-  </div>
+  </nav>
 
   <!-- Main Content -->
-  <div class="pl-20">
+  <div class="min-h-screen">
     <!-- Welcome Section -->
     <header class="hero">
       <h2 class="hero-title">Welcome, </h2>
       <p class="hero-desc">Access your coursework and get AI-powered feedback on your projects</p>
     </header>
 
+    <!-- Quick Action Buttons -->
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <button id="btn-ai-evaluation" onclick="showStudentSection('ai-evaluation')" class="group bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-cyan-500/50 shadow-lg shadow-cyan-500/10 rounded-xl p-6 text-center transition-all">
+          <div class="text-4xl mb-2">🤖</div>
+          <h3 class="font-semibold text-sm text-cyan-400 transition-colors">AI Evaluation</h3>
+        </button>
+
+        <button id="btn-classes" onclick="showStudentSection('classes')" class="group bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] hover:border-green-500/50 rounded-xl p-6 text-center transition-all hover:shadow-lg hover:shadow-green-500/10">
+          <div class="text-4xl mb-2">👥</div>
+          <h3 class="font-semibold text-sm group-hover:text-green-400 transition-colors">Classes</h3>
+        </button>
+
+        <button id="btn-account" onclick="showStudentSection('account')" class="group bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] hover:border-yellow-500/50 rounded-xl p-6 text-center transition-all hover:shadow-lg hover:shadow-yellow-500/10">
+          <div class="text-4xl mb-2">👤</div>
+          <h3 class="font-semibold text-sm group-hover:text-yellow-400 transition-colors">Account</h3>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const studentButtonStyles = {
+        'ai-evaluation': { btn: 'btn-ai-evaluation', borderColor: '#06b6d4', shadowColor: 'rgba(6, 182, 212, 0.1)', textColor: '#22d3ee' },
+        'classes': { btn: 'btn-classes', borderColor: '#22c55e', shadowColor: 'rgba(34, 197, 94, 0.1)', textColor: '#4ade80' },
+        'account': { btn: 'btn-account', borderColor: '#eab308', shadowColor: 'rgba(234, 179, 8, 0.1)', textColor: '#facc15' }
+      };
+      
+      function updateActiveStudentButton(sectionId) {
+        // Reset all buttons
+        Object.entries(studentButtonStyles).forEach(([section, style]) => {
+          const btn = document.getElementById(style.btn);
+          const heading = btn.querySelector('h3');
+          
+          btn.style.borderColor = '#3f3f46';
+          btn.style.boxShadow = 'none';
+          heading.style.color = '';
+        });
+        
+        // Activate current button
+        const config = studentButtonStyles[sectionId];
+        const activeBtn = document.getElementById(config.btn);
+        const heading = activeBtn.querySelector('h3');
+        
+        activeBtn.style.borderColor = config.borderColor;
+        activeBtn.style.boxShadow = `0 20px 25px -5px ${config.shadowColor}`;
+        heading.style.color = config.textColor;
+      }
+      
+      function showStudentSection(sectionId) {
+        // Hide all sections
+        document.getElementById('ai-evaluation').classList.add('hidden');
+        document.getElementById('classes').classList.add('hidden');
+        document.getElementById('account').classList.add('hidden');
+        
+        // Show selected section
+        document.getElementById(sectionId).classList.remove('hidden');
+        
+        // Update active button
+        updateActiveStudentButton(sectionId);
+        
+        // Lazy load section-specific data
+        if (sectionId === 'classes') {
+          StudentPortal.loadStudentClasses();
+        } else if (sectionId === 'account') {
+          StudentPortal.lazyLoadAccount();
+        }
+        
+        // Scroll to top
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+      
+      // Ensure only AI Evaluation is visible on page load
+      window.addEventListener('load', function() {
+        document.getElementById('ai-evaluation').classList.remove('hidden');
+        document.getElementById('classes').classList.add('hidden');
+        document.getElementById('account').classList.add('hidden');
+        
+        // Set initial active button state
+        updateActiveStudentButton('ai-evaluation');
+      });
+    </script>
+
     <!-- AI Self-Evaluation Section -->
-    <section id="ai-evaluation" class="mx-auto max-w-4xl p-6 mt-8">
-      <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
+    <section id="ai-evaluation" class="mx-auto max-w-4xl px-6 py-8">
+      <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
         <h3 class="text-2xl font-bold mb-6">Project Submission</h3>
 
         <!-- Dropbox -->
-        <div id="dropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+        <div id="dropbox" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors hover:border-cyan-500/50">
           <input type="file" id="fileUpload" class="hidden" accept=".zip">
 
           <!-- Upload State -->
@@ -81,8 +138,8 @@
               <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+              <p class="mt-1 text-white">Drag and drop your project ZIP file here, or click to browse</p>
+              <p class="text-sm text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
           </div>
 
           <!-- File Selected State -->
@@ -92,23 +149,23 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <div class="text-left">
-                <p class="font-medium text-gray-900 dark:text-white" id="selectedFileName"></p>
-                <p class="text-sm text-gray-500 dark:text-gray-400" id="selectedFileSize"></p>
+                <p class="font-medium text-white" id="selectedFileName"></p>
+                <p class="text-sm text-gray-400" id="selectedFileSize"></p>
               </div>
-              <button id="removeFile" class="text-red-500 hover:text-red-700 p-1">
+              <button id="removeFile" class="text-red-500 hover:text-red-400 p-1">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+            <p class="text-sm text-gray-400 mt-2">Click to change file</p>
           </div>
         </div>
 
         <!-- Guidelines -->
-        <div class="mb-8">
+        <div class="mb-8 bg-[#1a1a1d] border border-[#27272a] rounded-lg p-6">
           <h4 class="text-xl font-bold mb-4">Submission Guidelines</h4>
-          <ul class="list-disc pl-6 space-y-2">
+          <ul class="list-disc pl-6 space-y-2 text-gray-300">
             <li>Include all source code files</li>
             <li>Add a README with setup instructions</li>
             <li>Remove node_modules and build artifacts</li>
@@ -116,18 +173,18 @@
           </ul>
         </div>
 
-        <button onclick="StudentPortal.handleProjectSubmission()" class="primary-btn w-full">Submit Project</button>
+        <button onclick="StudentPortal.handleProjectSubmission()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">Submit Project</button>
       </div>
 
       <!-- Results Section (hidden by default) -->
       <div id="results" class="mt-8 hidden">
-        <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
+        <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
           <h3 class="text-2xl font-bold mb-6">Assessment Results</h3>
 
           <!-- Score Display -->
           <div class="text-center mb-8">
-            <div class="text-6xl font-bold text-blue-600 dark:text-blue-400" id="score">0</div>
-            <p class="text-gray-500 dark:text-gray-400">Overall Score</p>
+            <div class="text-6xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent" id="score">0</div>
+            <p class="text-gray-400 mt-2">Overall Score</p>
           </div>
 
           <!-- Recommendations -->
@@ -142,8 +199,8 @@
     </section>
 
     <!-- Classes Section -->
-    <section id="classes" class="mx-auto max-w-6xl p-6 mt-8 hidden">
-      <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
+    <section id="classes" class="mx-auto max-w-6xl px-6 py-8 hidden">
+      <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
         <h3 class="text-2xl font-bold mb-6">Your Classes</h3>
         <div id="classesContainer" class="space-y-6">
           <!-- Classes will be loaded here -->
@@ -151,14 +208,24 @@
       </div>
     </section>
 
+    <!-- Account Section -->
+    <section id="account" class="mx-auto max-w-4xl px-6 py-8 hidden">
+      <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
+        <h3 class="text-2xl font-bold mb-6">Account Settings</h3>
+        <div id="accountContainer" class="space-y-4">
+          <!-- Account info will be loaded here -->
+        </div>
+      </div>
+    </section>
+
     <!-- Assessment Detail Modal -->
-    <div id="assessmentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden z-50">
+    <div id="assessmentModal" class="fixed inset-0 bg-black/75 hidden z-50">
       <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white dark:bg-[#232326] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
           <div class="p-6">
             <div class="flex justify-between items-center mb-6">
-              <h3 class="text-xl font-bold" id="assessmentTitle">Assessment Details</h3>
-              <button onclick="StudentPortal.closeAssessmentModal()" class="text-gray-500 hover:text-gray-700">
+              <h3 class="text-xl font-bold text-white" id="assessmentTitle">Assessment Details</h3>
+              <button onclick="StudentPortal.closeAssessmentModal()" class="text-gray-400 hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -174,7 +241,7 @@
               <h4 class="text-lg font-bold mb-4">Submit Your Assessment</h4>
 
               <!-- Dropbox -->
-              <div id="assessmentDropbox" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors">
+              <div id="assessmentDropbox" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-8 transition-colors hover:border-green-500/50">
                 <input type="file" id="assessmentFileUpload" class="hidden" accept=".zip">
 
                 <!-- Upload State -->
@@ -182,8 +249,8 @@
                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                       <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <p class="mt-1">Drag and drop your project ZIP file here, or click to browse</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
+                    <p class="mt-1 text-white">Drag and drop your project ZIP file here, or click to browse</p>
+                    <p class="text-sm text-gray-400">Only .zip files accepted. Maximum file size: 50MB</p>
                 </div>
 
                 <!-- File Selected State -->
@@ -193,44 +260,35 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div class="text-left">
-                      <p class="font-medium text-gray-900 dark:text-white" id="assessmentSelectedFileName"></p>
-                      <p class="text-sm text-gray-500 dark:text-gray-400" id="assessmentSelectedFileSize"></p>
+                      <p class="font-medium text-white" id="assessmentSelectedFileName"></p>
+                      <p class="text-sm text-gray-400" id="assessmentSelectedFileSize"></p>
                     </div>
-                    <button id="assessmentRemoveFile" class="text-red-500 hover:text-red-700 p-1">
+                    <button id="assessmentRemoveFile" class="text-red-500 hover:text-red-400 p-1">
                       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                     </button>
                   </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to change file</p>
+                  <p class="text-sm text-gray-400 mt-2">Click to change file</p>
                 </div>
               </div>
 
-              <button onclick="StudentPortal.submitAssessment()" class="primary-btn w-full" id="submitAssessmentBtn">Submit Assessment</button>
+              <button onclick="StudentPortal.submitAssessment()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold py-3 rounded-lg transition-all" id="submitAssessmentBtn">Submit Assessment</button>
             </div>
 
             <!-- Already Submitted Section -->
             <div id="submittedSection" class="mt-8 hidden">
-              <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <h4 class="text-lg font-bold text-green-800 dark:text-green-200 mb-2">Assessment Submitted</h4>
-                <p class="text-green-700 dark:text-green-300">Your assessment has been submitted successfully. You will receive feedback from your professor soon.</p>
+              <div class="bg-green-900/20 border border-green-500/50 p-4 rounded-lg">
+                <h4 class="text-lg font-bold text-green-400 mb-2">✓ Assessment Submitted</h4>
+                <p class="text-green-300">Your assessment has been submitted successfully. You will receive feedback from your professor soon.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Account Section -->
-    <section id="account" class="mx-auto max-w-4xl p-6 mt-8 hidden">
-      <div class="bg-white dark:bg-[#232326] rounded-xl p-8 shadow-lg border border-gray-200 dark:border-[#27272a]">
-        <h3 class="text-2xl font-bold mb-6">Account Settings</h3>
-        <div id="accountContainer" class="space-y-4">
-          <!-- Account info will be loaded here -->
-        </div>
-      </div>
-    </section>
   </div>
 
   <!-- All script functionality moved to modular files -->
   <!-- No inline scripts remain - everything is now modularized -->
+

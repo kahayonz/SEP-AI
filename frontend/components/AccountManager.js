@@ -41,15 +41,15 @@ class AccountManager {
 
   static createFieldElement(field) {
     const fieldDiv = document.createElement('div');
-    fieldDiv.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+    fieldDiv.className = 'flex items-center justify-between p-4 bg-[#1a1a1d] border border-[#27272a] rounded-lg hover:border-[#3f3f46] transition-colors';
 
     const leftDiv = document.createElement('div');
     const labelEl = document.createElement('label');
-    labelEl.className = 'block text-sm font-medium mb-1';
+    labelEl.className = 'block text-sm font-medium mb-1 text-gray-400';
     labelEl.textContent = field.label;
 
     const valueEl = document.createElement('div');
-    valueEl.className = 'text-gray-900 dark:text-white';
+    valueEl.className = 'text-white font-medium';
     valueEl.textContent = field.value;
     valueEl.dataset.field = field.key;
     valueEl.dataset.originalValue = field.value;
@@ -70,12 +70,12 @@ class AccountManager {
 
   static createEditButton(valueElement) {
     const editBtn = document.createElement('button');
-    editBtn.className = 'text-blue-600 hover:text-blue-800 flex items-center space-x-1';
+    editBtn.className = 'text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 transition-colors';
     editBtn.innerHTML = `
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
       </svg>
-      <span>Edit</span>
+      <span class="text-sm">Edit</span>
     `;
     editBtn.onclick = () => this.startEditing(valueElement);
     return editBtn;
@@ -88,7 +88,7 @@ class AccountManager {
     // Replace text with input
     const input = document.createElement('input');
     input.type = field === 'email' ? 'email' : 'text';
-    input.className = 'w-full p-2 border rounded';
+    input.className = 'w-full px-3 py-2 bg-[#232326] border border-[#27272a] rounded-lg text-white focus:border-cyan-500 focus:outline-none transition-colors';
     input.value = originalValue;
 
     // Auto-capitalize first letter for first name and last name fields
@@ -109,12 +109,12 @@ class AccountManager {
     }
 
     const saveBtn = document.createElement('button');
-    saveBtn.className = 'bg-green-600 text-white px-3 py-1 rounded ml-2';
+    saveBtn.className = 'bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white px-3 py-2 rounded ml-2 font-medium transition-all text-sm';
     saveBtn.textContent = 'Save';
     saveBtn.onclick = () => this.saveChanges(valueElement, input.value);
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'bg-gray-600 text-white px-3 py-1 rounded ml-2';
+    cancelBtn.className = 'bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded ml-2 font-medium transition-colors text-sm';
     cancelBtn.textContent = 'Cancel';
     cancelBtn.onclick = () => this.cancelEditing(valueElement);
 

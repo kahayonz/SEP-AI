@@ -1,8 +1,8 @@
 // Main Application Entry Point
 
-// Global dark mode toggle function
+// Global dark mode toggle function - DISABLED
 function toggleDarkMode() {
-  UIUtils.toggleDarkMode();
+  console.log('Theme toggle is disabled - dark mode only');
 }
 
 // Initialize the application when DOM is ready
