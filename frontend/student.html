@@ -91,24 +91,34 @@
       }
       
       function showStudentSection(sectionId) {
+        console.log('Showing section:', sectionId);
+
         // Hide all sections
         document.getElementById('ai-evaluation').classList.add('hidden');
         document.getElementById('classes').classList.add('hidden');
         document.getElementById('account').classList.add('hidden');
-        
+
         // Show selected section
-        document.getElementById(sectionId).classList.remove('hidden');
-        
+        const section = document.getElementById(sectionId);
+        console.log('Section element found:', section);
+        if (section) {
+          section.classList.remove('hidden');
+          console.log('Section is now visible');
+        } else {
+          console.error('Section not found:', sectionId);
+        }
+
         // Update active button
         updateActiveStudentButton(sectionId);
-        
+
         // Lazy load section-specific data
         if (sectionId === 'classes') {
           StudentPortal.loadStudentClasses();
         } else if (sectionId === 'account') {
+          console.log('Calling lazyLoadAccount for account section');
           StudentPortal.lazyLoadAccount();
         }
-        
+
         // Scroll to top
         window.scrollTo({top: 0, behavior: 'smooth'});
       }
@@ -118,9 +128,12 @@
         document.getElementById('ai-evaluation').classList.remove('hidden');
         document.getElementById('classes').classList.add('hidden');
         document.getElementById('account').classList.add('hidden');
-        
+
         // Set initial active button state
         updateActiveStudentButton('ai-evaluation');
+
+        // Initialize the student portal
+        StudentPortal.init();
       });
     </script>
 

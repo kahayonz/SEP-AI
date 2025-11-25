@@ -2,16 +2,40 @@
 
 class AccountManager {
   static async loadAccountInformation() {
+    console.log('Loading account information...');
+
+    // First, try to load static test data to see if display works
+    const testUser = {
+      id: 'test-id',
+      email: 'test@example.com',
+      first_name: 'John',
+      last_name: 'Doe',
+      role: 'student',
+      university: 'Test University'
+    };
+    console.log('Testing display with static data first...');
+    this.displayAccountInformation(testUser);
+
+    // Now try the real API call
     const token = UIUtils.getToken();
     if (!token) {
+      console.log('No token found, redirecting to login');
       UIUtils.showError(CONFIG.UI.MESSAGES.LOGIN_REQUIRED);
       UIUtils.redirectToLogin();
       return;
     }
 
     try {
+      console.log('Calling api.getCurrentUser()...');
       const data = await api.getCurrentUser();
+      console.log('Received user data:', data);
       const user = data.user;
+      if (!user) {
+        console.error('No user data received');
+        UIUtils.showError('Failed to load account information');
+        return;
+      }
+      // Replace test data with real data
       this.displayAccountInformation(user);
     } catch (error) {
       console.error('Error loading account information:', error);
@@ -20,20 +44,34 @@ class AccountManager {
   }
 
   static displayAccountInformation(user) {
+    console.log('Displaying account information for user:', user);
     const container = document.getElementById('accountContainer');
-    if (!container) return;
+    if (!container) {
+      console.error('accountContainer not found');
+      return;
+    }
 
     container.innerHTML = '';
 
+    // Safely handle null/undefined values
+    const safeValue = (value) => {
+      if (value == null || value === '') {
+        return 'Not set';
+      }
+      return String(value);
+    };
+
     const fields = [
-      { label: 'Email', value: user.email, editable: false, key: 'email' },
-      { label: 'First Name', value: user.first_name, editable: true, key: 'first_name' },
-      { label: 'Last Name', value: user.last_name, editable: true, key: 'last_name' },
-      { label: 'Role', value: UIUtils.capitalizeFirst(user.role), editable: false, key: 'role' },
-      { label: 'University', value: user.university, editable: true, key: 'university' }
+      { label: 'Email', value: safeValue(user.email), editable: false, key: 'email' },
+      { label: 'First Name', value: safeValue(user.first_name), editable: true, key: 'first_name' },
+      { label: 'Last Name', value: safeValue(user.last_name), editable: true, key: 'last_name' },
+      { label: 'Role', value: safeValue(UIUtils.capitalizeFirst(user.role)), editable: false, key: 'role' },
+      { label: 'University', value: safeValue(user.university), editable: true, key: 'university' }
     ];
 
-    fields.forEach(field => {
+    console.log('Fields to display:', fields);
+    fields.forEach((field, index) => {
+      console.log(`Creating field ${index + 1}:`, field);
       const fieldDiv = this.createFieldElement(field);
       container.appendChild(fieldDiv);
     });
@@ -129,17 +167,21 @@ class AccountManager {
   }
 
   static async saveChanges(valueElement, newValue) {
+    // Convert "Not set" back to empty string for API
+    const apiValue = (newValue === 'Not set') ? '' : newValue;
+
     // Get all current field values for update
     const container = document.getElementById('accountContainer');
     const fieldElements = container.querySelectorAll('[data-field]');
     const userData = {};
 
     fieldElements.forEach(el => {
-      userData[el.dataset.field] = el.dataset.originalValue;
+      const fieldValue = el.dataset.originalValue;
+      userData[el.dataset.field] = (fieldValue === 'Not set') ? '' : fieldValue;
     });
 
     // Update the changed field
-    userData[valueElement.dataset.field] = newValue;
+    userData[valueElement.dataset.field] = apiValue;
 
     // Only send editable fields
     const updateData = {
@@ -148,18 +190,24 @@ class AccountManager {
       university: userData.university
     };
 
+    console.log('Updating user with data:', updateData);
+
     try {
       const data = await api.updateUser(updateData);
       const updatedUser = data.user;
+      console.log('Updated user:', updatedUser);
 
-      // Update the display
-      valueElement.textContent = newValue;
-      valueElement.dataset.originalValue = newValue;
+      // Update the display (use "Not set" for empty values)
+      const displayValue = (apiValue === '') ? 'Not set' : apiValue;
+      valueElement.textContent = displayValue;
+      valueElement.dataset.originalValue = displayValue;
 
       // Update welcome message if name changed
       if (valueElement.dataset.field === 'first_name' || valueElement.dataset.field === 'last_name') {
         const fullName = `${updatedUser.first_name} ${updatedUser.last_name}`;
-        DOM.heroTitle.textContent = `Welcome, ${fullName}!`;
+        if (DOM.heroTitle) {
+          DOM.heroTitle.textContent = `Welcome, ${fullName}!`;
+        }
       }
 
       // Reset UI

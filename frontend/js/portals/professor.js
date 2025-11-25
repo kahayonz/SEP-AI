@@ -39,12 +39,29 @@ class ProfessorPortal {
       document.body.classList.add('dark');
     }
 
-    // Show only Dashboard section by default
-    document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('classes').classList.add('hidden');
-    document.getElementById('assessments').classList.add('hidden');
-    document.getElementById('ai-evaluation').classList.add('hidden');
-    document.getElementById('account').classList.add('hidden');
+    // Handle URL hash for section navigation
+    const hash = window.location.hash;
+    if (hash === '#assessments') {
+      // Show only assessments section
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('classes').classList.add('hidden');
+      document.getElementById('assessments').classList.remove('hidden');
+    } else if (hash === '#classes') {
+      // Show only classes section
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('assessments').classList.add('hidden');
+      document.getElementById('classes').classList.remove('hidden');
+    } else if (hash === '#dashboard') {
+      // Show only dashboard section
+      document.getElementById('classes').classList.add('hidden');
+      document.getElementById('assessments').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+    } else {
+      // Show Dashboard and Classes sections by default
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('classes').classList.remove('hidden');
+      document.getElementById('assessments').classList.add('hidden');
+    }
 
     // Setup sidebar and navigation
     EventHandlers.setupSidebar();
@@ -384,46 +401,8 @@ class ProfessorPortal {
       if (response.ok) {
         if (!suppressAlert) {
           UIUtils.showSuccess('Student added to class successfully!');
-
-          // If we don't have the student name, we need to fetch it
-          if (!studentName) {
-            try {
-              const studentResponse = await fetch(`http://localhost:8000/api/students/search?query=${encodeURIComponent(studentId)}&limit=1`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-
-              if (studentResponse.ok) {
-                const studentData = await studentResponse.json();
-                if (studentData.length > 0) {
-                  studentName = `${studentData[0].first_name} ${studentData[0].last_name} (${studentData[0].email})`;
-                }
-              }
-            } catch (studentError) {
-              console.error('Error fetching student details:', studentError);
-            }
-          }
-
-          // Add student element directly to DOM instead of reloading the entire list
-          if (studentName) {
-            const studentsDiv = document.getElementById(`class-students-${classId}`);
-            if (studentsDiv) {
-              // Remove "No students enrolled" message if it exists
-              const noStudentsMsg = studentsDiv.querySelector('p');
-              if (noStudentsMsg && noStudentsMsg.textContent.includes('No students enrolled')) {
-                studentsDiv.innerHTML = '';
-              }
-
-              const studentDiv = document.createElement('div');
-              studentDiv.className = 'flex justify-between items-center bg-white dark:bg-gray-600 p-2 rounded';
-              studentDiv.innerHTML = `
-                <span class="text-sm">${studentName}</span>
-                <button onclick="ProfessorPortal.removeStudentFromClass('${classId}', '${studentId}')" class="text-red-600 hover:text-red-800 text-sm">
-                  Remove
-                </button>
-              `;
-              studentsDiv.appendChild(studentDiv);
-            }
-          }
+          // Refresh the entire student list to show changes
+          this.loadClassStudents(classId);
         }
       } else {
         const error = await response.json();
@@ -919,7 +898,7 @@ static async editAssessment(assessmentId) {
           <div>
             <h4 class="font-bold text-lg">${assessment.title}</h4>
             <p class="text-gray-600 dark:text-gray-300 text-sm">Due: ${new Date(assessment.deadline).toLocaleString()}</p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.classes?.name || assessment.class_name || 'Unknown'}</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Class: ${assessment.class_name}</p>
           </div>
           <div class="flex gap-2">
             <button onclick="ProfessorPortal.viewAssessmentDetails('${assessment.id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">

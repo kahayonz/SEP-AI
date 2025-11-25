@@ -2,7 +2,8 @@
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Header, Request, Query
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,12 +13,14 @@ from app.routes import router as main_router
 from app.database import supabase, admin_client
 
 
+load_dotenv()
+
 app = FastAPI()
 security = HTTPBearer()
 app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
 app.include_router(main_router, prefix="/api", tags=["Main"])
 
-# Add CORS middleware
+# Add CORS middleware - allow all for dev/prod flexibility
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,6 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Frontend URL for redirects (configure in .env)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5500")
 
 class SignupIn(BaseModel):
     email: str
@@ -224,3 +230,6 @@ async def confirm_email(
     except Exception as e:
         print(f"Confirmation error: {e}")
         return RedirectResponse(url=f"http://localhost:3000/login.html?error=confirmation_failed")
+
+# Mount static files from frontend directory with SPA support
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
