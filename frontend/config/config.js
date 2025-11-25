@@ -4,10 +4,8 @@ function getApiBase() {
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:8000';
   } else {
-    // For production, construct API URL based on environment
-    // In Render, set RENDER_EXTERNAL_URL as env var, but since this is client-side,
-    // use a heuristic or single API URL for now
-    return 'https://your-render-app.onrender.com';  // Replace with actual Render URL
+    // For production - use deployed Render backend URL
+    return 'https://sep-ai.onrender.com';
   }
 }
 

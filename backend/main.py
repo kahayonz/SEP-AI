@@ -20,10 +20,14 @@ security = HTTPBearer()
 app.include_router(ai_router, prefix="/api", tags=["AI Evaluation"])
 app.include_router(main_router, prefix="/api", tags=["Main"])
 
-# Add CORS middleware - allow all for dev/prod flexibility
+# Add CORS middleware - restrict to allowed domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",  # Local dev
+        "http://localhost:5500",  # Local dev
+        "https://sep-ai-bice.vercel.app",  # Production frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -184,7 +188,7 @@ async def confirm_email(
         # Check if this is a confirmation flow
         if type != "signup":
             # For other confirmation types or direct access, just redirect to login
-            return RedirectResponse(url=f"http://localhost:3000/login.html?confirmed=true")
+            return RedirectResponse(url=f"{FRONTEND_URL}/login.html?confirmed=true")
 
         # Set the session using the tokens from the confirmation link
         supabase.auth.set_session({
@@ -197,7 +201,7 @@ async def confirm_email(
             user = supabase.auth.get_user(access_token)
             user_id = user.user.id if user.user else None
         except Exception:
-            return RedirectResponse(url=f"http://localhost:3000/login.html?error=invalid_token")
+            return RedirectResponse(url=f"{FRONTEND_URL}/login.html?error=invalid_token")
 
         # Get user data from our database
         try:
@@ -205,9 +209,9 @@ async def confirm_email(
             if user_data.data and len(user_data.data) > 0:
                 role = user_data.data[0]["role"]
             else:
-                return RedirectResponse(url=f"http://localhost:3000/login.html?error=user_not_found")
+                return RedirectResponse(url=f"{FRONTEND_URL}/login.html?error=user_not_found")
         except Exception:
-            return RedirectResponse(url=f"http://localhost:3000/login.html?error=database_error")
+            return RedirectResponse(url=f"{FRONTEND_URL}/login.html?error=database_error")
 
         # Create login response data
         login_data = {
@@ -225,7 +229,7 @@ async def confirm_email(
         dashboard_url = "student.html" if role == "student" else "professor.html"
         auth_params = f"access_token={access_token}&refresh_token={refresh_token}&user_id={user_id}&email={user.user.email}&role={role}"
 
-        return RedirectResponse(url=f"http://localhost:3000/{dashboard_url}?confirmed=true#{auth_params}")
+        return RedirectResponse(url=f"{FRONTEND_URL}/{dashboard_url}?confirmed=true#{auth_params}")
 
     except Exception as e:
         print(f"Confirmation error: {e}")
