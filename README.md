@@ -19,5 +19,5 @@ All backend code (FastAPI, requirements, .env, etc.)
 
 **How to run:**
 
-npm run start
-npm run dev (reload backend)
+- npm run start
+- npm run dev (reload backend)
