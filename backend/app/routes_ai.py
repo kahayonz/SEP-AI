@@ -1,5 +1,6 @@
 # handles upload and evaluation endpoint
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form, Query
+from typing import Optional
 import tempfile
 import os
 import shutil
@@ -10,6 +11,7 @@ import json
 from dotenv import load_dotenv
 from backend.app.auth import get_current_user
 from backend.app.zip_extractor import extract_developer_files
+from backend.app.database import admin_client
 
 # Load environment variables - check both backend directory and project root
 # routes_ai.py is at backend/app/routes_ai.py, so:
@@ -40,7 +42,10 @@ from api import evaluate_comment_quality
 router = APIRouter()
 
 @router.post("/ai_evaluate")
-async def ai_evaluate(file: UploadFile = File(...), current_user=Depends(get_current_user)):
+async def ai_evaluate(
+    file: UploadFile = File(...), 
+    current_user=Depends(get_current_user)
+):
     temp_dir = None
     try:
         # Create a temporary working directory for this session
@@ -62,6 +67,9 @@ async def ai_evaluate(file: UploadFile = File(...), current_user=Depends(get_cur
             # Log LLM error but don't fail the entire request
             print(f"LLM evaluation failed (non-critical): {str(llm_error)}")
             llm_result = None
+
+        # Note: /ai_evaluate is for testing only - does not store evaluation data
+        # Official submissions store evaluation data automatically in the submission endpoint
 
         # Convert Pydantic model to dict for JSON response
         return llm_result
@@ -220,8 +228,12 @@ Please analyze the project files and provide your evaluation in this JSON format
         # Validate and retry if needed
         validation = await check_json_schema(response_data["choices"][0]["message"]["content"], api_key)
         
-        json_response = json.loads(validation["validation"]["corrected_text"])
-        return json_response
+        try:
+            json_response = json.loads(validation["validation"]["corrected_text"])
+            return json_response
+        except Exception as e:
+            # If the JSON is not valid, return the error messages
+            raise HTTPException(status_code=500, detail=f"AI Evaluation is currently unavailable.")
     except HTTPException:
         # Re-raise HTTPExceptions as-is
         raise
@@ -354,7 +366,7 @@ async def check_json_schema(text: str, api_key: str):
                     }
                 }
             
-            # If we have errors and this is the last attempt, return what we have
+            # If we have errors and this is the last attempt, return error messages
             if attempt == 2:
                 errors.extend(validation_errors)
                 return {
