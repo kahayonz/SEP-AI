@@ -6,3 +6,8 @@ httpx      # optional, used for some client calls
 python-jose[cryptography]  # optional, for JWT verification if needed
 anthropic  # required for AI code evaluation (Claude API)
 python-multipart
+
+scikit-learn>=1.0
+joblib>=1.1
+pytest>=7.4.0
+requests>=2.31.0

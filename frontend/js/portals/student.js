@@ -81,23 +81,24 @@ class StudentPortal {
       // Show results section
       document.getElementById('results').classList.remove('hidden');
 
-      // Update score
-      document.getElementById('score').textContent = score;
+      // // Update score
+      console.log(data.results);
+      document.getElementById('score').textContent = data.results;
 
-      // Update recommendations
-      const recommendations = document.getElementById('recommendations');
-      recommendations.innerHTML = '';
+      // // Update recommendations
+      // const recommendations = document.getElementById('recommendations');
+      // recommendations.innerHTML = '';
 
-      // Split feedback into lines and display as recommendations
-      const feedbackLines = feedback.split('\n').filter(line => line.trim());
-      feedbackLines.forEach(line => {
-        if (line.trim()) {
-          const div = document.createElement('div');
-          div.className = 'p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg text-blue-200';
-          div.textContent = line.trim();
-          recommendations.appendChild(div);
-        }
-      });
+      // // Split feedback into lines and display as recommendations
+      // const feedbackLines = feedback.split('\n').filter(line => line.trim());
+      // feedbackLines.forEach(line => {
+      //   if (line.trim()) {
+      //     const div = document.createElement('div');
+      //     div.className = 'p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg text-blue-200';
+      //     div.textContent = line.trim();
+      //     recommendations.appendChild(div);
+      //   }
+      // });
 
       UIUtils.scrollToResults();
 
