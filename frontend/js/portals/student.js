@@ -56,6 +56,84 @@ class StudentPortal {
     this.accountLoaded = true;
   }
 
+  static showLoadingUI() {
+    // Hide upload area and button
+    const aiEvaluationSection = document.getElementById('ai-evaluation');
+    if (aiEvaluationSection) {
+      const uploadSection = aiEvaluationSection.querySelector('div:first-child');
+      if (uploadSection && !uploadSection.id) {
+        uploadSection.classList.add('hidden');
+      }
+    }
+
+    // Show loading section
+    const loadingSection = document.getElementById('loadingSection');
+    if (loadingSection) {
+      loadingSection.classList.remove('hidden');
+      loadingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Reset and animate progress steps
+    this.resetProgressSteps();
+    this.animateProgressSteps();
+  }
+
+  static hideLoadingUI() {
+    // Hide loading section
+    const loadingSection = document.getElementById('loadingSection');
+    if (loadingSection) {
+      loadingSection.classList.add('hidden');
+    }
+
+    // Show upload area again (for potential re-submission)
+    const aiEvaluationSection = document.getElementById('ai-evaluation');
+    if (aiEvaluationSection) {
+      const uploadSection = aiEvaluationSection.querySelector('div:first-child');
+      if (uploadSection && !uploadSection.id) {
+        uploadSection.classList.remove('hidden');
+      }
+    }
+  }
+
+  static resetProgressSteps() {
+    for (let i = 1; i <= 4; i++) {
+      const step = document.getElementById(`step${i}`);
+      const stepText = document.getElementById(`step${i}Text`);
+      if (step) {
+        step.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center';
+        step.innerHTML = '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      }
+      if (stepText) {
+        stepText.className = 'text-sm text-gray-400';
+      }
+    }
+  }
+
+  static animateProgressSteps() {
+    const steps = [
+      { id: 1, delay: 500, text: 'Uploading project files...' },
+      { id: 2, delay: 1500, text: 'Analyzing code structure...' },
+      { id: 3, delay: 2500, text: 'Evaluating quality metrics...' },
+      { id: 4, delay: 3500, text: 'Generating feedback...' }
+    ];
+
+    steps.forEach((step, index) => {
+      setTimeout(() => {
+        const stepEl = document.getElementById(`step${step.id}`);
+        const stepTextEl = document.getElementById(`step${step.id}Text`);
+        
+        if (stepEl) {
+          stepEl.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center animate-pulse';
+          stepEl.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        }
+        
+        if (stepTextEl) {
+          stepTextEl.className = 'text-sm text-cyan-400 font-medium';
+        }
+      }, step.delay);
+    });
+  }
+
   static async handleProjectSubmission() {
     const fileInput = document.getElementById('fileUpload');
     if (!fileInput || !fileInput.files.length) {
@@ -71,12 +149,20 @@ class StudentPortal {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Show loading state
+      // Show loading UI
+      this.showLoadingUI();
+
+      // Disable submit button
       const submitButton = document.querySelector('button[onclick="StudentPortal.handleProjectSubmission()"]');
-      const originalText = UIUtils.setLoading(submitButton, true, CONFIG.UI.LOAD_STATES.EVALUATING);
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
 
       const data = await api.evaluateProject(formData);
       const { overall_score, max_score, percentage, evaluation, feedback } = data; 
+
+      // Hide loading UI
+      this.hideLoadingUI();
 
       // Show results section
       document.getElementById('results').classList.remove('hidden');
@@ -101,11 +187,15 @@ class StudentPortal {
 
     } catch (error) {
       console.error('Evaluation error:', error);
+      // Hide loading UI on error
+      this.hideLoadingUI();
       UIUtils.showError(error.message || CONFIG.UI.MESSAGES.NETWORK_ERROR);
     } finally {
-      // Reset button state
+      // Re-enable submit button
       const submitButton = document.querySelector('button[onclick="StudentPortal.handleProjectSubmission()"]');
-      UIUtils.setLoading(submitButton, false, 'Submit Project');
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
     }
   }
 

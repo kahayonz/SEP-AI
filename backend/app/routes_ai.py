@@ -176,6 +176,8 @@ async def llm_evaluate(zip_path: str):
 - 2: Basic, lacks organization/thoroughness
 - 1: Little/no documentation
 
+Note: You are evaluating a software project of a student, so be generous in your feedback and score.
+
 ## Output JSON
 {json.dumps(schema, indent=2)}
 
@@ -216,45 +218,9 @@ Please analyze the project files and provide your evaluation in this JSON format
         response_data = response.json()
         
         # Validate and retry if needed
-        validation = await llm_check_json_schema(response_data["choices"][0]["message"]["content"], api_key)
+        validation = await check_json_schema(response_data["choices"][0]["message"]["content"], api_key)
         
-        max_retries = 3
-        retry_count = 0
-        while not validation["validation"]["valid"] and retry_count < max_retries:
-            print(f"Validation result: {validation['validation']}")
-            retry_count += 1
-            print(f"Validation failed, retrying ({retry_count}/{max_retries})...")
-            # Create new payload
-            payload = {
-                "model": "x-ai/grok-4.1-fast:free",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a JSON Schema validation and correction expert. You are given a text and you need to check if it is a valid instance of the given JSON schema. If it is not, you need to correct it and return the corrected text."
-                    },
-                    {
-                        "role": "user",
-                        "content": f"The text to check is: ```json\n{response_data['choices'][0]['message']['content']}\n```\nThe JSON schema to check against is: ```json\n{json.dumps(schema, indent=2)}\n```\nThe following errors were found in the previous response: {validation['validation']['errors']}. Please fix them and return the corrected text in the same format as the previous response."
-                    }
-                ]
-            }
-
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=120
-            )
-
-            response.raise_for_status()
-            response_data = response.json()
-            validation = await llm_check_json_schema(response_data["choices"][0]["message"]["content"], api_key)
-
-        
-        json_response = json.loads(response_data["choices"][0]["message"]["content"])
+        json_response = json.loads(validation["validation"]["corrected_text"])
         return json_response
     except HTTPException:
         # Re-raise HTTPExceptions as-is
@@ -282,16 +248,17 @@ Please analyze the project files and provide your evaluation in this JSON format
         raise HTTPException(status_code=500, detail=str(e))
 
 # Async function to check if the text follows a specific JSON schema using an LLM
-async def llm_check_json_schema(text: str, api_key: str):
+async def check_json_schema(text: str, api_key: str):
     """
-    Uses an LLM to check if the provided text is a valid instance of the given JSON schema.
+    Check if the provided text is a valid instance of the given JSON schema.
+    3 attempts to correct the text using an LLM if it is not valid.
 
     Args:
         text (str): The text to check.
         api_key (str): The OpenRouter API key.
 
     Returns:
-        dict: Dictionary containing 'llm_output' (str) and 'validation' (dict).
+        dict: Dictionary containing 'corrected_text' (str) and 'errors' (list of strings).
     """
     schema = {
         "overall_score": {"type": "number", "minimum": 0, "maximum": 24},
@@ -309,94 +276,179 @@ async def llm_check_json_schema(text: str, api_key: str):
     }
 
     schema_str = json.dumps(schema, indent=2)
+    
+    # Try to parse and validate the JSON
+    errors = []
+    corrected_text = text
+    
+    for attempt in range(3):
+        try:
+            # Try to parse as JSON
+            parsed_json = json.loads(corrected_text)
+            
+            # Basic validation against schema
+            validation_errors = []
+            
+            # Check required fields
+            required_fields = ["overall_score", "max_score", "percentage", "evaluation", "feedback"]
+            for field in required_fields:
+                if field not in parsed_json:
+                    validation_errors.append(f"Missing required field: {field}")
+            
+            # Validate overall_score
+            if "overall_score" in parsed_json:
+                score = parsed_json["overall_score"]
+                if not isinstance(score, (int, float)) or score < 0 or score > 24:
+                    validation_errors.append(f"overall_score must be a number between 0 and 24, got: {score}")
+            
+            # Validate max_score
+            if "max_score" in parsed_json:
+                score = parsed_json["max_score"]
+                if not isinstance(score, (int, float)) or score < 0 or score > 24:
+                    validation_errors.append(f"max_score must be a number between 0 and 24, got: {score}")
+            
+            # Validate percentage
+            if "percentage" in parsed_json:
+                pct = parsed_json["percentage"]
+                if not isinstance(pct, (int, float)) or pct < 0 or pct > 100:
+                    validation_errors.append(f"percentage must be a number between 0 and 100, got: {pct}")
+            
+            # Validate evaluation object
+            if "evaluation" in parsed_json:
+                eval_obj = parsed_json["evaluation"]
+                if not isinstance(eval_obj, dict):
+                    validation_errors.append("evaluation must be an object")
+                else:
+                    eval_fields = [
+                        "system_design_architecture",
+                        "functionality_features",
+                        "code_quality_efficiency",
+                        "usability_user_interface",
+                        "testing_debugging",
+                        "documentation"
+                    ]
+                    for field in eval_fields:
+                        if field not in eval_obj:
+                            validation_errors.append(f"Missing evaluation field: {field}")
+                        else:
+                            val = eval_obj[field]
+                            if not isinstance(val, (int, float)) or val < 1 or val > 4:
+                                validation_errors.append(f"{field} must be a number between 1 and 4, got: {val}")
+            
+            # Validate feedback array
+            if "feedback" in parsed_json:
+                feedback = parsed_json["feedback"]
+                if not isinstance(feedback, list):
+                    validation_errors.append("feedback must be an array")
+                else:
+                    for i, item in enumerate(feedback):
+                        if not isinstance(item, str):
+                            validation_errors.append(f"feedback[{i}] must be a string")
+            
+            # If validation passed, return the corrected text
+            if not validation_errors:
+                return {
+                    "validation": {
+                        "corrected_text": corrected_text,
+                        "errors": []
+                    }
+                }
+            
+            # If we have errors and this is the last attempt, return what we have
+            if attempt == 2:
+                errors.extend(validation_errors)
+                return {
+                    "validation": {
+                        "corrected_text": corrected_text,
+                        "errors": errors
+                    }
+                }
+            
+            # Otherwise, use LLM to fix the errors
+            errors.extend(validation_errors)
+            
+        except json.JSONDecodeError as e:
+            # JSON parsing failed - use LLM to fix it
+            json_error = str(e)
+            errors.append(f"JSON parsing error: {json_error}")
+            
+            if attempt == 2:
+                # Last attempt - return what we have
+                return {
+                    "validation": {
+                        "corrected_text": corrected_text,
+                        "errors": errors
+                    }
+                }
+        
+        # Use LLM to correct the JSON
+        correction_prompt = f"""The following text is supposed to be valid JSON matching this schema:
 
-    prompt = f"""You are a JSON Schema validation expert.
-Given the following JSON Schema:
 {schema_str}
 
-Does the given text strictly conform to this schema? Reply exclusively with JSON in the format:
-{{
-  "valid": true/false,
-  "errors": [<list of validation errors as strings, can be empty>],
-  "corrected_text": <the corrected text if the text was not valid, otherwise empty>
-}}
+The text provided was:
+{corrected_text}
 
-The text to check is:
-```json
-{text}
-```
-"""
+Errors found:
+{chr(10).join(f"- {err}" for err in errors[-5:])}  # Show last 5 errors
 
-    payload = {
-        "model": "mistralai/mistral-7b-instruct:free",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a JSON Schema validation and correction expert. You are given a text and you need to check if it is a valid instance of the given JSON schema. If it is not, you need to correct it and return the corrected text."
-            },
-            {
-                "role": "user",
-                "content": prompt
+Please correct the JSON to match the schema exactly. Return ONLY the corrected JSON, no additional text or markdown formatting."""
+        
+        try:
+            correction_payload = {
+                "model": "x-ai/grok-4.1-fast:free",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a JSON correction assistant. Fix JSON to match the provided schema exactly. Return only valid JSON, no markdown or explanations."
+                    },
+                    {
+                        "role": "user",
+                        "content": correction_prompt
+                    }
+                ]
             }
-        ]
-    }
-
-    try:
-        # Since this is an async function, run blocking IO in a threadpool
-        import asyncio
-
-        def request_llm():
-            response = requests.post(
+            
+            correction_response = requests.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
-                json=payload,
-                timeout=90
+                json=correction_payload,
+                timeout=60
             )
-            response.raise_for_status()
-            return response.json()
-
-        response_data = await asyncio.to_thread(request_llm)
-        answer = response_data["choices"][0]["message"]["content"]
-        validation = None
-
-        try:
-            validation = json.loads(answer)
-        except Exception:
-            import re
-            match = re.search(r"\{.*\}", answer, re.DOTALL)
-            if match:
-                try:
-                    validation = json.loads(match.group())
-                except Exception:
-                    validation = {"valid": False, "errors": ["Could not parse LLM output as JSON."]}
-            else:
-                validation = {"valid": False, "errors": ["LLM did not return recognizable JSON."]}
-
-        return {
-            "llm_output": answer,
-            "validation": validation,
+            
+            correction_response.raise_for_status()
+            correction_data = correction_response.json()
+            corrected_text = correction_data["choices"][0]["message"]["content"].strip()
+            
+            # Remove markdown code blocks if present
+            if corrected_text.startswith("```"):
+                lines = corrected_text.split("\n")
+                # Remove first line (```json or ```)
+                lines = lines[1:]
+                # Remove last line (```)
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+                corrected_text = "\n".join(lines)
+            
+        except Exception as e:
+            # If LLM correction fails, return what we have
+            errors.append(f"LLM correction failed: {str(e)}")
+            return {
+                "validation": {
+                    "corrected_text": corrected_text,
+                    "errors": errors
+                }
+            }
+    
+    # Fallback return (shouldn't reach here, but just in case)
+    return {
+        "validation": {
+            "corrected_text": corrected_text,
+            "errors": errors
         }
+    }
 
-    except requests.exceptions.RequestException as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Request error in llm_check_json_schema: {str(e)}")
-        print(f"Traceback: {error_trace}")
-        if hasattr(e, 'response') and e.response is not None:
-            try:
-                error_detail = e.response.json()
-                print(f"API error response: {error_detail}")
-                raise HTTPException(status_code=500, detail=f"LLM API error: {error_detail}")
-            except:
-                pass
-        raise HTTPException(status_code=500, detail=f"LLM API request failed: {str(e)}")
-    except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Error in llm_check_json_schema: {str(e)}")
-        print(f"Traceback: {error_trace}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+    
