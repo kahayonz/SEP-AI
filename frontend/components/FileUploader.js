@@ -1,46 +1,68 @@
 // File Uploader Component
 
 class FileUploader {
+  // Store handler references to prevent duplicate listeners
+  static _handlers = new Map();
+
   static setupMainDropzone() {
     const dropbox = document.getElementById('dropbox');
     if (!dropbox) return;
 
+    // Check if already initialized
+    if (dropbox.dataset.uploaderInitialized === 'true') return;
+    dropbox.dataset.uploaderInitialized = 'true';
+
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropbox.addEventListener(eventName, (e) => {
+      const handler = (e) => {
         e.preventDefault();
         e.stopPropagation();
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`dropbox-${eventName}`, handler);
     });
 
     // Highlight drop zone when item is dragged over it
     ['dragenter', 'dragover'].forEach(eventName => {
-      dropbox.addEventListener(eventName, () => {
+      const handler = () => {
         dropbox.classList.add('drag-over');
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`dropbox-highlight-${eventName}`, handler);
     });
 
     // Remove highlight when item is no longer over drop zone
     ['dragleave', 'drop'].forEach(eventName => {
-      dropbox.addEventListener(eventName, () => {
+      const handler = () => {
         dropbox.classList.remove('drag-over');
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`dropbox-unhighlight-${eventName}`, handler);
     });
 
     // Handle dropped files
-    dropbox.addEventListener('drop', (e) => {
+    const dropHandler = (e) => {
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         this.handleFileSelect('fileUpload', files[0]);
       }
-    });
+    };
+    dropbox.addEventListener('drop', dropHandler);
+    this._handlers.set('dropbox-drop-handle', dropHandler);
 
     // Handle click on dropbox
     const uploadPrompt = document.getElementById('uploadPrompt');
-    if (uploadPrompt) {
-      uploadPrompt.addEventListener('click', () => {
-        document.getElementById('fileUpload').click();
-      });
+    if (uploadPrompt && uploadPrompt.dataset.clickListenerAdded !== 'true') {
+      const clickHandler = (e) => {
+        e.stopPropagation();
+        const fileInput = document.getElementById('fileUpload');
+        if (fileInput) {
+          fileInput.click();
+        }
+      };
+      uploadPrompt.addEventListener('click', clickHandler);
+      uploadPrompt.dataset.clickListenerAdded = 'true';
+      this._handlers.set('uploadPrompt-click', clickHandler);
     }
   }
 
@@ -54,30 +76,43 @@ class FileUploader {
     const sizeElement = sizeElementId ? document.getElementById(sizeElementId) : document.getElementById('selectedFileSize');
     const removeFileBtn = removeBtnId ? document.getElementById(removeBtnId) : document.getElementById('removeFile');
 
+    // Check if already initialized for this input
+    if (fileInput && fileInput.dataset.listenersInitialized === 'true') return;
+    if (fileInput) fileInput.dataset.listenersInitialized = 'true';
+
     if (fileInput) {
-      fileInput.addEventListener('change', (e) => {
+      const changeHandler = (e) => {
         const file = e.target.files[0];
         if (file) {
           this.updateFileDisplay(file, dropbox, uploadPrompt, fileSelected, nameElement, sizeElement);
         } else {
           this.resetFileDisplay(dropbox, uploadPrompt, fileSelected);
         }
-      });
+      };
+      fileInput.addEventListener('change', changeHandler);
+      this._handlers.set(`${inputId}-change`, changeHandler);
     }
 
-    if (removeFileBtn) {
-      removeFileBtn.addEventListener('click', (e) => {
+    if (removeFileBtn && removeFileBtn.dataset.clickListenerAdded !== 'true') {
+      const removeHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.resetFileDisplay(dropbox, uploadPrompt, fileSelected);
-        fileInput.value = '';
-      });
+        if (fileInput) fileInput.value = '';
+      };
+      removeFileBtn.addEventListener('click', removeHandler);
+      removeFileBtn.dataset.clickListenerAdded = 'true';
+      this._handlers.set(`${removeBtnId || 'removeFile'}-click`, removeHandler);
     }
 
-    if (fileSelected) {
-      fileSelected.addEventListener('click', () => {
-        fileInput.click();
-      });
+    if (fileSelected && fileSelected.dataset.clickListenerAdded !== 'true') {
+      const selectedClickHandler = (e) => {
+        e.stopPropagation();
+        if (fileInput) fileInput.click();
+      };
+      fileSelected.addEventListener('click', selectedClickHandler);
+      fileSelected.dataset.clickListenerAdded = 'true';
+      this._handlers.set(`${selectedId}-click`, selectedClickHandler);
     }
   }
 
@@ -134,42 +169,61 @@ class FileUploader {
     const dropbox = document.getElementById('assessmentDropbox');
     if (!dropbox) return;
 
+    // Check if already initialized
+    if (dropbox.dataset.uploaderInitialized === 'true') return;
+    dropbox.dataset.uploaderInitialized = 'true';
+
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropbox.addEventListener(eventName, (e) => {
+      const handler = (e) => {
         e.preventDefault();
         e.stopPropagation();
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`assessmentDropbox-${eventName}`, handler);
     });
 
     // Highlight drop zone when item is dragged over it
     ['dragenter', 'dragover'].forEach(eventName => {
-      dropbox.addEventListener(eventName, () => {
+      const handler = () => {
         dropbox.classList.add('drag-over');
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`assessmentDropbox-highlight-${eventName}`, handler);
     });
 
     // Remove highlight when item is no longer over drop zone
     ['dragleave', 'drop'].forEach(eventName => {
-      dropbox.addEventListener(eventName, () => {
+      const handler = () => {
         dropbox.classList.remove('drag-over');
-      });
+      };
+      dropbox.addEventListener(eventName, handler);
+      this._handlers.set(`assessmentDropbox-unhighlight-${eventName}`, handler);
     });
 
     // Handle dropped files
-    dropbox.addEventListener('drop', (e) => {
+    const dropHandler = (e) => {
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         this.handleFileSelect('assessmentFileUpload', files[0]);
       }
-    });
+    };
+    dropbox.addEventListener('drop', dropHandler);
+    this._handlers.set('assessmentDropbox-drop-handle', dropHandler);
 
     // Handle click on dropbox
     const uploadPrompt = document.getElementById('assessmentUploadPrompt');
-    if (uploadPrompt) {
-      uploadPrompt.addEventListener('click', () => {
-        document.getElementById('assessmentFileUpload').click();
-      });
+    if (uploadPrompt && uploadPrompt.dataset.clickListenerAdded !== 'true') {
+      const clickHandler = (e) => {
+        e.stopPropagation();
+        const fileInput = document.getElementById('assessmentFileUpload');
+        if (fileInput) {
+          fileInput.click();
+        }
+      };
+      uploadPrompt.addEventListener('click', clickHandler);
+      uploadPrompt.dataset.clickListenerAdded = 'true';
+      this._handlers.set('assessmentUploadPrompt-click', clickHandler);
     }
 
     // Setup event listeners for file input and display updates

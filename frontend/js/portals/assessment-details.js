@@ -170,7 +170,7 @@ class AssessmentDetails {
         document.getElementById('average-score').textContent = average;
     }
 
-    static reviewSubmission(submissionId) {
+    static async reviewSubmission(submissionId) {
         this.currentSubmissionId = submissionId;
         // Convert to string for consistent comparison (since HTML generates string values)
         const submission = this.submissionsData.find(s => String(s.id) === String(submissionId));
@@ -181,9 +181,25 @@ class AssessmentDetails {
             return;
         }
 
-        // Populate AI feedback
-        document.getElementById('ai-score').textContent = submission.ai_score || 'N/A';
-        document.getElementById('ai-feedback').textContent = submission.ai_feedback || 'No feedback provided';
+        // Fetch full submission details to get ai_evaluation_data
+        const token = UIUtils.getToken();
+        try {
+            const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${submissionId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const fullSubmission = await response.json();
+                this.displayAIEvaluation(fullSubmission.ai_evaluation_data || null, fullSubmission);
+            } else {
+                // Fallback to basic display if fetch fails
+                this.displayAIEvaluation(null, submission);
+            }
+        } catch (error) {
+            console.error('Error fetching submission details:', error);
+            // Fallback to basic display
+            this.displayAIEvaluation(null, submission);
+        }
 
         // Populate form with existing data
         document.getElementById('professorFeedback').value = submission.professor_feedback || '';
@@ -191,6 +207,61 @@ class AssessmentDetails {
 
         // Show modal
         document.getElementById('reviewSubmissionModal').classList.remove('hidden');
+    }
+
+    static displayAIEvaluation(aiEvaluationData, submission) {
+        const aiScoreEl = document.getElementById('ai-score');
+        const aiFeedbackEl = document.getElementById('ai-feedback');
+        const aiEvaluationDetailsEl = document.getElementById('ai-evaluation-details');
+
+        if (aiEvaluationData && aiEvaluationData.overall_score !== undefined) {
+            // Display detailed evaluation
+            const percentage = aiEvaluationData.percentage || 0;
+            const overallScore = aiEvaluationData.overall_score || 0;
+            const maxScore = aiEvaluationData.max_score || 24;
+
+            aiScoreEl.textContent = `${percentage.toFixed(1)}% (${overallScore}/${maxScore})`;
+
+            // Display evaluation criteria if available
+            if (aiEvaluationDetailsEl && aiEvaluationData.evaluation) {
+                const evalData = aiEvaluationData.evaluation;
+                const criteriaNames = {
+                    system_design_architecture: 'System Design & Architecture',
+                    functionality_features: 'Functionality & Features',
+                    code_quality_efficiency: 'Code Quality & Efficiency',
+                    usability_user_interface: 'Usability & User Interface',
+                    testing_debugging: 'Testing & Debugging',
+                    documentation: 'Documentation'
+                };
+
+                let criteriaHTML = '<div class="mt-3 space-y-2">';
+                criteriaHTML += '<h5 class="font-semibold text-sm text-gray-300 mb-2">Evaluation Criteria:</h5>';
+                for (const [key, name] of Object.entries(criteriaNames)) {
+                    const score = evalData[key] || 0;
+                    criteriaHTML += `<div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-400">${name}:</span>
+                        <span class="font-medium text-blue-400">${score}/4</span>
+                    </div>`;
+                }
+                criteriaHTML += '</div>';
+                aiEvaluationDetailsEl.innerHTML = criteriaHTML;
+                aiEvaluationDetailsEl.classList.remove('hidden');
+            }
+
+            // Display feedback
+            if (aiEvaluationData.feedback && Array.isArray(aiEvaluationData.feedback)) {
+                aiFeedbackEl.textContent = aiEvaluationData.feedback.join('\n\n');
+            } else {
+                aiFeedbackEl.textContent = submission.ai_feedback || 'No feedback provided';
+            }
+        } else {
+            // Fallback to basic display
+            aiScoreEl.textContent = submission.ai_score || 'N/A';
+            aiFeedbackEl.textContent = submission.ai_feedback || 'No feedback provided';
+            if (aiEvaluationDetailsEl) {
+                aiEvaluationDetailsEl.classList.add('hidden');
+            }
+        }
     }
 
     static closeReviewModal() {

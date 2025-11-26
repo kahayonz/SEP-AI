@@ -11,6 +11,28 @@ import os
 import zipfile
 import shutil
 import atexit
+import json
+import tempfile
+import sys
+from pathlib import Path
+from .zip_extractor import extract_developer_files
+import requests
+from dotenv import load_dotenv
+
+# Import LLM evaluation function from routes_ai
+# We need to import it carefully to avoid circular imports
+# Load environment variables first
+backend_env = Path(__file__).parent.parent / ".env"
+root_env = Path(__file__).parent.parent.parent / ".env"
+if root_env.exists():
+    load_dotenv(dotenv_path=root_env, override=True)
+elif backend_env.exists():
+    load_dotenv(dotenv_path=backend_env, override=True)
+else:
+    load_dotenv(override=True)
+
+# Import the LLM evaluation function
+from backend.app.routes_ai import llm_evaluate
 
 router = APIRouter()
 
@@ -54,8 +76,10 @@ class AddStudentToClass(BaseModel):
     student_id: str
 
 class SubmissionUpdate(BaseModel):
-    professor_feedback: str
+    professor_feedback: Optional[str] = ""
     final_score: float
+    adjusted_ai_score: Optional[float] = None
+    human_evaluation: Optional[dict] = None
 
 class UserResponse(BaseModel):
     id: str
@@ -486,6 +510,7 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
         submission_map = {sub["student_id"]: sub for sub in submissions_response.data}
 
         submissions = []
+        import json
         for item in students_response.data:
             user = item["users"]
             student_id = user["auth_id"]
@@ -493,6 +518,15 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
             if student_id in submission_map:
                 # Student submitted
                 submission = submission_map[student_id]
+                
+                # Parse ai_evaluation_data if it exists
+                ai_evaluation_data = None
+                if submission.get("ai_evaluation_data"):
+                    try:
+                        ai_evaluation_data = json.loads(submission["ai_evaluation_data"])
+                    except (json.JSONDecodeError, TypeError):
+                        ai_evaluation_data = None
+                
                 submissions.append({
                     "id": submission["id"],
                     "assessment_id": submission["assessment_id"],
@@ -501,6 +535,7 @@ async def get_assessment_submissions(assessment_id: str, current_user=Depends(ge
                     "student_email": user["email"],
                     "ai_feedback": submission["ai_feedback"],
                     "ai_score": submission["ai_score"],
+                    "ai_evaluation_data": ai_evaluation_data,  # Full evaluation data
                     "professor_feedback": submission["professor_feedback"],
                     "final_score": submission["final_score"],
                     "zip_path": submission["zip_path"],
@@ -553,12 +588,36 @@ async def get_submission(submission_id: str, current_user=Depends(get_current_us
         if not class_response.data or class_response.data[0]["professor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to access this submission")
 
+        # Parse ai_evaluation_data if it exists
+        ai_evaluation_data = None
+        if submission.get("ai_evaluation_data"):
+            try:
+                import json
+                ai_evaluation_data = json.loads(submission["ai_evaluation_data"])
+            except (json.JSONDecodeError, TypeError):
+                # If parsing fails, just use None
+                ai_evaluation_data = None
+        
+        # Get adjusted_ai_score if it exists
+        adjusted_ai_score = submission.get("adjusted_ai_score")
+        
+        # Parse human_evaluation if it exists
+        human_evaluation = None
+        if submission.get("human_evaluation"):
+            try:
+                human_evaluation = json.loads(submission["human_evaluation"])
+            except (json.JSONDecodeError, TypeError):
+                human_evaluation = None
+
         return {
             "id": submission["id"],
             "assessment_id": submission["assessment_id"],
             "student_id": submission["student_id"],
             "ai_feedback": submission["ai_feedback"],
             "ai_score": submission["ai_score"],
+            "ai_evaluation_data": ai_evaluation_data,  # Full evaluation data
+            "adjusted_ai_score": adjusted_ai_score,  # Adjusted AI score
+            "human_evaluation": human_evaluation,  # Human evaluation scores
             "professor_feedback": submission["professor_feedback"],
             "final_score": submission["final_score"],
             "zip_path": submission["zip_path"],
@@ -579,14 +638,75 @@ async def update_submission(submission_id: str, update_data: SubmissionUpdate, c
         if not submission_check.data or submission_check.data[0]["assessments"]["classes"]["professor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to update this submission")
 
-        # Update submission
-        response = admin_client.table("submissions").update({
-            "professor_feedback": update_data.professor_feedback,
+        # Validate final score
+        if update_data.final_score < 0 or update_data.final_score > 100:
+            raise HTTPException(status_code=400, detail="Final score must be between 0 and 100")
+
+        # Validate adjusted AI score if provided
+        if update_data.adjusted_ai_score is not None:
+            if update_data.adjusted_ai_score < 0 or update_data.adjusted_ai_score > 24:
+                raise HTTPException(status_code=400, detail="Adjusted AI score must be between 0 and 24")
+
+        # Validate human evaluation if provided
+        if update_data.human_evaluation:
+            human_eval = update_data.human_evaluation
+            required_fields = ['innovation_score', 'collaboration_score', 'presentation_score']
+            
+            for field in required_fields:
+                if field not in human_eval:
+                    raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+                
+                score = human_eval[field]
+                if not isinstance(score, (int, float)) or score < 0 or score > 4:
+                    raise HTTPException(status_code=400, detail=f"{field} must be a number between 0 and 4")
+
+        # Prepare update data
+        update_dict = {
+            "professor_feedback": update_data.professor_feedback or "",
             "final_score": update_data.final_score,
             "status": "reviewed"
-        }).eq("id", submission_id).execute()
+        }
+        
+        # Add adjusted AI score if provided
+        if update_data.adjusted_ai_score is not None:
+            update_dict["adjusted_ai_score"] = float(update_data.adjusted_ai_score)
+        
+        # Add human evaluation if provided (store as JSON string)
+        if update_data.human_evaluation:
+            # Ensure all scores are floats
+            human_eval_clean = {
+                "innovation_score": float(update_data.human_evaluation.get("innovation_score", 0)),
+                "collaboration_score": float(update_data.human_evaluation.get("collaboration_score", 0)),
+                "presentation_score": float(update_data.human_evaluation.get("presentation_score", 0))
+            }
+            update_dict["human_evaluation"] = json.dumps(human_eval_clean)
+        
+        # Update submission
+        try:
+            response = admin_client.table("submissions").update(update_dict).eq("id", submission_id).execute()
 
-        return {"message": "Submission updated successfully"}
+            if not response.data:
+                raise HTTPException(status_code=404, detail="Submission not found")
+
+            return {"message": "Submission updated successfully"}
+        except Exception as db_error:
+            error_str = str(db_error)
+            # Check if it's a missing column error
+            if "PGRST204" in error_str or "column" in error_str.lower() and "schema cache" in error_str.lower():
+                missing_column = None
+                if "adjusted_ai_score" in error_str:
+                    missing_column = "adjusted_ai_score"
+                elif "human_evaluation" in error_str:
+                    missing_column = "human_evaluation"
+                
+                if missing_column:
+                    raise HTTPException(
+                        status_code=500, 
+                        detail=f"Database column '{missing_column}' is missing. Please run the migration file: backend/migrations/001_add_submission_columns.sql"
+                    )
+            raise HTTPException(status_code=400, detail=f"Database error: {error_str}")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -772,8 +892,17 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         except zipfile.BadZipFile:
             raise HTTPException(status_code=400, detail="Invalid ZIP file")
 
-        # Step 4: Run AI evaluation on extracted files
-        ai_result = evaluate_project(extracted_dir)
+        # Step 4: Run LLM evaluation on ZIP file (for official submissions)
+        llm_evaluation_result = None
+        try:
+            llm_evaluation_result = await llm_evaluate(zip_path)
+            print(f"LLM evaluation completed for submission")
+        except Exception as llm_error:
+            # Log LLM error but don't fail the submission
+            print(f"LLM evaluation failed (non-critical): {str(llm_error)}")
+            # Fallback to basic evaluation
+            ai_result = evaluate_project(extracted_dir)
+            llm_evaluation_result = None
 
         # Step 5: Upload ZIP to Supabase storage
         supabase_storage_path = f"submissions/student_{current_user.id}/{assessment_id}_{timestamp}.zip"
@@ -795,17 +924,36 @@ async def submit_assessment(assessment_id: str, file: bytes = File(...), current
         import random
         submission_id = random.randint(1000000000, 9999999999)  # 10-digit random number
 
-        submission_data = {
-            "id": submission_id,
-            "assessment_id": assessment_id,
-            "student_id": current_user.id,
-            "ai_feedback": ai_result["feedback"],
-            "ai_score": ai_result["score"],
-            "professor_feedback": "",
-            "final_score": None,
-            "zip_path": supabase_url,  # Store Supabase URL for persistent file access
-            "status": "pending"
-        }
+        # Prepare submission data with LLM evaluation if available
+        if llm_evaluation_result:
+            # Store full LLM evaluation data
+            submission_data = {
+                "id": submission_id,
+                "assessment_id": assessment_id,
+                "student_id": current_user.id,
+                "ai_evaluation_data": json.dumps(llm_evaluation_result),  # Full evaluation as JSON
+                "ai_score": llm_evaluation_result.get("overall_score", 0),
+                "ai_feedback": "\n".join(llm_evaluation_result.get("feedback", [])) if llm_evaluation_result.get("feedback") else None,
+                "professor_feedback": "",
+                "final_score": None,
+                "zip_path": supabase_url,
+                "status": "pending"
+            }
+        else:
+            # Fallback to basic evaluation
+            if 'ai_result' not in locals():
+                ai_result = evaluate_project(extracted_dir)
+            submission_data = {
+                "id": submission_id,
+                "assessment_id": assessment_id,
+                "student_id": current_user.id,
+                "ai_feedback": ai_result["feedback"],
+                "ai_score": ai_result["score"],
+                "professor_feedback": "",
+                "final_score": None,
+                "zip_path": supabase_url,
+                "status": "pending"
+            }
 
         response = admin_client.table("submissions").insert(submission_data).execute()
 

@@ -195,6 +195,64 @@
         <button onclick="StudentPortal.handleProjectSubmission()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/20">Submit Project</button>
       </div>
 
+      <!-- Loading Section -->
+      <div id="loadingSection" class="mt-8 hidden">
+        <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
+          <div class="flex flex-col items-center justify-center py-12">
+            <!-- Animated Spinner -->
+            <div class="relative w-20 h-20 mb-6">
+              <div class="absolute inset-0 border-4 border-[#27272a] rounded-full"></div>
+              <div class="absolute inset-0 border-4 border-transparent border-t-cyan-400 border-r-cyan-400 rounded-full animate-spin"></div>
+            </div>
+            
+            <!-- Loading Text -->
+            <h3 class="text-2xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              Evaluating Your Project
+            </h3>
+            <p class="text-gray-400 mb-6">This may take a few moments...</p>
+            
+            <!-- Progress Steps -->
+            <div class="w-full max-w-md space-y-3">
+              <div class="flex items-center space-x-3">
+                <div id="step1" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step1Text" class="text-sm text-gray-400">Uploading project files...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step2" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step2Text" class="text-sm text-gray-400">Analyzing code structure...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step3" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step3Text" class="text-sm text-gray-400">Evaluating quality metrics...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step4" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step4Text" class="text-sm text-gray-400">Generating feedback...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Results Section (hidden by default) -->
       <div id="results" class="mt-8 hidden">
         <div class="bg-gradient-to-br from-[#232326] to-[#1a1a1d] border border-[#27272a] rounded-xl p-8 shadow-lg">
@@ -203,14 +261,48 @@
           <!-- Score Display -->
           <div class="text-center mb-8">
             <div class="text-6xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent" id="score">0</div>
-            <p class="text-gray-400 mt-2">Overall Score</p>
+            <p class="text-gray-400 mt-2">Overall Percentage</p>
+            <div class="mt-4 text-lg text-gray-300">
+              <span id="overallScore" class="font-semibold text-white">0</span> / <span id="maxScore" class="font-semibold text-white">24</span> points
+            </div>
           </div>
 
-          <!-- Recommendations -->
+          <!-- Evaluation Criteria -->
+          <div class="mb-8">
+            <h4 class="text-xl font-bold mb-4">Evaluation Criteria</h4>
+            <div id="evaluationCriteria" class="space-y-3">
+              <!-- Evaluation criteria will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Detailed Rubric Toggle -->
+          <div class="mb-8">
+            <button 
+              id="toggleRubricButton"
+              onclick="StudentPortal.toggleRubricDetails()"
+              class="w-full bg-[#1a1a1d] border border-[#27272a] hover:border-cyan-500/50 rounded-lg p-3 text-gray-300 hover:text-white transition-all flex items-center justify-center">
+              <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              Show Rubric Details
+            </button>
+          </div>
+
+          <!-- Detailed Rubric Section (hidden by default) -->
+          <div id="rubricDetailsSection" class="mb-8 hidden">
+            <h4 class="text-xl font-bold mb-4">Complete Rubric</h4>
+            <div class="bg-[#1a1a1d] border border-[#27272a] rounded-lg p-4 overflow-x-auto">
+              <div id="detailedRubric" class="min-w-full">
+                <!-- Detailed rubric table will be inserted here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback Section -->
           <div>
-            <h4 class="text-xl font-bold mb-4">Recommendations</h4>
-            <div id="recommendations" class="space-y-4">
-              <!-- Recommendations will be inserted here -->
+            <h4 class="text-xl font-bold mb-4">Feedback & Recommendations</h4>
+            <div id="feedbackList" class="space-y-3">
+              <!-- Feedback items will be inserted here -->
             </div>
           </div>
         </div>

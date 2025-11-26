@@ -222,7 +222,7 @@
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Project</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">AI Score</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">AI Score %</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Final Score</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
@@ -322,22 +322,114 @@
         </button>
       </div>
 
+      <!-- Loading Section -->
+      <div id="loadingSection" class="mt-8 hidden">
+        <div class="bg-[#232326] border border-[#27272a] rounded-xl p-8 shadow-lg">
+          <div class="flex flex-col items-center justify-center py-12">
+            <!-- Animated Spinner -->
+            <div class="relative w-20 h-20 mb-6">
+              <div class="absolute inset-0 border-4 border-[#27272a] rounded-full"></div>
+              <div class="absolute inset-0 border-4 border-transparent border-t-green-400 border-r-green-400 rounded-full animate-spin"></div>
+            </div>
+            
+            <!-- Loading Text -->
+            <h3 class="text-2xl font-bold mb-2 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              Evaluating Your Project
+            </h3>
+            <p class="text-gray-400 mb-6">This may take a few moments...</p>
+            
+            <!-- Progress Steps -->
+            <div class="w-full max-w-md space-y-3">
+              <div class="flex items-center space-x-3">
+                <div id="step1" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step1Text" class="text-sm text-gray-400">Uploading project files...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step2" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step2Text" class="text-sm text-gray-400">Analyzing code structure...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step3" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step3Text" class="text-sm text-gray-400">Evaluating quality metrics...</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div id="step4" class="flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <span id="step4Text" class="text-sm text-gray-400">Generating feedback...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Results Section -->
       <div id="results" class="mt-8 hidden">
         <div class="bg-[#232326] border border-[#27272a] rounded-xl p-8 shadow-lg">
           <h3 class="text-2xl font-bold mb-8">🎯 Evaluation Results</h3>
 
           <!-- Score Display -->
-          <div class="text-center mb-8 p-8 bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/20 rounded-lg">
+          <div class="text-center mb-8">
             <div class="text-6xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent" id="score">0</div>
-            <p class="text-gray-400 mt-2">Overall Score</p>
+            <p class="text-gray-400 mt-2">Overall Percentage</p>
+            <div class="mt-4 text-lg text-gray-300">
+              <span id="overallScore" class="font-semibold text-white">0</span> / <span id="maxScore" class="font-semibold text-white">24</span> points
+            </div>
           </div>
 
-          <!-- Recommendations -->
+          <!-- Evaluation Criteria -->
+          <div class="mb-8">
+            <h4 class="text-xl font-bold mb-4">Evaluation Criteria</h4>
+            <div id="evaluationCriteria" class="space-y-3">
+              <!-- Evaluation criteria will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Detailed Rubric Toggle -->
+          <div class="mb-8">
+            <button 
+              id="toggleRubricButton"
+              onclick="ProfessorPortal.toggleRubricDetails()"
+              class="w-full bg-[#1a1a1d] border border-[#27272a] hover:border-cyan-500/50 rounded-lg p-3 text-gray-300 hover:text-white transition-all flex items-center justify-center">
+              <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              Show Rubric Details
+            </button>
+          </div>
+
+          <!-- Detailed Rubric Section (hidden by default) -->
+          <div id="rubricDetailsSection" class="mb-8 hidden">
+            <h4 class="text-xl font-bold mb-4">Complete Rubric</h4>
+            <div class="bg-[#1a1a1d] border border-[#27272a] rounded-lg p-4 overflow-x-auto">
+              <div id="detailedRubric" class="min-w-full">
+                <!-- Detailed rubric table will be inserted here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback Section -->
           <div>
-            <h4 class="text-xl font-bold mb-4">💡 Recommendations</h4>
-            <div id="recommendations" class="space-y-3">
-              <!-- Recommendations will be inserted here -->
+            <h4 class="text-xl font-bold mb-4">Feedback & Recommendations</h4>
+            <div id="feedbackList" class="space-y-3">
+              <!-- Feedback items will be inserted here -->
             </div>
           </div>
         </div>
@@ -398,11 +490,14 @@
           <div id="submissionDetails" class="space-y-4">
             <!-- AI Evaluation Section -->
             <div class="mb-6 p-4 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-lg">
-              <h4 class="font-semibold text-lg mb-3 text-blue-300">🤖 AI Evaluation</h4>
+              <h4 class="font-semibold text-lg mb-3 text-blue-300">🤖 AI Evaluation (24 points)</h4>
               <div class="space-y-3">
                 <div>
                   <span class="font-medium text-gray-300">AI Score:</span>
                   <span id="ai-score" class="ml-2 text-lg font-bold text-blue-400">-</span>
+                </div>
+                <div id="ai-evaluation-details" class="hidden">
+                  <!-- Detailed evaluation criteria will be inserted here -->
                 </div>
                 <div>
                   <span class="font-medium block mb-1 text-gray-300">AI Feedback:</span>
@@ -413,14 +508,213 @@
           </div>
 
           <form id="reviewForm" class="mt-6 space-y-4">
-            <div>
-              <label class="block mb-2 font-medium">Your Feedback</label>
-              <textarea id="professorFeedback" class="w-full p-3 bg-[#1a1a1d] border border-[#27272a] rounded-lg text-gray-100 placeholder-gray-500 focus:border-green-500/50 focus:outline-none transition-colors" rows="4" placeholder="Provide your feedback..." required></textarea>
+            <!-- Adjust AI Score Section -->
+            <div class="p-4 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-lg">
+              <h4 class="font-semibold text-lg mb-4 text-blue-300">✏️ Adjust AI Score (24 points total)</h4>
+              <div>
+                <label class="block mb-2 font-medium text-gray-300">
+                  Adjusted AI Score
+                </label>
+                <input 
+                  type="number" 
+                  id="adjustedAiScore" 
+                  class="w-full p-3 bg-[#1a1a1d] border border-[#27272a] rounded-lg text-gray-100 placeholder-gray-500 focus:border-blue-500/50 focus:outline-none transition-colors" 
+                  min="0" 
+                  max="24" 
+                  step="0.1"
+                  placeholder="Enter adjusted AI score (0-24)..." 
+                  required>
+                <p class="mt-2 text-xs text-gray-400">Original AI score is shown above. You can adjust it if needed.</p>
+              </div>
             </div>
-            <div>
-              <label class="block mb-2 font-medium">Final Score (0-100)</label>
-              <input type="number" id="finalScore" class="w-full p-3 bg-[#1a1a1d] border border-[#27272a] rounded-lg text-gray-100 placeholder-gray-500 focus:border-green-500/50 focus:outline-none transition-colors" min="0" max="100" placeholder="Enter score..." required>
+
+            <!-- Human Evaluation Criteria Section -->
+            <div class="p-6 bg-gradient-to-br from-green-900/25 via-emerald-900/20 to-green-900/25 border border-green-500/30 rounded-xl shadow-lg shadow-green-500/10 backdrop-blur-sm">
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-green-500/20 rounded-lg">
+                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-xl text-green-300">Human Evaluation</h4>
+                    <p class="text-sm text-gray-400">Total: 12 points</p>
+                  </div>
+                </div>
+                <button onclick="openRubricModal()" class="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg transition-colors border border-green-500/30 hover:border-green-400">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span class="text-sm font-medium">View Rubric</span>
+                </button>
+              </div>
+              
+              <div class="space-y-5">
+                <!-- Innovation & Creativity -->
+                <div class="bg-[#1a1a1d]/60 border border-green-500/20 rounded-lg p-4 hover:border-green-500/40 transition-all">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 bg-green-500/20 rounded-md">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <label class="block font-semibold text-gray-200 text-base">Innovation & Creativity</label>
+                        <p class="text-xs text-gray-400 mt-0.5">4 points maximum</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xs text-gray-400 mb-1">Score</div>
+                      <div class="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          id="innovationScore" 
+                          class="w-20 p-2.5 bg-[#232326] border-2 border-green-400/30 rounded-lg text-center text-white font-semibold placeholder-gray-500 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:outline-none transition-all hover:border-green-400/50" 
+                          min="0" 
+                          max="4" 
+                          step="1"
+                          placeholder="0" 
+                          required>
+                        <span class="text-gray-400 font-medium">/ 4</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-3" id="innovationButtons">
+                    <button type="button" onclick="selectScoreButton('innovationScore', 4, this)" data-score="4" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Excellent</button>
+                    <button type="button" onclick="selectScoreButton('innovationScore', 3, this)" data-score="3" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Good</button>
+                    <button type="button" onclick="selectScoreButton('innovationScore', 2, this)" data-score="2" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Satisfactory</button>
+                    <button type="button" onclick="selectScoreButton('innovationScore', 1, this)" data-score="1" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Needs Improvement</button>
+                  </div>
+                </div>
+
+                <!-- Team Collaboration -->
+                <div class="bg-[#1a1a1d]/60 border border-green-500/20 rounded-lg p-4 hover:border-green-500/40 transition-all">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 bg-green-500/20 rounded-md">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <label class="block font-semibold text-gray-200 text-base">Team Collaboration</label>
+                        <p class="text-xs text-gray-400 mt-0.5">4 points maximum</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xs text-gray-400 mb-1">Score</div>
+                      <div class="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          id="collaborationScore" 
+                          class="w-20 p-2.5 bg-[#232326] border-2 border-green-400/30 rounded-lg text-center text-white font-semibold placeholder-gray-500 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:outline-none transition-all hover:border-green-400/50" 
+                          min="0" 
+                          max="4" 
+                          step="1"
+                          placeholder="0" 
+                          required>
+                        <span class="text-gray-400 font-medium">/ 4</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-3" id="collaborationButtons">
+                    <button type="button" onclick="selectScoreButton('collaborationScore', 4, this)" data-score="4" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Excellent</button>
+                    <button type="button" onclick="selectScoreButton('collaborationScore', 3, this)" data-score="3" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Good</button>
+                    <button type="button" onclick="selectScoreButton('collaborationScore', 2, this)" data-score="2" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Satisfactory</button>
+                    <button type="button" onclick="selectScoreButton('collaborationScore', 1, this)" data-score="1" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Needs Improvement</button>
+                  </div>
+                </div>
+
+                <!-- Presentation and Demonstration -->
+                <div class="bg-[#1a1a1d]/60 border border-green-500/20 rounded-lg p-4 hover:border-green-500/40 transition-all">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 bg-green-500/20 rounded-md">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <label class="block font-semibold text-gray-200 text-base">Presentation & Demonstration</label>
+                        <p class="text-xs text-gray-400 mt-0.5">4 points maximum</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xs text-gray-400 mb-1">Score</div>
+                      <div class="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          id="presentationScore" 
+                          class="w-20 p-2.5 bg-[#232326] border-2 border-green-400/30 rounded-lg text-center text-white font-semibold placeholder-gray-500 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:outline-none transition-all hover:border-green-400/50" 
+                          min="0" 
+                          max="4" 
+                          step="1"
+                          placeholder="0" 
+                          required>
+                        <span class="text-gray-400 font-medium">/ 4</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-3" id="presentationButtons">
+                    <button type="button" onclick="selectScoreButton('presentationScore', 4, this)" data-score="4" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Excellent</button>
+                    <button type="button" onclick="selectScoreButton('presentationScore', 3, this)" data-score="3" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Good</button>
+                    <button type="button" onclick="selectScoreButton('presentationScore', 2, this)" data-score="2" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Satisfactory</button>
+                    <button type="button" onclick="selectScoreButton('presentationScore', 1, this)" data-score="1" class="score-btn px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-md transition-colors border border-blue-500/30">Needs Improvement</button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Total Score Display -->
+              <div class="mt-6 pt-5 border-t border-green-500/30">
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg border border-green-500/30">
+                  <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span class="font-semibold text-gray-200 text-lg">Total Human Score</span>
+                  </div>
+                  <div class="flex items-baseline gap-2">
+                    <span id="totalHumanScore" class="text-3xl font-bold text-green-400">0</span>
+                    <span class="text-lg text-gray-400 font-medium">/ 12</span>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <!-- Final Score Display -->
+            <div class="p-4 bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/20 rounded-lg">
+              <h4 class="font-semibold text-lg mb-3 text-cyan-300">📊 Final Score Calculation</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-300">AI Score:</span>
+                  <span id="displayAiScore" class="font-medium text-blue-400">0</span>
+                  <span class="text-gray-400">/ 24</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-300">Human Score:</span>
+                  <span id="displayHumanScore" class="font-medium text-green-400">0</span>
+                  <span class="text-gray-400">/ 12</span>
+                </div>
+                <div class="pt-2 border-t border-cyan-500/20 flex justify-between items-center">
+                  <span class="font-semibold text-gray-200">Total Score:</span>
+                  <span id="displayTotalScore" class="text-xl font-bold text-cyan-400">0</span>
+                  <span class="text-gray-400">/ 36</span>
+                </div>
+                <div class="pt-2 flex justify-between items-center">
+                  <span class="font-semibold text-gray-200">Percentage:</span>
+                  <span id="displayPercentage" class="text-xl font-bold text-cyan-400">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Feedback -->
+            <div>
+              <label class="block mb-2 font-medium">Additional Feedback</label>
+              <textarea id="professorFeedback" class="w-full p-3 bg-[#1a1a1d] border border-[#27272a] rounded-lg text-gray-100 placeholder-gray-500 focus:border-green-500/50 focus:outline-none transition-colors" rows="4" placeholder="Provide your feedback..."></textarea>
+            </div>
+
             <div class="flex gap-4 pt-4">
               <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
                 Save Review
@@ -559,6 +853,208 @@
         </form>
       </div>
     </div>
+
+    <!-- Rubric/Criteria Modal -->
+    <div id="rubricModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+      <div class="bg-[#232326] border border-[#27272a] rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-[#27272a] sticky top-0 bg-[#232326]">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-green-300">📋 Human Evaluation Rubric</h3>
+            <button onclick="closeRubricModal()" class="text-gray-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr class="bg-[#1a1a1d] border-b-2 border-green-500/30">
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider border-r border-[#27272a]">Criteria</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-green-400 border-r border-[#27272a]">Excellent (4)</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-blue-400 border-r border-[#27272a]">Good (3)</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-yellow-400 border-r border-[#27272a]">Satisfactory (2)</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-orange-400">Needs Improvement (1)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#27272a]">
+                <!-- Innovation & Creativity -->
+                <tr class="hover:bg-[#1a1a1d]/50 transition-colors">
+                  <td class="px-4 py-4 font-semibold text-gray-200 border-r border-[#27272a] align-top">
+                    Innovation & Creativity
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    System demonstrates a high level of innovation and creativity, with unique features or approaches.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    System shows some creativity and includes interesting features or approaches.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    System meets requirements but lacks innovation or creative elements.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300">
+                    System lacks originality or is mostly a standard implementation with minimal effort.
+                  </td>
+                </tr>
+                
+                <!-- Team Collaboration -->
+                <tr class="hover:bg-[#1a1a1d]/50 transition-colors">
+                  <td class="px-4 py-4 font-semibold text-gray-200 border-r border-[#27272a] align-top">
+                    Team Collaboration
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Team worked effectively, with clear communication and equal contributions from all members.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Team worked together well, but contributions were uneven at times.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Team collaboration had issues, with noticeable gaps in contribution or communication.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300">
+                    Poor collaboration, with one or more members not contributing adequately.
+                  </td>
+                </tr>
+                
+                <!-- Presentation and Demonstration -->
+                <tr class="hover:bg-[#1a1a1d]/50 transition-colors">
+                  <td class="px-4 py-4 font-semibold text-gray-200 border-r border-[#27272a] align-top">
+                    Presentation & Demonstration
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Presentation is clear, engaging, and covers all aspects of the project. Demonstration is smooth and professional.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Presentation is clear and covers most aspects, with minor issues in delivery or demonstration.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300 border-r border-[#27272a]">
+                    Presentation covers the basics but is disorganized or lacks clarity.
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-300">
+                    Presentation is confusing or incomplete, with a poor demonstration of the project.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-6 p-4 bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/20 rounded-lg">
+            <p class="text-sm text-gray-300">
+              <span class="font-semibold text-green-400">Note:</span> Each criterion is worth 4 points, for a total of 12 points in the Human Evaluation section.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <script>
+    // Function to handle score button selection
+    function selectScoreButton(inputId, value, buttonElement) {
+      // Set the input value
+      const input = document.getElementById(inputId);
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      
+      // Get the parent container (button group)
+      const buttonGroup = buttonElement.parentElement;
+      
+      // Remove selected class from all buttons in this group
+      const buttons = buttonGroup.querySelectorAll('.score-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-white', 'border-cyan-400', 'shadow-lg', 'shadow-cyan-500/20');
+        btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30');
+      });
+      
+      // Add selected class to clicked button
+      buttonElement.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30');
+      buttonElement.classList.add('bg-cyan-500', 'text-white', 'border-cyan-400', 'shadow-lg', 'shadow-cyan-500/20');
+    }
+    
+    // Update button states when input values change manually
+    function updateButtonStates(inputId) {
+      const input = document.getElementById(inputId);
+      const value = parseInt(input.value);
+      if (isNaN(value)) return;
+      
+      // Find the corresponding button group
+      let buttonGroup;
+      if (inputId === 'innovationScore') {
+        buttonGroup = document.getElementById('innovationButtons');
+      } else if (inputId === 'collaborationScore') {
+        buttonGroup = document.getElementById('collaborationButtons');
+      } else if (inputId === 'presentationScore') {
+        buttonGroup = document.getElementById('presentationButtons');
+      }
+      
+      if (!buttonGroup) return;
+      
+      // Remove selected state from all buttons
+      const buttons = buttonGroup.querySelectorAll('.score-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-white', 'border-cyan-400', 'shadow-lg', 'shadow-cyan-500/20');
+        btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30');
+      });
+      
+      // Find and select the button matching the value
+      buttons.forEach(btn => {
+        const btnValue = parseInt(btn.getAttribute('data-score'));
+        if (btnValue === value) {
+          btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30');
+          btn.classList.add('bg-cyan-500', 'text-white', 'border-cyan-400', 'shadow-lg', 'shadow-cyan-500/20');
+        }
+      });
+    }
+    
+    // Add event listeners to inputs to sync button states
+    document.addEventListener('DOMContentLoaded', function() {
+      ['innovationScore', 'collaborationScore', 'presentationScore'].forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.addEventListener('input', () => updateButtonStates(inputId));
+          input.addEventListener('change', () => updateButtonStates(inputId));
+        }
+      });
+    });
+    
+    // Rubric Modal Functions
+    function openRubricModal() {
+      const modal = document.getElementById('rubricModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      }
+    }
+    
+    function closeRubricModal() {
+      const modal = document.getElementById('rubricModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+      }
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('DOMContentLoaded', function() {
+      const rubricModal = document.getElementById('rubricModal');
+      if (rubricModal) {
+        rubricModal.addEventListener('click', function(e) {
+          if (e.target === rubricModal) {
+            closeRubricModal();
+          }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !rubricModal.classList.contains('hidden')) {
+            closeRubricModal();
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
