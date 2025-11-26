@@ -76,29 +76,26 @@ class StudentPortal {
       const originalText = UIUtils.setLoading(submitButton, true, CONFIG.UI.LOAD_STATES.EVALUATING);
 
       const data = await api.evaluateProject(formData);
-      const { feedback, score } = data.results;
+      const { overall_score, max_score, percentage, evaluation, feedback } = data; 
 
       // Show results section
       document.getElementById('results').classList.remove('hidden');
 
-      // // Update score
-      console.log(data.results);
-      document.getElementById('score').textContent = data.results;
+      // Update overall score display
+      document.getElementById('score').textContent = percentage;
+      document.getElementById('overallScore').textContent = overall_score;
+      document.getElementById('maxScore').textContent = max_score;
 
-      // // Update recommendations
-      // const recommendations = document.getElementById('recommendations');
-      // recommendations.innerHTML = '';
+      // Display evaluation criteria
+      this.displayEvaluationCriteria(evaluation);
 
-      // // Split feedback into lines and display as recommendations
-      // const feedbackLines = feedback.split('\n').filter(line => line.trim());
-      // feedbackLines.forEach(line => {
-      //   if (line.trim()) {
-      //     const div = document.createElement('div');
-      //     div.className = 'p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg text-blue-200';
-      //     div.textContent = line.trim();
-      //     recommendations.appendChild(div);
-      //   }
-      // });
+      // Display detailed rubric
+      this.displayDetailedRubric(evaluation);
+
+      // Display feedback
+      this.displayFeedback(feedback);
+
+      console.log(data);
 
       UIUtils.scrollToResults();
 
@@ -341,6 +338,242 @@ class StudentPortal {
       const submitButton = document.getElementById('submitAssessmentBtn');
       UIUtils.setLoading(submitButton, false, 'Submit Assessment');
     }
+  }
+
+  static displayEvaluationCriteria(evaluation) {
+    const container = document.getElementById('evaluationCriteria');
+    if (!container || !evaluation) return;
+
+    // Map of criteria keys to display names
+    const criteriaLabels = {
+      'system_design_architecture': 'System Design & Architecture',
+      'functionality_features': 'Functionality & Features',
+      'code_quality_efficiency': 'Code Quality & Efficiency',
+      'usability_user_interface': 'Usability & User Interface',
+      'testing_debugging': 'Testing & Debugging',
+      'documentation': 'Documentation'
+    };
+
+    container.innerHTML = '';
+
+    Object.entries(evaluation).forEach(([key, score]) => {
+      const label = criteriaLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const percentage = (score / 4) * 100;
+      
+      // Determine color based on score
+      let colorClass = 'from-red-500 to-red-600';
+      if (score >= 3) {
+        colorClass = 'from-green-500 to-green-600';
+      } else if (score >= 2) {
+        colorClass = 'from-yellow-500 to-yellow-600';
+      }
+
+      const criterionDiv = document.createElement('div');
+      criterionDiv.className = 'bg-[#1a1a1d] border border-[#27272a] rounded-lg p-4';
+      
+      criterionDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <h5 class="font-semibold text-white">${label}</h5>
+          <span class="text-lg font-bold bg-gradient-to-r ${colorClass} bg-clip-text text-transparent">${score}/4</span>
+        </div>
+        <div class="w-full bg-[#27272a] rounded-full h-2.5">
+          <div class="bg-gradient-to-r ${colorClass} h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+        </div>
+      `;
+
+      container.appendChild(criterionDiv);
+    });
+  }
+
+  static displayDetailedRubric(evaluation) {
+    const container = document.getElementById('detailedRubric');
+    if (!container || !evaluation) return;
+
+    // Rubric data with all criteria and their descriptions
+    const rubricData = {
+      'system_design_architecture': {
+        label: 'System Design & Architecture',
+        levels: {
+          4: 'System design is innovative and well-organized, with clear and efficient architecture that meets all requirements.',
+          3: 'System design is organized, with architecture meeting most requirements.',
+          2: 'Basic design and architecture are present but could be more organized.',
+          1: 'Limited or poorly organized design does not meet requirements.'
+        }
+      },
+      'functionality_features': {
+        label: 'Functionality & Features',
+        levels: {
+          4: 'All features function correctly, and the system meets or exceeds all specified requirements.',
+          3: 'Most features function correctly, meeting major requirements.',
+          2: 'Some features work, but there are issues or missing functionality.',
+          1: 'The system fails to meet most requirements; many features do not work as expected.'
+        }
+      },
+      'code_quality_efficiency': {
+        label: 'Code Quality & Efficiency',
+        levels: {
+          4: 'Code is clean, efficient, and follows best practices with excellent readability and documentation.',
+          3: 'Code is mostly clean, with minor issues in efficiency or readability.',
+          2: 'Code has readability or efficiency issues, with minimal adherence to best practices.',
+          1: 'Code is unorganized, inefficient, and difficult to understand.'
+        }
+      },
+      'usability_user_interface': {
+        label: 'Usability & User Interface',
+        levels: {
+          4: 'UI is highly intuitive, visually appealing, and accessible. User experience is well thought out.',
+          3: 'UI is functional and user-friendly, but with minor design or accessibility issues.',
+          2: 'UI is somewhat functional, but lacks intuitiveness and accessibility considerations.',
+          1: 'UI is difficult to use, with poor design and accessibility issues.'
+        }
+      },
+      'testing_debugging': {
+        label: 'Testing & Debugging',
+        levels: {
+          4: 'Comprehensive testing with evidence of unit, integration, and system testing. No known bugs.',
+          3: 'Testing covers most major functionalities, with few bugs present.',
+          2: 'Minimal testing conducted, some major functionalities remain untested or have bugs.',
+          1: 'Little or no testing done; the system has significant bugs.'
+        }
+      },
+      'documentation': {
+        label: 'Documentation',
+        levels: {
+          4: 'Documentation is thorough, well-organized, and easy to follow, including design docs, user guides, and comments.',
+          3: 'Documentation is complete, but may lack some clarity or detail in parts.',
+          2: 'Basic documentation is present but lacks organization or thoroughness.',
+          1: 'Little to no documentation provided, making the system difficult to understand.'
+        }
+      }
+    };
+
+    const levelLabels = {
+      4: { label: 'Excellent', color: 'text-green-400' },
+      3: { label: 'Good', color: 'text-blue-400' },
+      2: { label: 'Satisfactory', color: 'text-yellow-400' },
+      1: { label: 'Needs Improvement', color: 'text-red-400' }
+    };
+
+    // Create the rubric table
+    const table = document.createElement('table');
+    table.className = 'w-full border-collapse text-sm';
+
+    // Create header row
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr class="bg-[#1a1a1d] border-b-2 border-[#27272a]">
+        <th class="text-left py-3 px-4 font-semibold text-white sticky left-0 bg-[#1a1a1d] z-10">Criteria</th>
+        <th class="text-center py-3 px-4 font-semibold text-green-400 min-w-[120px]">Excellent<br><span class="text-xs text-gray-400">(4)</span></th>
+        <th class="text-center py-3 px-4 font-semibold text-blue-400 min-w-[120px]">Good<br><span class="text-xs text-gray-400">(3)</span></th>
+        <th class="text-center py-3 px-4 font-semibold text-yellow-400 min-w-[120px]">Satisfactory<br><span class="text-xs text-gray-400">(2)</span></th>
+        <th class="text-center py-3 px-4 font-semibold text-red-400 min-w-[120px]">Needs Improvement<br><span class="text-xs text-gray-400">(1)</span></th>
+      </tr>
+    `;
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+
+    Object.entries(evaluation).forEach(([key, score]) => {
+      const criterion = rubricData[key];
+      if (!criterion) return;
+
+      const row = document.createElement('tr');
+      row.className = 'border-b border-[#27272a] hover:bg-[#1a1a1d]/50 transition-colors';
+
+      // Criteria name cell
+      const criteriaCell = document.createElement('td');
+      criteriaCell.className = 'py-3 px-4 font-medium text-white sticky left-0 bg-[#232326] z-10';
+      criteriaCell.textContent = criterion.label;
+      row.appendChild(criteriaCell);
+
+      // Create cells for each performance level (4, 3, 2, 1)
+      [4, 3, 2, 1].forEach(level => {
+        const cell = document.createElement('td');
+        cell.className = 'py-3 px-4 text-gray-300 align-top';
+        
+        const isHighlighted = score === level;
+        
+        if (isHighlighted) {
+          // Highlight the cell that matches the student's score
+          let highlightClass = 'bg-red-500/20 border-2 border-red-500';
+          if (level === 4) highlightClass = 'bg-green-500/20 border-2 border-green-500';
+          else if (level === 3) highlightClass = 'bg-blue-500/20 border-2 border-blue-500';
+          else if (level === 2) highlightClass = 'bg-yellow-500/20 border-2 border-yellow-500';
+          
+          cell.className += ` ${highlightClass} rounded-lg`;
+        }
+
+        const levelInfo = levelLabels[level];
+        cell.innerHTML = `
+          <div class="text-center mb-2">
+            <span class="font-semibold ${levelInfo.color}">${levelInfo.label}</span>
+          </div>
+          <div class="text-xs text-gray-400 leading-relaxed">
+            ${criterion.levels[level]}
+          </div>
+        `;
+
+        row.appendChild(cell);
+      });
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    
+    // Clear container and add table
+    container.innerHTML = '';
+    container.appendChild(table);
+  }
+
+  static toggleRubricDetails() {
+    const detailsSection = document.getElementById('rubricDetailsSection');
+    const toggleButton = document.getElementById('toggleRubricButton');
+    
+    if (detailsSection.classList.contains('hidden')) {
+      detailsSection.classList.remove('hidden');
+      toggleButton.innerHTML = `
+        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+        </svg>
+        Hide Rubric Details
+      `;
+    } else {
+      detailsSection.classList.add('hidden');
+      toggleButton.innerHTML = `
+        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+        Show Rubric Details
+      `;
+    }
+  }
+
+  static displayFeedback(feedback) {
+    const container = document.getElementById('feedbackList');
+    if (!container || !feedback || !Array.isArray(feedback)) return;
+
+    container.innerHTML = '';
+
+    if (feedback.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 italic">No specific feedback provided.</p>';
+      return;
+    }
+
+    feedback.forEach((item, index) => {
+      const feedbackItem = document.createElement('div');
+      feedbackItem.className = 'bg-[#1a1a1d] border border-[#27272a] rounded-lg p-4 flex items-start space-x-3';
+      
+      feedbackItem.innerHTML = `
+        <div class="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+          ${index + 1}
+        </div>
+        <p class="text-gray-300 flex-1">${item}</p>
+      `;
+
+      container.appendChild(feedbackItem);
+    });
   }
 }
 
