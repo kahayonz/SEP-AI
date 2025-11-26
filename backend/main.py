@@ -7,10 +7,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from app.auth import get_current_user
-from app.routes_ai import router as ai_router
-from app.routes import router as main_router
-from app.database import supabase, admin_client
+from backend.app.auth import get_current_user
+from backend.app.routes_ai import router as ai_router
+from backend.app.routes import router as main_router
+from backend.app.database import supabase, admin_client
 
 
 load_dotenv()
