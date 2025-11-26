@@ -23,12 +23,7 @@ app.include_router(main_router, prefix="/api", tags=["Main"])
 # Add CORS middleware - restrict to allowed domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Local dev
-        "http://localhost:5500",  # Local dev
-        "https://sep-ai-bice.vercel.app",  # Production frontend
-        "https://sep-ai.onrender.com",  # Render hosted frontend
-    ],
+    allow_origins=["*"],  # Allow all origins for now to resolve login issue
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
