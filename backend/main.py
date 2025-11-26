@@ -27,6 +27,7 @@ app.add_middleware(
         "http://localhost:3000",  # Local dev
         "http://localhost:5500",  # Local dev
         "https://sep-ai-bice.vercel.app",  # Production frontend
+        "https://sep-ai.onrender.com",  # Render hosted frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
