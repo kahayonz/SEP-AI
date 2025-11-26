@@ -1,8 +1,8 @@
-# handles upload and evaluation endpoint 
+# handles upload and evaluation endpoint
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 import tempfile, zipfile, os, shutil
-from app.ai_evaluator import evaluate_project
-from app.auth import get_current_user
+from backend.app.ai_evaluator import evaluate_project
+from backend.app.auth import get_current_user
 
 router = APIRouter()
 
