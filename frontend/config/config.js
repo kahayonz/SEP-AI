@@ -5,8 +5,8 @@ function getApiBase() {
     return 'http://localhost:8000';
   } else {
     // For production - use deployed Render backend URL
-    // return 'https://sep-ai.onrender.com';
-    return 'http://localhost:8000';
+    return 'https://sep-ai.onrender.com';
+    // return 'http://localhost:8000';
   }
 }
 
