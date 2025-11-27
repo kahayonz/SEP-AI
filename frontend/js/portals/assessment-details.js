@@ -27,6 +27,17 @@ class AssessmentDetails {
         if (editForm) {
             editForm.addEventListener('submit', (e) => this.updateAssessment(e));
         }
+
+        // Add event listeners for score calculation
+        document.addEventListener('DOMContentLoaded', () => {
+            ['innovationScore', 'collaborationScore', 'presentationScore', 'adjustedAiScore'].forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', () => this.updateFinalScore());
+                    input.addEventListener('change', () => this.updateFinalScore());
+                }
+            });
+        });
     }
 
     static async loadAssessmentDetails() {
@@ -144,7 +155,7 @@ class AssessmentDetails {
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusDisplay}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score !== null ? Math.round((submission.ai_score / 24) * 100) + '%' : 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score ?? '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button onclick="AssessmentDetails.reviewSubmission('${submission.id}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
@@ -183,13 +194,14 @@ class AssessmentDetails {
 
         // Fetch full submission details to get ai_evaluation_data
         const token = UIUtils.getToken();
+        let fullSubmission = submission;
         try {
             const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${submissionId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
-                const fullSubmission = await response.json();
+                fullSubmission = await response.json();
                 this.displayAIEvaluation(fullSubmission.ai_evaluation_data || null, fullSubmission);
             } else {
                 // Fallback to basic display if fetch fails
@@ -202,8 +214,43 @@ class AssessmentDetails {
         }
 
         // Populate form with existing data
-        document.getElementById('professorFeedback').value = submission.professor_feedback || '';
-        document.getElementById('finalScore').value = submission.final_score || '';
+        document.getElementById('professorFeedback').value = fullSubmission.professor_feedback || '';
+        
+        // Load adjusted AI score if it exists, otherwise use original AI score
+        const adjustedAiScoreInput = document.getElementById('adjustedAiScore');
+        if (adjustedAiScoreInput) {
+            if (fullSubmission.adjusted_ai_score !== undefined && fullSubmission.adjusted_ai_score !== null) {
+                adjustedAiScoreInput.value = fullSubmission.adjusted_ai_score;
+            } else if (fullSubmission.ai_evaluation_data && fullSubmission.ai_evaluation_data.overall_score !== undefined) {
+                adjustedAiScoreInput.value = fullSubmission.ai_evaluation_data.overall_score;
+            } else if (fullSubmission.ai_score !== null && fullSubmission.ai_score !== undefined) {
+                // Convert percentage to points (assuming ai_score is stored as percentage)
+                adjustedAiScoreInput.value = (fullSubmission.ai_score / 100) * 24;
+            }
+        }
+        
+        // Load human evaluation scores if they exist
+        if (fullSubmission.human_evaluation) {
+            const innovationInput = document.getElementById('innovationScore');
+            const collaborationInput = document.getElementById('collaborationScore');
+            const presentationInput = document.getElementById('presentationScore');
+            
+            if (innovationInput && fullSubmission.human_evaluation.innovation_score !== undefined) {
+                innovationInput.value = fullSubmission.human_evaluation.innovation_score;
+                innovationInput.dispatchEvent(new Event('input')); // Trigger button state update
+            }
+            if (collaborationInput && fullSubmission.human_evaluation.collaboration_score !== undefined) {
+                collaborationInput.value = fullSubmission.human_evaluation.collaboration_score;
+                collaborationInput.dispatchEvent(new Event('input')); // Trigger button state update
+            }
+            if (presentationInput && fullSubmission.human_evaluation.presentation_score !== undefined) {
+                presentationInput.value = fullSubmission.human_evaluation.presentation_score;
+                presentationInput.dispatchEvent(new Event('input')); // Trigger button state update
+            }
+        }
+        
+        // Initialize final score calculation
+        this.updateFinalScore();
 
         // Show modal
         document.getElementById('reviewSubmissionModal').classList.remove('hidden');
@@ -213,6 +260,17 @@ class AssessmentDetails {
         const aiScoreEl = document.getElementById('ai-score');
         const aiFeedbackEl = document.getElementById('ai-feedback');
         const aiEvaluationDetailsEl = document.getElementById('ai-evaluation-details');
+        const adjustedAiScoreInput = document.getElementById('adjustedAiScore');
+
+        // Criteria names mapping
+        const criteriaNames = {
+            system_design_architecture: 'System Design & Architecture',
+            functionality_features: 'Functionality & Features',
+            code_quality_efficiency: 'Code Quality & Efficiency',
+            usability_user_interface: 'Usability & User Interface',
+            testing_debugging: 'Testing & Debugging',
+            documentation: 'Documentation'
+        };
 
         if (aiEvaluationData && aiEvaluationData.overall_score !== undefined) {
             // Display detailed evaluation
@@ -222,17 +280,14 @@ class AssessmentDetails {
 
             aiScoreEl.textContent = `${percentage.toFixed(1)}% (${overallScore}/${maxScore})`;
 
+            // Set adjusted AI score input to original AI score if not already set
+            if (adjustedAiScoreInput && (!adjustedAiScoreInput.value || adjustedAiScoreInput.value === '')) {
+                adjustedAiScoreInput.value = overallScore;
+            }
+
             // Display evaluation criteria if available
             if (aiEvaluationDetailsEl && aiEvaluationData.evaluation) {
                 const evalData = aiEvaluationData.evaluation;
-                const criteriaNames = {
-                    system_design_architecture: 'System Design & Architecture',
-                    functionality_features: 'Functionality & Features',
-                    code_quality_efficiency: 'Code Quality & Efficiency',
-                    usability_user_interface: 'Usability & User Interface',
-                    testing_debugging: 'Testing & Debugging',
-                    documentation: 'Documentation'
-                };
 
                 let criteriaHTML = '<div class="mt-3 space-y-2">';
                 criteriaHTML += '<h5 class="font-semibold text-sm text-gray-300 mb-2">Evaluation Criteria:</h5>';
@@ -256,43 +311,155 @@ class AssessmentDetails {
             }
         } else {
             // Fallback to basic display
-            aiScoreEl.textContent = submission.ai_score || 'N/A';
+            const aiScoreValue = submission.ai_score || 0;
+            aiScoreEl.textContent = submission.ai_score !== null && submission.ai_score !== undefined 
+                ? `${aiScoreValue}%` 
+                : 'N/A';
             aiFeedbackEl.textContent = submission.ai_feedback || 'No feedback provided';
             if (aiEvaluationDetailsEl) {
                 aiEvaluationDetailsEl.classList.add('hidden');
             }
+            
+            // Set adjusted AI score if available
+            if (adjustedAiScoreInput && submission.ai_score !== null && submission.ai_score !== undefined) {
+                // Convert percentage to points (assuming ai_score is stored as percentage)
+                adjustedAiScoreInput.value = (submission.ai_score / 100) * 24;
+            }
         }
+    }
+
+    static updateFinalScore() {
+        // Get adjusted AI score
+        const adjustedAiScoreInput = document.getElementById('adjustedAiScore');
+        const totalAiScore = parseFloat(adjustedAiScoreInput?.value) || 0;
+        
+        // Calculate human score total
+        const innovationScore = parseFloat(document.getElementById('innovationScore')?.value) || 0;
+        const collaborationScore = parseFloat(document.getElementById('collaborationScore')?.value) || 0;
+        const presentationScore = parseFloat(document.getElementById('presentationScore')?.value) || 0;
+        const totalHumanScore = innovationScore + collaborationScore + presentationScore;
+        
+        // Update human score display
+        const totalHumanScoreEl = document.getElementById('totalHumanScore');
+        if (totalHumanScoreEl) {
+            totalHumanScoreEl.textContent = totalHumanScore;
+        }
+        
+        // Calculate total score
+        const totalScore = totalAiScore + totalHumanScore;
+        const percentage = (totalScore / 36) * 100;
+        
+        // Update final score displays
+        const displayAiScoreEl = document.getElementById('displayAiScore');
+        const displayHumanScoreEl = document.getElementById('displayHumanScore');
+        const displayTotalScoreEl = document.getElementById('displayTotalScore');
+        const displayPercentageEl = document.getElementById('displayPercentage');
+        
+        if (displayAiScoreEl) displayAiScoreEl.textContent = totalAiScore.toFixed(1);
+        if (displayHumanScoreEl) displayHumanScoreEl.textContent = totalHumanScore;
+        if (displayTotalScoreEl) displayTotalScoreEl.textContent = totalScore.toFixed(1);
+        if (displayPercentageEl) displayPercentageEl.textContent = percentage.toFixed(1) + '%';
     }
 
     static closeReviewModal() {
         document.getElementById('reviewSubmissionModal').classList.add('hidden');
         document.getElementById('reviewForm').reset();
+        
+        // Reset button states for all score buttons
+        ['innovationButtons', 'collaborationButtons', 'presentationButtons'].forEach(buttonGroupId => {
+            const buttonGroup = document.getElementById(buttonGroupId);
+            if (buttonGroup) {
+                const buttons = buttonGroup.querySelectorAll('.score-btn');
+                buttons.forEach(btn => {
+                    btn.classList.remove('bg-cyan-500', 'text-white', 'border-cyan-400', 'shadow-lg', 'shadow-cyan-500/20');
+                    btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30');
+                });
+            }
+        });
+        
+        // Reset score displays
+        const totalHumanScoreEl = document.getElementById('totalHumanScore');
+        const displayAiScoreEl = document.getElementById('displayAiScore');
+        const displayHumanScoreEl = document.getElementById('displayHumanScore');
+        const displayTotalScoreEl = document.getElementById('displayTotalScore');
+        const displayPercentageEl = document.getElementById('displayPercentage');
+        if (totalHumanScoreEl) totalHumanScoreEl.textContent = '0';
+        if (displayAiScoreEl) displayAiScoreEl.textContent = '0';
+        if (displayHumanScoreEl) displayHumanScoreEl.textContent = '0';
+        if (displayTotalScoreEl) displayTotalScoreEl.textContent = '0';
+        if (displayPercentageEl) displayPercentageEl.textContent = '0%';
+        
         this.currentSubmissionId = null;
     }
 
     static async saveReview(event) {
         event.preventDefault();
 
-        const feedback = document.getElementById('professorFeedback').value.trim();
-        const score = parseFloat(document.getElementById('finalScore').value);
-
-        if (isNaN(score) || score < 0 || score > 100) {
-            UIUtils.showError('Please enter a valid score between 0 and 100');
+        const feedback = document.getElementById('professorFeedback')?.value || '';
+        
+        // Get adjusted AI score with validation
+        const adjustedAiScoreInput = document.getElementById('adjustedAiScore');
+        const adjustedAiScore = adjustedAiScoreInput ? parseFloat(adjustedAiScoreInput.value) : null;
+        
+        if (adjustedAiScore === null || isNaN(adjustedAiScore) || adjustedAiScore < 0 || adjustedAiScore > 24) {
+            UIUtils.showError('Please enter a valid AI score between 0 and 24');
             return;
         }
+        
+        // Collect human evaluation scores with validation
+        const innovationInput = document.getElementById('innovationScore');
+        const collaborationInput = document.getElementById('collaborationScore');
+        const presentationInput = document.getElementById('presentationScore');
+        
+        const innovationScore = innovationInput ? parseFloat(innovationInput.value) : null;
+        const collaborationScore = collaborationInput ? parseFloat(collaborationInput.value) : null;
+        const presentationScore = presentationInput ? parseFloat(presentationInput.value) : null;
+        
+        // Validate human evaluation scores
+        const humanScores = [
+            { name: 'Innovation & Creativity', value: innovationScore, input: innovationInput },
+            { name: 'Team Collaboration', value: collaborationScore, input: collaborationInput },
+            { name: 'Presentation & Demonstration', value: presentationScore, input: presentationInput }
+        ];
+        
+        for (const score of humanScores) {
+            if (score.value === null || isNaN(score.value)) {
+                UIUtils.showError(`Please enter a score for ${score.name}`);
+                score.input?.focus();
+                return;
+            }
+            if (score.value < 0 || score.value > 4) {
+                UIUtils.showError(`${score.name} score must be between 0 and 4`);
+                score.input?.focus();
+                return;
+            }
+        }
+        
+        // Calculate final score
+        const totalHumanScore = innovationScore + collaborationScore + presentationScore;
+        const totalScore = adjustedAiScore + totalHumanScore;
+        const percentage = Math.round((totalScore / 36) * 100 * 100) / 100; // Round to 2 decimal places
 
         const token = UIUtils.getToken();
         try {
+            const requestBody = {
+                professor_feedback: feedback,
+                final_score: percentage, // Store as percentage (0-100)
+                adjusted_ai_score: adjustedAiScore,
+                human_evaluation: {
+                    innovation_score: innovationScore,
+                    collaboration_score: collaborationScore,
+                    presentation_score: presentationScore
+                }
+            };
+
             const response = await fetch(`${CONFIG.API_BASE}/api/submissions/${this.currentSubmissionId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    professor_feedback: feedback,
-                    final_score: score
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (response.ok) {
@@ -302,12 +469,12 @@ class AssessmentDetails {
                 await this.loadSubmissions(this.currentAssessmentId);
                 this.updateStatistics();
             } else {
-                const error = await response.json();
-                UIUtils.showError(`Error: ${error.detail}`);
+                const errorData = await response.json().catch(() => ({ detail: 'Failed to update submission' }));
+                UIUtils.showError(`Error: ${errorData.detail || 'Failed to save review'}`);
             }
         } catch (error) {
             console.error('Error saving review:', error);
-            UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR);
+            UIUtils.showError(CONFIG.UI.MESSAGES.NETWORK_ERROR || 'Network error. Please try again.');
         }
     }
 
@@ -414,7 +581,7 @@ class AssessmentDetails {
         }
     }
 
-    static editAssessment() {
+    static openEditAssessmentModal() {
         const token = UIUtils.getToken();
 
         try {
@@ -428,7 +595,16 @@ class AssessmentDetails {
                         // Populate the edit form
                         document.getElementById('editAssessmentTitle').value = assessment.title;
                         document.getElementById('editAssessmentDescription').value = assessment.instructions;
-                        document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+                        
+                        // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
+                        const deadlineDate = new Date(assessment.deadline);
+                        const year = deadlineDate.getFullYear();
+                        const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(deadlineDate.getDate()).padStart(2, '0');
+                        const hours = String(deadlineDate.getHours()).padStart(2, '0');
+                        const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
+                        const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        document.getElementById('editAssessmentDueDate').value = localDateTime;
 
                         const modal = document.getElementById('editAssessmentModal');
                         modal.classList.remove('hidden');

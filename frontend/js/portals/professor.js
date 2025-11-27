@@ -795,7 +795,16 @@ static async editAssessment(assessmentId) {
       // Populate the edit form
       document.getElementById('editAssessmentTitle').value = assessment.title;
       document.getElementById('editAssessmentDescription').value = assessment.instructions;
-      document.getElementById('editAssessmentDueDate').value = new Date(assessment.deadline).toISOString().slice(0, 16);
+      
+      // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
+      const deadlineDate = new Date(assessment.deadline);
+      const year = deadlineDate.getFullYear();
+      const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+      const day = String(deadlineDate.getDate()).padStart(2, '0');
+      const hours = String(deadlineDate.getHours()).padStart(2, '0');
+      const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
+      const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+      document.getElementById('editAssessmentDueDate').value = localDateTime;
 
       currentAssessmentId = assessmentId;
       const modal = document.getElementById('editAssessmentModal');
@@ -1121,7 +1130,7 @@ static async editAssessment(assessmentId) {
         <td class="px-6 py-4 whitespace-nowrap">
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${statusText}</span>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score !== null ? ((submission.ai_score / 24) * 100).toFixed(1) + '%' : 'N/A'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.ai_score !== null ? Math.round((submission.ai_score / 24) * 100) + '%' : 'N/A'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${submission.final_score || '-'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
           <button onclick="ProfessorPortal.reviewSubmission('${submission.id}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">${submission.final_score ? 'Edit Review' : 'Review'}</button>
