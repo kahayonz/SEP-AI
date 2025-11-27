@@ -159,7 +159,36 @@ class StudentPortal {
       }
 
       const data = await api.evaluateProject(formData);
-      const { overall_score, max_score, percentage, evaluation, feedback } = data; 
+      
+      // Guardrail for invalid or null data - use placeholder values if missing
+      const defaultEvaluation = {
+        'system_design_architecture': 0,
+        'functionality_features': 0,
+        'code_quality_efficiency': 0,
+        'usability_user_interface': 0,
+        'testing_debugging': 0,
+        'documentation': 0
+      };
+
+      const overall_score = (data && typeof data.overall_score === 'number' && !isNaN(data.overall_score)) 
+        ? data.overall_score 
+        : 0;
+      
+      const max_score = (data && typeof data.max_score === 'number' && !isNaN(data.max_score)) 
+        ? data.max_score 
+        : 24;
+      
+      const percentage = (data && typeof data.percentage === 'number' && !isNaN(data.percentage)) 
+        ? data.percentage 
+        : 0;
+      
+      const evaluation = (data && data.evaluation && typeof data.evaluation === 'object' && !Array.isArray(data.evaluation)) 
+        ? data.evaluation 
+        : defaultEvaluation;
+      
+      const feedback = (data && Array.isArray(data.feedback)) 
+        ? data.feedback 
+        : ['No feedback available at this time.']; 
 
       // Hide loading UI
       this.hideLoadingUI();
