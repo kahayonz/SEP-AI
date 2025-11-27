@@ -797,31 +797,30 @@ static async editAssessment(assessmentId) {
       document.getElementById('editAssessmentDescription').value = assessment.instructions;
       
       // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
-      // Parse the deadline string and ensure it's treated as local time
-      let deadlineDate;
+      // Handle timezone properly - ensure the date is displayed in local time exactly as stored
       try {
-        // If the deadline string doesn't contain timezone info, treat it as local time
-        if (assessment.deadline.includes('T') && !assessment.deadline.includes('Z') && !assessment.deadline.includes('+')) {
-          // Assume it's already in local time format from datetime-local input
-          deadlineDate = new Date(assessment.deadline);
+        // Parse the deadline string - datetime-local values are already in local time format
+        // We need to ensure we don't double-convert timezones
+        let deadlineStr = assessment.deadline;
+
+        // If the string has timezone info, convert it to local time
+        if (deadlineStr.includes('Z') || deadlineStr.includes('+') || deadlineStr.includes('-')) {
+          const utcDate = new Date(deadlineStr);
+          // Convert UTC to local time for display
+          const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+          deadlineStr = localDate.toISOString().slice(0, 16);
         } else {
-          // Parse as UTC and convert to local
-          deadlineDate = new Date(assessment.deadline);
+          // Assume it's already in local time format, just ensure proper format
+          const date = new Date(deadlineStr + (deadlineStr.includes('T') ? '' : 'T00:00'));
+          deadlineStr = date.toISOString().slice(0, 16);
         }
 
-        // Ensure we get local time components
-        const year = deadlineDate.getFullYear();
-        const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-        const day = String(deadlineDate.getDate()).padStart(2, '0');
-        const hours = String(deadlineDate.getHours()).padStart(2, '0');
-        const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
-        const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-        document.getElementById('editAssessmentDueDate').value = localDateTime;
+        document.getElementById('editAssessmentDueDate').value = deadlineStr;
       } catch (error) {
         console.error('Error parsing deadline:', assessment.deadline, error);
-        // Fallback: try to set a default date
+        // Fallback: current date/time
         const now = new Date();
-        const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const defaultDate = now.toISOString().slice(0, 16);
         document.getElementById('editAssessmentDueDate').value = defaultDate;
       }
 
