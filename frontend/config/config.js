@@ -6,7 +6,6 @@ function getApiBase() {
   } else {
     // For production - use deployed Render backend URL
     return 'https://sep-ai.onrender.com';
-    // return 'http://localhost:8000';
   }
 }
 
