@@ -339,7 +339,7 @@ class StudentPortal {
       statusHtml += `<p class="text-sm text-gray-400">Status: ${submission.status}</p>`;
 
       if (submission.ai_score) {
-        statusHtml += `<p class="text-sm text-gray-400">AI Score: ${submission.ai_score}</p>`;
+        statusHtml += `<p class="text-sm text-gray-400">AI Score: ${Math.round(submission.ai_score / 24 * 100)}%</p>`;
       }
 
       if (submission.final_score) {
@@ -411,11 +411,13 @@ class StudentPortal {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Show loading state
-      const submitButton = document.getElementById('submitAssessmentBtn');
-      const originalText = UIUtils.setLoading(submitButton, true, CONFIG.UI.LOAD_STATES.SUBMITTING);
+      // Show loading UI
+      this.showSubmissionLoading();
 
       await api.submitAssessment(currentAssessmentId, formData);
+
+      // Hide loading UI
+      this.hideSubmissionLoading();
 
       UIUtils.showSuccess('Assessment submitted successfully!');
       this.closeAssessmentModal();
@@ -423,11 +425,90 @@ class StudentPortal {
 
     } catch (error) {
       console.error('Error submitting assessment:', error);
+      // Hide loading UI on error
+      this.hideSubmissionLoading();
       UIUtils.showError(error.message || CONFIG.UI.MESSAGES.NETWORK_ERROR);
-    } finally {
-      const submitButton = document.getElementById('submitAssessmentBtn');
-      UIUtils.setLoading(submitButton, false, 'Submit Assessment');
     }
+  }
+
+  static showSubmissionLoading() {
+    // Hide submit button and show loading overlay
+    const submitButton = document.getElementById('submitAssessmentBtn');
+    const loadingOverlay = document.getElementById('assessmentSubmissionLoading');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      if (submitBtnText) submitBtnText.textContent = 'Submitting...';
+      if (submitBtnSpinner) submitBtnSpinner.classList.remove('hidden');
+    }
+
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('hidden');
+      loadingOverlay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Reset and animate progress steps
+    this.resetSubmissionProgressSteps();
+    this.animateSubmissionProgressSteps();
+  }
+
+  static hideSubmissionLoading() {
+    // Hide loading overlay
+    const loadingOverlay = document.getElementById('assessmentSubmissionLoading');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+
+    // Reset button state
+    const submitButton = document.getElementById('submitAssessmentBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+
+    if (submitButton) {
+      submitButton.disabled = false;
+      if (submitBtnText) submitBtnText.textContent = 'Submit Assessment';
+      if (submitBtnSpinner) submitBtnSpinner.classList.add('hidden');
+    }
+  }
+
+  static resetSubmissionProgressSteps() {
+    for (let i = 1; i <= 3; i++) {
+      const step = document.getElementById(`submitStep${i}`);
+      const stepText = document.getElementById(`submitStep${i}Text`);
+      if (step) {
+        step.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center';
+        step.innerHTML = '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      }
+      if (stepText) {
+        stepText.className = 'text-sm text-gray-400';
+      }
+    }
+  }
+
+  static animateSubmissionProgressSteps() {
+    const steps = [
+      { id: 1, delay: 300, text: 'Uploading file...' },
+      { id: 2, delay: 1500, text: 'Processing submission...' },
+      { id: 3, delay: 2500, text: 'Finalizing...' }
+    ];
+
+    steps.forEach((step) => {
+      setTimeout(() => {
+        const stepEl = document.getElementById(`submitStep${step.id}`);
+        const stepTextEl = document.getElementById(`submitStep${step.id}Text`);
+        
+        if (stepEl) {
+          stepEl.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center animate-pulse';
+          stepEl.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        }
+        
+        if (stepTextEl) {
+          stepTextEl.className = 'text-sm text-green-400 font-medium';
+        }
+      }, step.delay);
+    });
   }
 
   static displayEvaluationCriteria(evaluation) {
