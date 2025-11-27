@@ -859,12 +859,15 @@ static async editAssessment(assessmentId) {
 
     const title = document.getElementById('editAssessmentTitle').value.trim();
     const instructions = document.getElementById('editAssessmentDescription').value.trim();
-    const deadline = document.getElementById('editAssessmentDueDate').value;
+    const dueDate = document.getElementById('editAssessmentDueDate').value;
 
-    if (!title || !instructions || !deadline) {
+    if (!title || !instructions || !dueDate) {
       UIUtils.showError('Please fill in all fields');
       return;
     }
+
+    // Convert local time to Manila timezone (UTC+8)
+    const deadline = dueDate ? dueDate + ':00+08:00' : null;
 
     const token = UIUtils.getToken();
     try {
@@ -956,6 +959,9 @@ static async editAssessment(assessmentId) {
       return;
     }
 
+    // Convert local time to Manila timezone (UTC+8)
+    const deadline = dueDate ? dueDate + ':00+08:00' : null;
+
     const token = UIUtils.getToken();
     try {
       const response = await fetch(`${CONFIG.API_BASE}/api/assessments`, {
@@ -968,7 +974,7 @@ static async editAssessment(assessmentId) {
           class_id: classId,
           title: title,
           instructions: instructions,
-          deadline: dueDate
+          deadline: deadline
         })
       });
 

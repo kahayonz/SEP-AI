@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "Software Engineering Evaluation with AI",
   "scripts": {
-    "dev": "cd backend && python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
-    "backend": "cd backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000",
+    "dev": "concurrently \"python3 -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000\" \"live-server frontend --port=5500\"",
+    "backend": "python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000",
     "build": "echo 'No build step needed for this project'",
-    "start": "cd backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000"
+    "start": "python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.17",
     "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "live-server": "^1.2.2"
   }
 }
