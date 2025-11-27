@@ -22,14 +22,17 @@ from dotenv import load_dotenv
 # Import LLM evaluation function from routes_ai
 # We need to import it carefully to avoid circular imports
 # Load environment variables first
+# In production (Render), environment variables are set directly, so we only load .env files if they exist
+# and don't override existing environment variables
 backend_env = Path(__file__).parent.parent / ".env"
 root_env = Path(__file__).parent.parent.parent / ".env"
 if root_env.exists():
-    load_dotenv(dotenv_path=root_env, override=True)
+    load_dotenv(dotenv_path=root_env, override=False)
 elif backend_env.exists():
-    load_dotenv(dotenv_path=backend_env, override=True)
+    load_dotenv(dotenv_path=backend_env, override=False)
 else:
-    load_dotenv(override=True)
+    # Only load if .env exists in current directory, don't override existing env vars
+    load_dotenv(override=False)
 
 # Import the LLM evaluation function
 from backend.app.routes_ai import llm_evaluate

@@ -17,22 +17,21 @@ from backend.app.database import admin_client
 # routes_ai.py is at backend/app/routes_ai.py, so:
 # - parent.parent = backend/
 # - parent.parent.parent = project root
+# In production (Render), environment variables are set directly, so we only load .env files if they exist
+# and don't override existing environment variables
 backend_env = Path(__file__).parent.parent / ".env"
 root_env = Path(__file__).parent.parent.parent / ".env"
 
-# Try to load from root first (where .env actually is), then backend, then fallback
-# Use override=True to ensure we get the latest values
-env_loaded = False
+# Only load .env files if they exist (for local development)
+# Don't override existing environment variables (important for production)
 if root_env.exists():
-    load_dotenv(dotenv_path=root_env, override=True)
-    env_loaded = True
+    load_dotenv(dotenv_path=root_env, override=False)
 elif backend_env.exists():
-    load_dotenv(dotenv_path=backend_env, override=True)
-    env_loaded = True
+    load_dotenv(dotenv_path=backend_env, override=False)
 else:
-    # Fallback to default behavior (current working directory)
-    load_dotenv(override=True)
-    env_loaded = True
+    # Only try to load from current directory if no .env file found
+    # Use override=False to preserve existing environment variables
+    load_dotenv(override=False)
 
 # Add ai directory to path to import evaluate_comment_quality
 ai_dir = Path(__file__).parent.parent / "ai"
@@ -57,8 +56,8 @@ async def ai_evaluate(
             f.write(await file.read())
 
         # Evaluate project with comment quality evaluation
-        comment_quality_result_all = evaluate_comment_quality(zip_path).model_dump()
-        comment_quality_score = comment_quality_result_all["overall_score"]["score"]
+        # comment_quality_result_all = evaluate_comment_quality(zip_path).model_dump()
+        # comment_quality_score = comment_quality_result_all["overall_score"]["score"]
 
         # Run LLM evaluation (optional - can fail without breaking the response)
         try:
@@ -91,17 +90,44 @@ async def ai_evaluate(
 # LLM Evaluation
 async def llm_evaluate(zip_path: str):
     try:
-        # Check if API key is loaded
+        # Check if API key is loaded from environment variables
+        # In production (Render), this should come from environment variables set in the dashboard
         api_key = os.getenv('OPENROUTER_API_KEY')
-        if not api_key or api_key == "your-api-key-here":
-            # Debug: Check which .env file was loaded
+        
+        # Debug: Log environment variable status (without exposing the key)
+        if api_key:
+            api_key_preview = f"{api_key[:10]}..." if len(api_key) > 10 else "***"
+            print(f"OPENROUTER_API_KEY found (length: {len(api_key)}, preview: {api_key_preview})")
+        else:
+            print("OPENROUTER_API_KEY not found in environment variables")
+            # Check if it's set but empty or placeholder
+            api_key_raw = os.environ.get('OPENROUTER_API_KEY', '')
+            if api_key_raw == "your-api-key-here" or api_key_raw == "":
+                print(f"OPENROUTER_API_KEY is set but is placeholder or empty: '{api_key_raw}'")
+        
+        if not api_key or api_key == "your-api-key-here" or api_key.strip() == "":
+            # Provide helpful error message for both local and production
             backend_env = Path(__file__).parent.parent / ".env"
             root_env = Path(__file__).parent.parent.parent / ".env"
             env_location = "root" if root_env.exists() else ("backend" if backend_env.exists() else "not found")
-            raise HTTPException(
-                status_code=500, 
-                detail=f"OPENROUTER_API_KEY not found or is placeholder. .env file location: {env_location}. Please check your .env file in the project root."
-            )
+            
+            # Check if we're in production (Render sets RENDER env var)
+            is_production = os.getenv('RENDER') is not None or os.getenv('RENDER_SERVICE_ID') is not None
+            
+            if is_production:
+                error_msg = (
+                    "OPENROUTER_API_KEY not found in environment variables. "
+                    "Please ensure it is set in Render dashboard under Environment Variables. "
+                    "The variable name must be exactly 'OPENROUTER_API_KEY'."
+                )
+            else:
+                error_msg = (
+                    f"OPENROUTER_API_KEY not found or is placeholder. "
+                    f".env file location: {env_location}. "
+                    f"Please check your .env file in the project root or set it as an environment variable."
+                )
+            
+            raise HTTPException(status_code=500, detail=error_msg)
         
         # Check ZIP file size and decide on approach
         # Model limit is ~2M tokens. Base64 encoding increases size by ~33%, and roughly 4 chars = 1 token
