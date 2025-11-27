@@ -6,7 +6,7 @@ from .auth import get_current_user
 from .database import admin_client, supabase
 from .ai_evaluator import evaluate_project
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import zipfile
 import shutil
@@ -18,6 +18,27 @@ from pathlib import Path
 from .zip_extractor import extract_developer_files
 import requests
 from dotenv import load_dotenv
+
+# Manila timezone (UTC+8)
+MANILA_TZ = timezone(timedelta(hours=8))
+
+def parse_manila_datetime(datetime_str: str) -> datetime:
+    """Parse Manila timezone datetime string and convert to UTC for storage"""
+    if datetime_str.endswith('+08:00'):
+        # Parse as Manila time and convert to UTC
+        manila_time = datetime.fromisoformat(datetime_str[:-6])  # Remove +08:00
+        manila_time = manila_time.replace(tzinfo=MANILA_TZ)
+        return manila_time.astimezone(timezone.utc)
+    else:
+        # Fallback for existing data - assume it's already UTC
+        return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+
+def format_manila_datetime(utc_datetime: datetime) -> str:
+    """Convert UTC datetime back to Manila time for display"""
+    if utc_datetime.tzinfo is None:
+        utc_datetime = utc_datetime.replace(tzinfo=timezone.utc)
+    manila_time = utc_datetime.astimezone(MANILA_TZ)
+    return manila_time.isoformat()
 
 # Import LLM evaluation function from routes_ai
 # We need to import it carefully to avoid circular imports
@@ -392,16 +413,23 @@ async def create_assessment(assessment_data: AssessmentCreate, current_user=Depe
         if not class_check.data:
             raise HTTPException(status_code=403, detail="Not authorized to create assessments for this class")
 
+        # Convert Manila time to UTC for storage
+        deadline_utc = parse_manila_datetime(assessment_data.deadline)
+
         assessment_id = str(uuid.uuid4())
         response = admin_client.table("assessments").insert({
             "id": assessment_id,
             "class_id": assessment_data.class_id,
             "title": assessment_data.title,
             "instructions": assessment_data.instructions,
-            "deadline": assessment_data.deadline
+            "deadline": deadline_utc.isoformat()
         }).execute()
 
-        return AssessmentResponse(**response.data[0])
+        # Convert back to Manila time for response
+        assessment_data = response.data[0]
+        assessment_data['deadline'] = format_manila_datetime(datetime.fromisoformat(assessment_data['deadline']))
+
+        return AssessmentResponse(**assessment_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -419,9 +447,11 @@ async def get_professor_assessments(current_user=Depends(get_current_user)):
         # Get assessments for these classes
         response = admin_client.table("assessments").select("*").in_("class_id", class_ids).execute()
 
-
         assessments = []
         for assessment in response.data:
+            # Convert UTC deadline back to Manila time for display
+            utc_deadline = datetime.fromisoformat(assessment['deadline'].replace('Z', '+00:00'))
+            assessment['deadline'] = format_manila_datetime(utc_deadline)
             assessment['class_name'] = class_map.get(assessment['class_id'], 'Unknown')
             assessments.append(AssessmentResponse(**assessment))
 
@@ -447,14 +477,21 @@ async def update_assessment(assessment_id: str, assessment_data: dict, current_u
         if "instructions" in assessment_data:
             update_data["instructions"] = assessment_data["instructions"]
         if "deadline" in assessment_data:
-            update_data["deadline"] = assessment_data["deadline"]
+            # Convert Manila time to UTC for storage
+            deadline_utc = parse_manila_datetime(assessment_data["deadline"])
+            update_data["deadline"] = deadline_utc.isoformat()
 
         if not update_data:
             raise HTTPException(status_code=400, detail="No valid fields provided for update")
 
         response = admin_client.table("assessments").update(update_data).eq("id", assessment_id).execute()
 
-        return {"message": "Assessment updated successfully", "assessment": response.data[0]}
+        # Convert back to Manila time for response
+        assessment = response.data[0]
+        utc_deadline = datetime.fromisoformat(assessment['deadline'].replace('Z', '+00:00'))
+        assessment['deadline'] = format_manila_datetime(utc_deadline)
+
+        return {"message": "Assessment updated successfully", "assessment": assessment}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -471,13 +508,17 @@ async def get_assessment_details(assessment_id: str, current_user=Depends(get_cu
 
         assessment = assessment_response.data[0]
 
+        # Convert UTC deadline back to Manila time for display
+        utc_deadline = datetime.fromisoformat(assessment['deadline'].replace('Z', '+00:00'))
+        deadline_manila = format_manila_datetime(utc_deadline)
+
         return {
             "id": assessment["id"],
             "class_id": assessment["class_id"],
             "class_name": assessment["classes"]["name"],
             "title": assessment["title"],
             "instructions": assessment["instructions"],
-            "deadline": assessment["deadline"],
+            "deadline": deadline_manila,
             "created_at": assessment["created_at"]
         }
     except Exception as e:

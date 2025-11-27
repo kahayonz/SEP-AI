@@ -797,27 +797,38 @@ static async editAssessment(assessmentId) {
       document.getElementById('editAssessmentDescription').value = assessment.instructions;
       
       // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
-      // Handle timezone properly - ensure the date is displayed in local time exactly as stored
+      // Handle Manila timezone (+08:00) properly for datetime-local input
       try {
-        let deadlineDate;
+        let deadlineStr;
 
-        // Parse the deadline string - if it has timezone info, convert to local time
-        if (assessment.deadline.includes('Z') || assessment.deadline.includes('+') || assessment.deadline.includes('-')) {
-          // Convert from UTC/offset to local time
+        // Parse Manila time (+08:00) and extract local time part for datetime-local input
+        if (assessment.deadline.includes('+08:00')) {
+          // Extract the local time part before the timezone offset
+          deadlineStr = assessment.deadline.replace('+08:00', '');
+        } else if (assessment.deadline.includes('Z')) {
+          // Convert UTC to Manila time for display
           const utcDate = new Date(assessment.deadline);
-          deadlineDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+          const manilaTime = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000)); // Add 8 hours
+          const year = manilaTime.getFullYear();
+          const month = String(manilaTime.getMonth() + 1).padStart(2, '0');
+          const day = String(manilaTime.getDate()).padStart(2, '0');
+          const hours = String(manilaTime.getHours()).padStart(2, '0');
+          const minutes = String(manilaTime.getMinutes()).padStart(2, '0');
+          deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
         } else {
-          // Assume it's already in local time format
-          deadlineDate = new Date(assessment.deadline);
+          // Fallback: try to parse as-is and extract local time
+          const date = new Date(assessment.deadline);
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+          } else {
+            throw new Error('Invalid date format');
+          }
         }
-
-        // Format as YYYY-MM-DDTHH:mm for datetime-local input
-        const year = deadlineDate.getFullYear();
-        const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-        const day = String(deadlineDate.getDate()).padStart(2, '0');
-        const hours = String(deadlineDate.getHours()).padStart(2, '0');
-        const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
-        const deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
 
         document.getElementById('editAssessmentDueDate').value = deadlineStr;
       } catch (error) {
