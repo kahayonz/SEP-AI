@@ -597,14 +597,41 @@ class AssessmentDetails {
                         document.getElementById('editAssessmentDescription').value = assessment.instructions;
                         
                         // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
-                        const deadlineDate = new Date(assessment.deadline);
-                        const year = deadlineDate.getFullYear();
-                        const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-                        const day = String(deadlineDate.getDate()).padStart(2, '0');
-                        const hours = String(deadlineDate.getHours()).padStart(2, '0');
-                        const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
-                        const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-                        document.getElementById('editAssessmentDueDate').value = localDateTime;
+                        // Handle timezone properly - ensure the date is displayed in local time exactly as stored
+                        try {
+                            let deadlineDate;
+
+                            // Parse the deadline string - if it has timezone info, convert to local time
+                            if (assessment.deadline.includes('Z') || assessment.deadline.includes('+') || assessment.deadline.includes('-')) {
+                                // Convert from UTC/offset to local time
+                                const utcDate = new Date(assessment.deadline);
+                                deadlineDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+                            } else {
+                                // Assume it's already in local time format
+                                deadlineDate = new Date(assessment.deadline);
+                            }
+
+                            // Format as YYYY-MM-DDTHH:mm for datetime-local input
+                            const year = deadlineDate.getFullYear();
+                            const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(deadlineDate.getDate()).padStart(2, '0');
+                            const hours = String(deadlineDate.getHours()).padStart(2, '0');
+                            const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
+                            const deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+                            document.getElementById('editAssessmentDueDate').value = deadlineStr;
+                        } catch (error) {
+                            console.error('Error parsing deadline:', assessment.deadline, error);
+                            // Fallback: current date/time
+                            const now = new Date();
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth() + 1).padStart(2, '0');
+                            const day = String(now.getDate()).padStart(2, '0');
+                            const hours = String(now.getHours()).padStart(2, '0');
+                            const minutes = String(now.getMinutes()).padStart(2, '0');
+                            const defaultDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            document.getElementById('editAssessmentDueDate').value = defaultDate;
+                        }
 
                         const modal = document.getElementById('editAssessmentModal');
                         modal.classList.remove('hidden');

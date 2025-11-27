@@ -797,14 +797,52 @@ static async editAssessment(assessmentId) {
       document.getElementById('editAssessmentDescription').value = assessment.instructions;
       
       // Convert deadline to local datetime-local format (YYYY-MM-DDTHH:mm)
-      const deadlineDate = new Date(assessment.deadline);
-      const year = deadlineDate.getFullYear();
-      const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-      const day = String(deadlineDate.getDate()).padStart(2, '0');
-      const hours = String(deadlineDate.getHours()).padStart(2, '0');
-      const minutes = String(deadlineDate.getMinutes()).padStart(2, '0');
-      const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-      document.getElementById('editAssessmentDueDate').value = localDateTime;
+      // Handle Manila timezone (+08:00) properly for datetime-local input
+      try {
+        let deadlineStr;
+
+        // Parse Manila time (+08:00) and extract local time part for datetime-local input
+        if (assessment.deadline.includes('+08:00')) {
+          // Extract the local time part before the timezone offset
+          deadlineStr = assessment.deadline.replace('+08:00', '');
+        } else if (assessment.deadline.includes('Z')) {
+          // Convert UTC to Manila time for display
+          const utcDate = new Date(assessment.deadline);
+          const manilaTime = new Date(utcDate.getTime() + (8 * 60 * 60 * 1000)); // Add 8 hours
+          const year = manilaTime.getFullYear();
+          const month = String(manilaTime.getMonth() + 1).padStart(2, '0');
+          const day = String(manilaTime.getDate()).padStart(2, '0');
+          const hours = String(manilaTime.getHours()).padStart(2, '0');
+          const minutes = String(manilaTime.getMinutes()).padStart(2, '0');
+          deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else {
+          // Fallback: try to parse as-is and extract local time
+          const date = new Date(assessment.deadline);
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            deadlineStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+          } else {
+            throw new Error('Invalid date format');
+          }
+        }
+
+        document.getElementById('editAssessmentDueDate').value = deadlineStr;
+      } catch (error) {
+        console.error('Error parsing deadline:', assessment.deadline, error);
+        // Fallback: current date/time
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const defaultDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById('editAssessmentDueDate').value = defaultDate;
+      }
 
       currentAssessmentId = assessmentId;
       const modal = document.getElementById('editAssessmentModal');
@@ -832,12 +870,15 @@ static async editAssessment(assessmentId) {
 
     const title = document.getElementById('editAssessmentTitle').value.trim();
     const instructions = document.getElementById('editAssessmentDescription').value.trim();
-    const deadline = document.getElementById('editAssessmentDueDate').value;
+    const dueDate = document.getElementById('editAssessmentDueDate').value;
 
-    if (!title || !instructions || !deadline) {
+    if (!title || !instructions || !dueDate) {
       UIUtils.showError('Please fill in all fields');
       return;
     }
+
+    // Convert local time to Manila timezone (UTC+8)
+    const deadline = dueDate ? dueDate + ':00+08:00' : null;
 
     const token = UIUtils.getToken();
     try {
@@ -929,6 +970,9 @@ static async editAssessment(assessmentId) {
       return;
     }
 
+    // Convert local time to Manila timezone (UTC+8)
+    const deadline = dueDate ? dueDate + ':00+08:00' : null;
+
     const token = UIUtils.getToken();
     try {
       const response = await fetch(`${CONFIG.API_BASE}/api/assessments`, {
@@ -941,7 +985,7 @@ static async editAssessment(assessmentId) {
           class_id: classId,
           title: title,
           instructions: instructions,
-          deadline: dueDate
+          deadline: deadline
         })
       });
 
