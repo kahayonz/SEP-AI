@@ -71,7 +71,6 @@ async def ai_evaluate(
         # Note: /ai_evaluate is for testing only - does not store evaluation data
         # Official submissions store evaluation data automatically in the submission endpoint
 
-        # Convert Pydantic model to dict for JSON response
         return llm_result
 
     except HTTPException:
