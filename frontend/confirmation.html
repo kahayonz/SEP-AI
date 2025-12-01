@@ -48,14 +48,14 @@
       document.body.classList.add('dark');
     }
 
-    // Check URL for confirmation parameters
+    // Check URL for confirmation parameters and auth data
     function checkForConfirmation() {
       const urlParams = new URLSearchParams(window.location.search);
       const isConfirmed = urlParams.get('confirmed');
 
-      if (isConfirmed === 'true') {
-        // User just confirmed - try to extract auth data from URL fragment
-        const hash = window.location.hash.substring(1); // Remove the '#'
+      // Check for auth data in URL fragments (from email verification)
+      const hash = window.location.hash.substring(1); // Remove the '#'
+      if (hash) {
         const authParams = new URLSearchParams(hash);
 
         const accessToken = authParams.get('access_token');
@@ -76,16 +76,33 @@
             }
           }));
 
+          // Also store individual tokens for compatibility
+          localStorage.setItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+          if (refreshToken) {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+          }
+
           // Show processing state
           document.getElementById('confirmationPending').classList.add('hidden');
           document.getElementById('confirmationProcessing').classList.remove('hidden');
+
+          // Clean up URL by removing fragment
+          window.history.replaceState(null, null, window.location.pathname);
 
           // Redirect to appropriate dashboard after a short delay
           setTimeout(() => {
             const dashboardUrl = role === 'student' ? 'student.html' : 'professor.html';
             window.location.href = dashboardUrl;
           }, 1500);
+
+          return; // Exit early since we found auth data
         }
+      }
+
+      // If no auth data found but confirmed=true, show processing anyway
+      if (isConfirmed === 'true') {
+        document.getElementById('confirmationPending').classList.add('hidden');
+        document.getElementById('confirmationProcessing').classList.remove('hidden');
       }
     }
 
