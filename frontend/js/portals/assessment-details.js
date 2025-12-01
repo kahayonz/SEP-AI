@@ -570,11 +570,7 @@ class AssessmentDetails {
     static showEditButton() {
         const editButtonContainer = document.getElementById('edit-button-container');
         if (editButtonContainer) {
-            editButtonContainer.innerHTML = `
-                <button onclick="AssessmentDetails.openEditAssessmentModal()" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                    Edit Assessment
-                </button>
-            `;
+            editButtonContainer.classList.remove('hidden');
         }
     }
 
