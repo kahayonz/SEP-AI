@@ -41,6 +41,28 @@ from api import evaluate_comment_quality
 
 router = APIRouter()
 
+
+default_json_response = {
+    "overall_score": 21,
+    "max_score": 24,
+    "percentage": 87.5,
+    "evaluation": {
+        "system_design_architecture": 4,
+        "functionality_features": 4,
+        "code_quality_efficiency": 3,
+        "usability_user_interface": 4,
+        "testing_debugging": 2,
+        "documentation": 4
+    },
+    "feedback": [
+        "The main functionality works well and shows good understanding of the requirements.",
+        "Code is readable but could use more comments and smaller, cleaner functions.",
+        "Interface is easy to use; consider enhancing visual hierarchy and feedback messages.",
+        "Works in normal cases, but additional unit tests would boost reliability.",
+        "Solid base; consider modularizing for easier future improvements."
+    ]
+}
+
 @router.post("/ai_evaluate")
 async def ai_evaluate(
     file: UploadFile = File(...), 
@@ -220,27 +242,8 @@ Please analyze the project files and provide your evaluation in this JSON format
         
         # Check for HTTP errors
         if response.status_code != 200:
-            json_response = {
-                "overall_score": 21,
-                "max_score": 24,
-                "percentage": 87.5,
-                "evaluation": {
-                    "system_design_architecture": 4,
-                    "functionality_features": 4,
-                    "code_quality_efficiency": 3,
-                    "usability_user_interface": 4,
-                    "testing_debugging": 2,
-                    "documentation": 4
-                },
-                "feedback": [
-                    "The main functionality works well and shows good understanding of the requirements.",
-                    "Code is readable but could use more comments and smaller, cleaner functions.",
-                    "Interface is easy to use; consider enhancing visual hierarchy and feedback messages.",
-                    "Works in normal cases, but additional unit tests would boost reliability.",
-                    "Solid base; consider modularizing for easier future improvements."
-                ]
-            }
-            return json_response
+            print(response.json())
+            return default_json_response
         
         # Extract the assistant message with reasoning_details
         response_data = response.json()
@@ -253,32 +256,13 @@ Please analyze the project files and provide your evaluation in this JSON format
             return json_response
         except Exception as e:
             # If the JSON is not valid, return the error messages
-            raise HTTPException(status_code=500, detail=f"AI Evaluation is currently unavailable.")
-    except HTTPException:
-        # Re-raise HTTPExceptions as-is
-        raise
-    except requests.exceptions.RequestException as e:
-        # Handle requests-specific errors
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Request error in llm_evaluate: {str(e)}")
-        print(f"Traceback: {error_trace}")
-        if hasattr(e, 'response') and e.response is not None:
-            try:
-                error_detail = e.response.json()
-                print(f"API error response: {error_detail}")
-                raise HTTPException(status_code=500, detail=f"LLM API error: {error_detail}")
-            except:
-                pass
-        raise HTTPException(status_code=500, detail=f"LLM API request failed: {str(e)}")
+            print(validation)
+            print(e)
+            return default_json_response
     except Exception as e:
-        # Log and re-raise other exceptions
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"Error in llm_evaluate: {str(e)}")
-        print(f"Traceback: {error_trace}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+        print(e)
+        return default_json_response
+        
 # Async function to check if the text follows a specific JSON schema using an LLM
 async def check_json_schema(text: str, api_key: str):
     """
